@@ -1,0 +1,43 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { title, description, url, status, image, imageAlt, role, tech } = project.data;
+const initials = title
+  .replace(/[^a-zA-Z0-9 ]/g, ' ')
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((word) => word[0].toUpperCase())
+  .join('');
+---
+<article class="project">
+  <div class="project-visual">
+    {image ? (
+      <img
+        class="project-thumb"
+        src={image}
+        alt={imageAlt}
+        width="640"
+        height="360"
+        loading="lazy"
+        decoding="async"
+      />
+    ) : (
+      <span class="project-initials" aria-hidden="true">{initials}</span>
+    )}
+  </div>
+  <div class="project-body">
+    <h2 class="project-title"><a href={url}>{title}<span aria-hidden="true"> ↗</span><span class="sr-only"> (external site)</span></a></h2>
+    <p class="project-status"><span class="project-status-label">Status</span> {status}</p>
+    <p class="project-desc">{description}</p>
+    {role && <p class="project-role">{role}</p>}
+    {tech.length > 0 && (
+      <p class="project-tech"><span class="sr-only">Built with: </span>{tech.join(' · ')}</p>
+    )}
+  </div>
+</article>

@@ -1,6 +1,11 @@
 ---
+import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import PinnedRepos from '../components/PinnedRepos.astro';
+import ProjectRow from '../components/ProjectRow.astro';
+
+const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title),
+);
 ---
 <Layout title="Projects — Kaleb Cole" description="Things Kaleb Cole has made or is exploring.">
   <main id="main-content" class="site-shell projects-page">
@@ -8,6 +13,14 @@ import PinnedRepos from '../components/PinnedRepos.astro';
       <h1>Projects</h1>
       <p>Things I’ve made, maintained, or wandered into far enough to share.</p>
     </header>
-    <PinnedRepos />
+    {projects.length > 0 ? (
+      <ul class="projects">
+        {projects.map((project) => (
+          <li><ProjectRow project={project} /></li>
+        ))}
+      </ul>
+    ) : (
+      <p class="empty-state">Nothing here yet.</p>
+    )}
   </main>
 </Layout>

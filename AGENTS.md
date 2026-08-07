@@ -17,7 +17,7 @@ Inspect the current implementation before proposing changes. These documents des
 - Do not publish drafts. Content with `draft: true` must stay out of public pages and feeds.
 - Treat WCAG 2.2 AA, responsive behavior, reduced motion, and lean delivery as release requirements.
 - Use the canonical public origin `https://kalebcole.com`.
-- Never commit credentials or tokens. `GITHUB_TOKEN` is optional locally and required in production for pinned repositories.
+- Never commit credentials or tokens.
 - There are no external contributors. Do not add community contribution workflows or policies unless Kaleb asks.
 
 ## Commands
@@ -25,12 +25,23 @@ Inspect the current implementation before proposing changes. These documents des
 ```bash
 npm ci
 npm run dev
-GITHUB_TOKEN="" npm run build
-GITHUB_TOKEN="" npm run certify
+npm run build
+npm run certify
 npm run portrait
 ```
 
-A missing local `GITHUB_TOKEN` may leave pinned repositories empty. That warning is expected; build or certification failures are not.
+The build needs no environment variables. Every public surface is generated
+from the repository.
+
+## Projects
+
+`/projects` is hand-authored. Each entry is a markdown file in
+`src/content/projects/` validated by the `projects` schema in
+`src/content.config.ts`. Set `order` to control the running order, `status` to
+one of `idea`, `in progress`, `shipped`, or `archived`, and `image` plus
+`imageAlt` together — the schema rejects an image without alternative text. An
+entry without an image falls back to a typographic mark rather than breaking
+the row.
 
 ## Portrait
 
@@ -41,7 +52,7 @@ Bump the card's version suffix (`public/social/homepage-vN.png`, referenced from
 ## Before shipping
 
 1. Review the diff for unrelated changes.
-2. Run `GITHUB_TOKEN="" npm run certify`.
+2. Run `npm run certify`.
 3. Verify the changed route or generated output directly.
 4. Open a pull request with a concise explanation and real verification evidence.
 5. After merge, confirm the Vercel deployment and affected production URLs.

@@ -193,15 +193,14 @@ compositions:
 5. Restyle the already-functional Recommends page without changing its accepted
    chronology, URL filter behavior, same-tab links, feed, or visible-tag
    removal.
-6. Move the existing pinned-repository list to the simple Projects index, then
-   reconcile the shared footer, 404, RSS discovery, and remaining public-route
-   states.
+6. Build the hand-authored Projects index, then reconcile the shared footer,
+   404, RSS discovery, and remaining public-route states.
 7. Run the complete validation matrix in both modes and fix failures without
    weakening the identity.
 
-Social-preview composition, richer Projects storytelling, owner
-authentication, in-browser editing, draft storage, and Git-backed publishing
-are deliberately deferred. They are not blockers for this production redesign.
+Social-preview composition, per-project detail routes, owner authentication,
+in-browser editing, draft storage, and Git-backed publishing are deliberately
+deferred. They are not blockers for this production redesign.
 
 ## 2. Colors
 
@@ -438,12 +437,25 @@ width. The LCP image is eager and high priority. Below-fold media is lazy.
 ### Projects index
 
 - Route: `/projects`, linked from shared navigation.
-- Move the current pinned-repository material here rather than duplicating it.
+- Projects are hand-authored entries in `src/content/projects`, ordered by an
+  explicit `order` field rather than a date or an external service. The site
+  does not fetch pinned repositories.
 - Open with a `Projects` page title and one candid sentence, then show projects
-  as simple ruled rows with name, description, language when available, and a
-  same-tab source link.
-- Do not add project metrics, case-study framing, client-style outcomes,
-  screenshots without editorial purpose, or a featured-project carousel.
+  as ruled rows: an image on the left, and on the right the project name as a
+  same-tab external link, a text status, a candid description, an optional role
+  note, and an optional technology line.
+- Every row reserves the same 16:9 image mount so the column rhythm holds. An
+  entry without artwork shows a typographic initial mark inside that mount
+  instead of collapsing the row.
+- Status is one of `idea`, `in progress`, `shipped`, or `archived`. It is
+  always rendered as words next to a `Status` label, never as color alone.
+- Images are decorative-free: an entry that sets an image must also set
+  alternative text, and the content schema rejects one without the other.
+- Rows stack to a single column below 540px, use a flexible image column from
+  540px, and settle to a fixed 11rem image column from 760px.
+- Do not add project metrics, case-study framing, client-style outcomes, a
+  featured-project carousel, filters, or an RSS feed. Projects is a short
+  hand-kept list, not a portfolio.
 - An empty index keeps the heading and states `Nothing here yet.` without
   removing the route from navigation.
 

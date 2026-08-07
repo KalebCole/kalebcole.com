@@ -212,8 +212,26 @@ for (const [route, [href, label]] of navRoutes) {
   assert.match(currentLinks[0][0].replace(/<[^>]+>/g, ' '), new RegExp(`\\b${label}\\b`, 'i'), `${route} current-page label`);
 }
 
-const recommends = text(routes.get('/recommends/'));
-assert.match(recommends, /class="recommendations-filter-links"[\s\S]*\?medium=read/i, 'no-JS query filters must exist');
+const projects = text(routes.get('/projects/'));
+const projectRows = matches(projects, /<article\b[^>]*class="project"[^>]*>[\s\S]*?<\/article>/gi)
+  .map((match) => match[0]);
+assert.ok(projectRows.length > 0, 'projects index must publish hand-authored entries');
+const projectTitles = projectRows
+  .map((row) => row.match(/class="project-title"[\s\S]*?<a\b[^>]*>([\s\S]*?)<span/i)?.[1].trim());
+for (const title of ['Voxii', 'partiful-cli', 'Microsoft Student Learning Series']) {
+  assert.ok(projectTitles.includes(title), `projects index must include ${title}`);
+}
+for (const row of projectRows) {
+  assert.match(row, /class="project-status"/i, 'each project must state its status in text');
+  assert.match(row, /class="sr-only"> \(external site\)<\/span>/i, 'external project links must name context');
+  for (const image of matches(row, /<img\b[^>]*class="project-thumb"[^>]*>/gi).map((match) => match[0])) {
+    assert.ok((attribute(image, 'alt') ?? '').trim().length > 0, 'project images must carry alternative text');
+    assert.equal(attribute(image, 'loading'), 'lazy', 'project images must load lazily');
+  }
+}
+assert.doesNotMatch(projects, /class="repos"|class="repo-name"/i, 'the pinned-repository list must stay retired');
+
+const recommends = text(routes.get('/recommends/'));assert.match(recommends, /class="recommendations-filter-links"[\s\S]*\?medium=read/i, 'no-JS query filters must exist');
 assert.match(recommends, /data-recommend-filter="all"[^>]*aria-pressed="true"/i, 'enhanced filters must use aria-pressed');
 assert.match(recommends, /role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/i, 'filter count must be announced');
 assert.match(recommends, /class="sr-only"> \(external site\)<\/span>/i, 'external recommendation links must name context');

@@ -134,9 +134,11 @@ The redesign specification governs:
   its own RSS feed. Topic tags may remain in metadata and feed categories but
   are not visible in recommendation rows.
 - **Projects:** a valid publishing mode and navigation destination, but not a
-  homepage section. The redesign moves the existing pinned-repository material
-  to a simple dedicated Projects index; richer project storytelling remains a
-  later editorial task.
+  homepage section. Projects is a hand-authored index kept in the repository:
+  each entry gives its name, an image, an honest status including work that is
+  still in progress, a candid description, and a link to where the project
+  actually lives. It is not generated from an external service, and it is not a
+  portfolio. Per-project detail routes remain a later editorial task.
 
 The specification does not implement the production redesign. Final homepage
 copy and portrait-note wording remain an editorial task within the approved
