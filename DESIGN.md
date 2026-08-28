@@ -393,7 +393,7 @@ zero missing icon requests.
   consistently, retain medium, title, source or author, UTC date, and optional
   My thoughts, then end with `All recommendations →`.
 - Omit the recommendations sibling when no published recommendations exist.
-- Show up to three projects before Recent writing and end that preview with a
+- Show up to two projects before Recent writing and end that preview with a
   link to the full Projects page. Do not add a credential strip, metrics, or
   conversion-focused copy.
 
@@ -636,7 +636,7 @@ through an explicit decision backed by measured user benefit.
 ### Do
 
 - **Do** let visitors meet a person before presenting publishing modes.
-- **Do** keep the homepage project preview capped at three and visually
+- **Do** keep the homepage project preview capped at two and visually
   subordinate to the introduction.
 - **Do** preserve first-person uncertainty, enthusiasm, humor, and changing
   interests in copy.
