@@ -270,6 +270,11 @@ assert.match(
 );
 assert.match(
   pinnedReposSource,
+  /imageAlt: 'Partiful CLI homepage with the headline Your agent has the party covered'/,
+  'Partiful override must use the approved image alt text',
+);
+assert.match(
+  pinnedReposSource,
   /imageWidth: 1200[\s\S]*?imageHeight: 630/,
   'Partiful preview must declare its generated dimensions',
 );
