@@ -11,6 +11,15 @@ const { repos } = await getPinnedRepos();
 const displayedRepos = typeof limit === 'number' ? repos.slice(0, Math.max(0, limit - 1)) : repos;
 const githubPreviewUrl = (name: string) => `https://opengraph.githubassets.com/1/KalebCole/${name}`;
 const repoOverrides = {
+  'partiful-cli': {
+    name: 'partiful-cli',
+    description: 'Reverse-engineered Partiful’s API into an agentic CLI for managing events. My favorite workflows match invitations against my calendar and help me find events around Seattle.',
+    url: 'https://kalebcole.github.io/partiful-cli/',
+    image: '/projects/partiful-cli-website.webp',
+    imageWidth: 1200,
+    imageHeight: 630,
+    imageAlt: 'Partiful CLI homepage with the headline Your agent has the party covered',
+  },
   'uprint-cli': {
     name: 'uprint-cli',
     description: 'Agentic CLI for Microsoft Employees to print hassle-free at the Redmond campus',
