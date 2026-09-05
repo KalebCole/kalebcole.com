@@ -252,6 +252,32 @@ assert.doesNotMatch(pinnedReposSource, /class="repo-lang"/, 'project cards must 
 assert.match(pinnedReposSource, /url: 'https:\/\/kalebcole\.github\.io\/uprint-cli\/'/i, 'uprint override must target its website');
 assert.match(pinnedReposSource, /name: 'uprint-cli'/, 'uprint override must use the repository name');
 assert.match(pinnedReposSource, /description: 'Agentic CLI for Microsoft Employees to print hassle-free at the Redmond campus'/, 'uprint override must match the GitHub About description');
+assert.match(pinnedReposSource, /'partiful-cli':\s*\{/, 'Partiful must have a presentation override');
+assert.match(
+  pinnedReposSource,
+  /url: 'https:\/\/kalebcole\.github\.io\/partiful-cli\/'/,
+  'Partiful override must target its published website',
+);
+assert.match(
+  pinnedReposSource,
+  /description: 'Reverse-engineered Partiful’s API into an agentic CLI for managing events\. My favorite workflows match invitations against my calendar and help me find events around Seattle\.'/,
+  'Partiful override must use the approved description',
+);
+assert.match(
+  pinnedReposSource,
+  /image: '\/projects\/partiful-cli-website\.webp'/,
+  'Partiful override must use the local website preview',
+);
+assert.match(
+  pinnedReposSource,
+  /imageAlt: 'Partiful CLI homepage with the headline Your agent has the party covered'/,
+  'Partiful override must use the approved image alt text',
+);
+assert.match(
+  pinnedReposSource,
+  /imageWidth: 1200[\s\S]*?imageHeight: 630/,
+  'Partiful preview must declare its generated dimensions',
+);
 assert.match(pinnedReposSource, /const override = repoOverrides\[repo\.name as keyof typeof repoOverrides\]/, 'repository overrides must apply on every project surface');
 assert.doesNotMatch(pinnedReposSource, /variant === ['"]home['"]\s*\?\s*repoOverrides/, 'repository overrides must not be homepage-only');
 assert.match(projectsPage, /Build Your Personal Brand with Copilot/i, 'Projects index must include the published series title');
@@ -264,6 +290,10 @@ for (const [surface, html] of [['homepage', homepage], ['Projects index', projec
 }
 assert.ok(homepage.indexOf('class="home-actions"') < homepage.indexOf('class="portrait-mount"'), 'homepage source order must place the complete introduction and actions before the portrait');
 assert.ok(existsSync(join(dist, 'projects', 'uprint-website.webp')), 'production build must emit the uprint website preview');
+assert.ok(
+  existsSync(localAsset('/projects/partiful-cli-website.webp')),
+  'production build must emit the Partiful website preview',
+);
 assert.doesNotMatch(homepage, /projects couldn’t load|find them on GitHub instead/i, 'homepage must not expose project-loading errors');
 assert.doesNotMatch(text(routes.get('/projects/')), /projects couldn’t load|find them on GitHub instead/i, 'Projects page must not expose project-loading errors');
 
