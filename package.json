@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "prebuild": "npm run portrait",
     "build": "astro build",
-    "certify": "npm run build && node scripts/certify.mjs && node scripts/certify-theme-toggle.mjs",
+    "certify": "npm run build && node scripts/certify.mjs && node scripts/certify-theme-toggle.mjs && node --test test/certify-primary-navigation.test.mjs",
     "portrait": "node scripts/build-portrait.mjs",
     "preview": "astro preview"
   },

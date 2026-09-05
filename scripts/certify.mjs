@@ -6,6 +6,7 @@ import { extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { PRODUCTION_ORIGIN, resolveSocialImageOrigin } from '../src/lib/site-origin.mjs';
+import { hasCanonicalResumeLinkInPrimaryNavigation } from './certify-primary-navigation.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dist = join(root, 'dist');
@@ -126,6 +127,11 @@ for (const route of expectedRoutes) {
 for (const feed of ['/rss.xml', '/recommends/rss.xml']) {
   assert.ok(existsSync(localAsset(feed)), `production build must emit ${feed}`);
 }
+const resumePdf = localAsset('/resume.pdf');
+assert.ok(existsSync(resumePdf), 'production build must emit /resume.pdf');
+const resumeBytes = readFileSync(resumePdf);
+assert.equal(resumeBytes.subarray(0, 5).toString('ascii'), '%PDF-', '/resume.pdf must be a valid PDF');
+assert.ok(resumeBytes.byteLength > 10_000, '/resume.pdf must not be an empty placeholder');
 
 for (const [route, path] of routes) {
   const html = text(path);
@@ -136,6 +142,10 @@ for (const [route, path] of routes) {
   assert.match(html, /<html\b[^>]*\blang="en"/i, `${route} must declare language`);
   assert.match(html, /<a\b[^>]*class="skip-link"[^>]*href="#main-content"/i, `${route} must have a skip link`);
   assert.match(html, /<nav\b[^>]*aria-label="Primary navigation"/i, `${route} must name primary navigation`);
+  assert.ok(
+    hasCanonicalResumeLinkInPrimaryNavigation(html),
+    `${route} primary navigation must link to the canonical résumé PDF`,
+  );
   assert.match(html, /<footer\b/i, `${route} must include the shared footer`);
   assert.doesNotMatch(html, /\btabindex="[1-9]\d*"/i, `${route} must not use positive tabindex`);
 
