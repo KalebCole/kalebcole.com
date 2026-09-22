@@ -15,6 +15,13 @@ const chromeCandidates = [
 ].filter(Boolean);
 const chrome = chromeCandidates.find(existsSync);
 assert.ok(chrome, 'compact navigation certification requires Google Chrome or Chromium; set CHROME_BIN when it is not in a standard location');
+const expectedMenuLinks = [
+  { text: 'Writing', href: '/blog' },
+  { text: 'Recommends', href: '/recommends' },
+  { text: 'Projects', href: '/projects' },
+  { text: 'Résumé', href: '/resume.pdf' },
+  { text: 'Feed', href: '/rss.xml' },
+];
 const mimeTypes = new Map([
   ['.css', 'text/css'],
   ['.html', 'text/html'],
@@ -88,23 +95,41 @@ try {
 
     await page.locator('[data-nav-toggle]').click();
     const open = await page.evaluate(() => {
+      const rectangle = (element) => {
+        const { left, right, top, bottom } = element.getBoundingClientRect();
+        return { left, right, top, bottom };
+      };
       const menu = document.querySelector('.nav-links');
       const toggle = document.querySelector('[data-nav-toggle]');
+      const theme = document.querySelector('[data-theme-toggle]');
       const links = [...document.querySelectorAll('.nav-links > a')];
-      const { left, right, top, bottom } = menu.getBoundingClientRect();
+      if (!menu || !toggle || !theme) throw new Error('opened navigation is missing required controls');
       return {
+        viewport: { width: innerWidth, height: innerHeight },
         expanded: toggle.getAttribute('aria-expanded'),
         display: getComputedStyle(menu).display,
-        bounds: { left, right, top, bottom },
-        links: links.map((link) => ({ text: link.textContent.trim(), bounds: link.getBoundingClientRect().toJSON() })),
+        menu: rectangle(menu),
+        theme: rectangle(theme),
+        links: links.map((link) => ({ text: link.textContent.trim(), href: link.getAttribute('href'), bounds: rectangle(link) })),
       };
     });
+    const assertInViewport = (name, bounds) => {
+      assert.ok(
+        bounds.left >= 0 && bounds.right <= open.viewport.width && bounds.top >= 0 && bounds.bottom <= open.viewport.height,
+        `${width}px ${name} must remain fully inside the viewport`,
+      );
+    };
     assert.equal(open.expanded, 'true', `${width}px navigation toggle must expose its open state`);
     assert.equal(open.display, 'flex', `${width}px navigation links must be visible after opening`);
-    assert.equal(open.links.length, 5, `${width}px navigation must retain all primary destinations`);
-    assert.ok(open.bounds.left >= 0 && open.bounds.right <= width, `${width}px opened menu must remain inside the viewport`);
+    assert.deepEqual(
+      open.links.map(({ text, href }) => ({ text, href })),
+      expectedMenuLinks,
+      `${width}px navigation must retain the intended primary destinations in order`,
+    );
+    assertInViewport('opened menu', open.menu);
+    assertInViewport('theme control', open.theme);
     for (const link of open.links) {
-      assert.ok(link.bounds.left >= 0 && link.bounds.right <= width, `${width}px ${link.text} menu link must remain inside the viewport`);
+      assertInViewport(`${link.text} menu link`, link.bounds);
       assert.ok(link.bounds.bottom > link.bounds.top, `${width}px ${link.text} menu link must have a visible hit target`);
     }
     await page.keyboard.press('Escape');
