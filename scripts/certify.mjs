@@ -120,7 +120,7 @@ const htmlFiles = walk(dist).filter((path) => extname(path) === '.html');
 const xmlFiles = walk(dist).filter((path) => extname(path) === '.xml');
 const emittedFiles = walk(dist);
 const routes = new Map(htmlFiles.map((path) => [routeForHtml(path), path]));
-const expectedRoutes = ['/', '/blog/', '/blog/github-copilot-canvases/', '/blog/hello-world/', '/recommends/', '/projects/', '/404'];
+const expectedRoutes = ['/', '/blog/', '/blog/github-copilot-canvases/', '/blog/hello-world/', '/recommends/', '/projects/', '/links/', '/404'];
 
 for (const route of expectedRoutes) {
   assert.ok(routes.has(route), `production build must emit ${route}`);
@@ -188,6 +188,39 @@ for (const [route, path] of routes) {
     const routeOutput = outputForPath(pathname);
     assert.ok(existsSync(asset) || existsSync(routeOutput), `${route} references missing ${pathname}`);
   }
+}
+
+const linksPage = text(routes.get('/links/'));
+const linksSource = text(join(root, 'src', 'lib', 'links.ts'));
+const approvedLinks = [
+  ['writing', 'Writing', '/blog', 'internal'],
+  ['projects', 'Projects', '/projects', 'internal'],
+  ['resume', 'Résumé', '/resume.pdf', 'internal'],
+  ['github', 'GitHub', 'https://github.com/KalebCole', 'external'],
+  ['linkedin', 'LinkedIn', 'https://www.linkedin.com/in/kaleb-cole', 'external'],
+  ['email', 'Email', 'mailto:kalebcole2021@gmail.com', 'email'],
+];
+assert.equal(metaContent(linksPage, 'name', 'description'), 'A directory of Kaleb Cole’s writing, projects, résumé, and ways to connect.', 'Links metadata description');
+assert.equal(metaContent(linksPage, 'property', 'og:title'), 'Links | Kaleb Cole', 'Links Open Graph title');
+assert.equal(metaContent(linksPage, 'property', 'og:type'), 'website', 'Links Open Graph type');
+assert.match(linksPage, /<main\b[^>]*class="[^"]*\blinks-page\b[^"]*"/i, 'Links route must use the editorial page surface');
+assert.match(linksPage, /<h1>\s*Links\s*<\/h1>/i, 'Links route must use the approved title');
+const linksDirectory = linksPage.match(/<nav\b[^>]*class="[^"]*\blink-directory\b[^"]*"[^>]*aria-label="Kaleb Cole links"[^>]*>([\s\S]*?)<\/nav>/i)?.[1];
+assert.ok(linksDirectory, 'Links route must expose a labeled semantic directory');
+const directoryRows = matches(linksDirectory, /<a\b[^>]*class="[^"]*\blink-directory-row\b[^"]*"[^>]*>[\s\S]*?<\/a>/gi).map((match) => match[0]);
+assert.equal(directoryRows.length, approvedLinks.length, 'Links directory must render exactly the approved destinations');
+for (const [index, [id, label, href, kind]] of approvedLinks.entries()) {
+  const row = directoryRows[index];
+  assert.equal(attribute(row, 'href'), href, `Links directory destination ${index + 1}`);
+  assert.match(row, new RegExp(`>\\s*${label}\\s*<`, 'i'), `Links directory label ${label}`);
+  assert.match(linksSource, new RegExp(`id: '${id}'`), `Links source must retain ${label}`);
+  if (kind === 'internal') {
+    assert.match(row, /link-directory-cue" aria-hidden="true">→/i, `${label} must use the internal direction cue`);
+  } else {
+    assert.match(row, /link-directory-cue" aria-hidden="true">↗/i, `${label} must use the external or action cue`);
+    assert.match(row, /class="sr-only">, (?:external destination|email action)<\/span>/i, `${label} must name its destination type accessibly`);
+  }
+  assert.doesNotMatch(row, /\btarget=/i, `${label} must preserve same-tab behavior`);
 }
 
 const homepage = text(routes.get('/'));

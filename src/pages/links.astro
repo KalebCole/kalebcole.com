@@ -1,0 +1,32 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { linkDestinations } from '../lib/links';
+
+const externalCue = (kind: (typeof linkDestinations)[number]['kind']) => kind === 'internal' ? '→' : '↗';
+const accessibleCue = (kind: (typeof linkDestinations)[number]['kind']) => {
+  if (kind === 'external') return 'external destination';
+  if (kind === 'email') return 'email action';
+  return undefined;
+};
+---
+<Layout
+  title="Links | Kaleb Cole"
+  description="A directory of Kaleb Cole’s writing, projects, résumé, and ways to connect."
+>
+  <main id="main-content" class="site-shell links-page">
+    <header class="links-heading">
+      <h1>Links</h1>
+      <p>A directory of writing, projects, a résumé, and ways to connect.</p>
+    </header>
+
+    <nav class="link-directory" aria-label="Kaleb Cole links">
+      {linkDestinations.map((link) => (
+        <a class="link-directory-row" href={link.href}>
+          <span class="link-directory-label">{link.label}</span>
+          <span class="link-directory-cue" aria-hidden="true">{externalCue(link.kind)}</span>
+          {accessibleCue(link.kind) && <span class="sr-only">, {accessibleCue(link.kind)}</span>}
+        </a>
+      ))}
+    </nav>
+  </main>
+</Layout>
