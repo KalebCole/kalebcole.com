@@ -575,6 +575,11 @@ html[data-mode="dark"] [data-icon-dark] {
   border-bottom: 1px solid var(--rule);
 }
 
+/* The homepage section already provides the structural divider. */
+.home-page .recent-writing .pinned-writing {
+  border-top: 0;
+}
+
 .pinned-copy :is(h2, h3) {
   max-width: 14ch;
   margin-top: 1rem;
