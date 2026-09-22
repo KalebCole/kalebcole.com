@@ -8,7 +8,9 @@ A request contains only details intentionally supplied for one candidate. Do not
 
 A candidate is eligible only when Kaleb deliberately selects it and supplies its title, destination URL, medium, and date. It remains a draft until the normal repository review publishes it.
 
-`take` is optional and can contain only Kaleb's exact supplied first-person wording. The system must never generate, expand, polish, summarize, infer, or replace a public take. Omit `take` when no exact wording is supplied.
+`take` is optional and can contain only Kaleb's exact supplied first-person wording. The validator returns the same request object without generating, expanding, polishing, summarizing, inferring, replacing, or otherwise transforming a public take. Omit `take` when no exact wording is supplied.
+
+Destination URLs must be canonical public `http` or `https` URLs. The contract rejects credentials, query parameters, and fragments. Query parameters are rejected rather than allowlisted because their public safety cannot be determined from a generic capture request.
 
 ## Files
 
@@ -20,7 +22,9 @@ A candidate is eligible only when Kaleb deliberately selects it and supplies its
 Validate the fixture without creating content or contacting a service:
 
 ```bash
-node -e "JSON.parse(require('node:fs').readFileSync('automations/recommends-capture/dry-run.fixture.json', 'utf8')); console.log('fixture JSON is valid')"
+node scripts/validate-recommends-capture.mjs automations/recommends-capture/dry-run.fixture.json
 ```
+
+The dependency-free validator reads and enforces `contract.schema.json`, including required fields, strict object shape, enums, draft-only requests, URL policy, and strict calendar dates.
 
 A later private capture implementation must keep its runtime state outside this repository and emit only a request that satisfies this contract.

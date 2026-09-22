@@ -13,8 +13,9 @@
     "url": {
       "type": "string",
       "format": "uri",
-      "pattern": "^https?://",
-      "description": "The public destination URL deliberately supplied for this candidate."
+      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?$",
+      "x-publicCanonicalUrl": true,
+      "description": "Canonical public HTTP(S) URL only: no credentials, query parameters, or fragments. Query-bearing URLs are rejected because their parameters are not safely classifiable as public."
     },
     "date": {
       "type": "string",
@@ -30,7 +31,9 @@
     "image": {
       "type": "string",
       "format": "uri",
-      "pattern": "^https?://"
+      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?$",
+      "x-publicCanonicalUrl": true,
+      "description": "Optional canonical public image URL with the same no-credentials, no-query, no-fragment policy as the destination URL."
     },
     "tags": {
       "type": "array",
