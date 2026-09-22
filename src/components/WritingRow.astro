@@ -14,12 +14,10 @@ const formattedDate = post.data.date.toLocaleDateString('en-US', {
   timeZone: 'UTC',
 });
 ---
-<div data-home-layout-settle={layoutMotion ? '' : undefined}>
-  <article class="writing-row" data-motion-beat={motion ? '' : undefined}>
-    <div>
+<article class="writing-row" data-motion-beat={motion ? '' : undefined}>
+    <div data-home-layout-writing-row={layoutMotion ? '' : undefined}>
       <h3><a href={`/blog/${post.id}`}>{post.data.title}</a></h3>
       <p class="writing-summary">{post.data.description}</p>
     </div>
-    <time datetime={post.data.date.toISOString()}>{formattedDate}</time>
-  </article>
-</div>
+    <time data-home-layout-writing-row={layoutMotion ? '' : undefined} datetime={post.data.date.toISOString()}>{formattedDate}</time>
+</article>

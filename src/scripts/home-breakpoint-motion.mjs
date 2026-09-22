@@ -1,13 +1,30 @@
-export const HOME_DESKTOP_MEDIA = '(min-width: 850px)';
+export const HOME_COMPACT_MEDIA = '(min-width: 540px)';
 export const HOME_PUBLICATION_MEDIA = '(min-width: 760px)';
+export const HOME_WRITING_MEDIA = HOME_PUBLICATION_MEDIA;
+export const HOME_DESKTOP_MEDIA = '(min-width: 850px)';
 export const HOME_LAYOUT_MOTION_DURATION = 520;
 export const HOME_LAYOUT_MOTION_EASING = 'cubic-bezier(.16, 1, .3, 1)';
+
+// Each group names an element that CSS itself repositions at that breakpoint.
+export const HOME_LAYOUT_GROUPS = [
+  { name: 'projects', media: HOME_PUBLICATION_MEDIA, selector: '[data-home-layout-project]' },
+  { name: 'writing rows', media: HOME_COMPACT_MEDIA, selector: '[data-home-layout-writing-row]' },
+  { name: 'pinned writing', media: HOME_WRITING_MEDIA, selector: '[data-home-layout-writing-pinned]' },
+  { name: 'recommendations compact', media: HOME_COMPACT_MEDIA, selector: '[data-home-layout-recommendation]' },
+  { name: 'recommendations publication', media: HOME_PUBLICATION_MEDIA, selector: '[data-home-layout-recommendation]' },
+];
+
 const activeLayoutTargets = new Set();
 const layoutSettleListeners = new Set();
 
+function elementsOverlap(first, second) {
+  if (first === second) return true;
+  return Boolean(first?.contains?.(second) || second?.contains?.(first));
+}
+
 export function isHomeLayoutSettling(element) {
-  for (let target = element; target; target = target.parentElement) {
-    if (activeLayoutTargets.has(target)) return true;
+  for (const target of activeLayoutTargets) {
+    if (elementsOverlap(element, target)) return true;
   }
   return false;
 }
@@ -19,6 +36,10 @@ export function onHomeLayoutSettled(listener) {
 
 function notifyHomeLayoutSettled() {
   for (const listener of [...layoutSettleListeners]) listener();
+}
+
+function uniqueElements(elements) {
+  return [...new Set(elements)];
 }
 
 function captureRects(elements) {
@@ -72,11 +93,21 @@ export function animateHomeLayoutShift(
     const current = element.getBoundingClientRect();
     const x = previous.left - current.left;
     const y = previous.top - current.top;
-    if (Math.abs(x) < 0.5 && Math.abs(y) < 0.5) return [];
+    const width = previous.width / current.width;
+    const height = previous.height / current.height;
+    const moved = Math.abs(x) >= 0.5 || Math.abs(y) >= 0.5
+      || (Number.isFinite(width) && Math.abs(width - 1) >= 0.01)
+      || (Number.isFinite(height) && Math.abs(height - 1) >= 0.01);
+    if (!moved) return [];
+
+    const firstKeyframe = { translate: `${x}px ${y}px`, opacity: 1 };
+    if (Number.isFinite(width) && Number.isFinite(height) && (Math.abs(width - 1) >= 0.01 || Math.abs(height - 1) >= 0.01)) {
+      firstKeyframe.scale = `${width} ${height}`;
+    }
 
     return element.animate(
       [
-        { translate: `${x}px ${y}px`, opacity: 1 },
+        firstKeyframe,
         { translate: '0 0', opacity: 1 },
       ],
       {
@@ -88,19 +119,23 @@ export function animateHomeLayoutShift(
 }
 
 export function initHomeBreakpointMotion(root = document, browserWindow = window) {
-  const hero = root.querySelector('.home-hero');
-  if (!hero || typeof browserWindow.matchMedia !== 'function') return;
+  if (!root || typeof root.querySelectorAll !== 'function' || typeof browserWindow.matchMedia !== 'function') return;
 
+  const hero = root.querySelector?.('.home-hero');
   const groups = [
-    {
+    hero && {
+      name: 'hero',
       elements: Array.from(hero.children),
       media: browserWindow.matchMedia(HOME_DESKTOP_MEDIA),
     },
-    {
-      elements: Array.from(root.querySelectorAll?.('[data-home-layout-settle]') ?? []),
-      media: browserWindow.matchMedia(HOME_PUBLICATION_MEDIA),
-    },
-  ].filter(({ elements }) => elements.length > 0);
+    ...HOME_LAYOUT_GROUPS.map((definition) => ({
+      ...definition,
+      elements: Array.from(root.querySelectorAll(definition.selector)),
+      media: browserWindow.matchMedia(definition.media),
+    })),
+  ].filter((group) => group?.elements.length > 0);
+  if (groups.length === 0) return;
+
   const reducedMotion = browserWindow.matchMedia('(prefers-reduced-motion: reduce)');
   let activeAnimations = [];
   let motionVersion = 0;
@@ -124,21 +159,28 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
     const version = ++motionVersion;
     for (const animation of activeAnimations) animation.cancel();
     activeLayoutTargets.clear();
+
+    const targets = uniqueElements(crossingGroups.flatMap((group) => group.elements));
     const previousRects = new Map(crossingGroups.flatMap((group) => group.elements.map((element) => [
       element,
       group.previousRects.get(element),
     ])));
-    const anchor = findViewportAnchor(
-      crossingGroups.flatMap((group) => group.elements),
-      previousRects,
-      browserWindow.innerHeight,
-    );
+    const anchor = findViewportAnchor(targets, previousRects, browserWindow.innerHeight);
     if (anchor) preserveViewportAnchor(anchor, previousRects, browserWindow);
+
     activeAnimations = crossingGroups.flatMap((group) => {
       const movedElements = group.elements.filter((element) => {
         const previous = group.previousRects.get(element);
         const current = element.getBoundingClientRect();
-        return previous && (Math.abs(previous.left - current.left) >= 0.5 || Math.abs(previous.top - current.top) >= 0.5);
+        if (!previous) return false;
+        const width = previous.width / current.width;
+        const height = previous.height / current.height;
+        return (
+          Math.abs(previous.left - current.left) >= 0.5
+          || Math.abs(previous.top - current.top) >= 0.5
+          || (Number.isFinite(width) && Math.abs(width - 1) >= 0.01)
+          || (Number.isFinite(height) && Math.abs(height - 1) >= 0.01)
+        );
       });
       const animations = animateHomeLayoutShift(group.elements, group.previousRects, {
         reducedMotion: reducedMotion.matches,
@@ -177,10 +219,10 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
     browserWindow.addEventListener('resize', onResize, { passive: true });
   };
 
+  const entranceAnimations = hero && typeof hero.getAnimations === 'function'
+    ? hero.getAnimations({ subtree: true })
+    : [];
   browserWindow.requestAnimationFrame(() => {
-    const entranceAnimations = typeof hero.getAnimations === 'function'
-      ? hero.getAnimations({ subtree: true })
-      : [];
     Promise.allSettled(entranceAnimations.map((animation) => animation.finished)).then(start);
   });
 }

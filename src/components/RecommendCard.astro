@@ -23,14 +23,13 @@ const formattedDate = item.data.date.toLocaleDateString('en-US', {
   timeZone: 'UTC',
 });
 ---
-<div data-home-layout-settle={layoutMotion ? '' : undefined}>
-  <article
+<article
     class:list={['rec', { 'rec-has-image': item.data.image, 'rec-no-image': !item.data.image }]}
     data-recommendation
     data-medium={item.data.medium}
     data-motion-beat={motion ? '' : undefined}
   >
-  <div class:list={['rec-visual', { 'rec-visual-fallback': !item.data.image }]}>
+  <div class:list={['rec-visual', { 'rec-visual-fallback': !item.data.image }]} data-home-layout-recommendation={layoutMotion ? '' : undefined}>
     {item.data.image ? (
       <img
         class="rec-thumb"
@@ -51,7 +50,7 @@ const formattedDate = item.data.date.toLocaleDateString('en-US', {
       {medium.label}
     </span>
   </div>
-  <div class="rec-body">
+  <div class="rec-body" data-home-layout-recommendation={layoutMotion ? '' : undefined}>
     <p class="rec-meta">
       <span class="rec-medium-inline">{medium.label}</span>
       {item.data.source && <span>{item.data.source}</span>}
@@ -70,5 +69,4 @@ const formattedDate = item.data.date.toLocaleDateString('en-US', {
       </div>
     )}
   </div>
-  </article>
-</div>
+</article>

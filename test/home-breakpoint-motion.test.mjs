@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  HOME_COMPACT_MEDIA,
   HOME_DESKTOP_MEDIA,
   HOME_PUBLICATION_MEDIA,
+  HOME_WRITING_MEDIA,
   animateHomeLayoutShift,
   findViewportAnchor,
   initHomeBreakpointMotion,
@@ -34,14 +36,26 @@ function media(matches = false) {
   };
 }
 
-function motionEnvironment({ hero, publication = [], desktop = false, publicationWide = false, reduced = false }) {
+function motionEnvironment({
+  hero,
+  projects = [],
+  writingRows = [],
+  writingPinned = [],
+  recommendations = [],
+  desktop = false,
+  compact = false,
+  publicationWide = false,
+  reduced = false,
+}) {
   const desktopMedia = media(desktop);
+  const compactMedia = media(compact);
   const publicationMedia = media(publicationWide);
   const reducedMotion = media(reduced);
   const resizeListeners = [];
   const browserWindow = {
     matchMedia(query) {
       if (query === HOME_DESKTOP_MEDIA) return desktopMedia;
+      if (query === HOME_COMPACT_MEDIA) return compactMedia;
       if (query === HOME_PUBLICATION_MEDIA) return publicationMedia;
       return reducedMotion;
     },
@@ -49,13 +63,20 @@ function motionEnvironment({ hero, publication = [], desktop = false, publicatio
     cancelAnimationFrame() {},
     addEventListener(type, listener) { if (type === 'resize') resizeListeners.push(listener); },
   };
+  const targets = {
+    '[data-home-layout-project]': projects,
+    '[data-home-layout-writing-row]': writingRows,
+    '[data-home-layout-writing-pinned]': writingPinned,
+    '[data-home-layout-recommendation]': recommendations,
+  };
   return {
     browserWindow,
+    compactMedia,
     desktopMedia,
     publicationMedia,
     root: {
       querySelector(selector) { return selector === '.home-hero' ? hero : null; },
-      querySelectorAll(selector) { return selector === '[data-home-layout-settle]' ? publication : []; },
+      querySelectorAll(selector) { return targets[selector] ?? []; },
     },
     resize() { for (const listener of resizeListeners) listener(); },
   };
@@ -63,13 +84,17 @@ function motionEnvironment({ hero, publication = [], desktop = false, publicatio
 
 function scrollingEnvironment({
   hero,
-  publication = [],
+  projects = [],
+  writingRows = [],
+  writingPinned = [],
+  recommendations = [],
   reduced = false,
   viewportHeight = 600,
   scrollable = true,
   rejectWindowScroll = false,
 }) {
-  const environment = motionEnvironment({ hero, publication, reduced });
+  const environment = motionEnvironment({ hero, projects, writingRows, writingPinned, recommendations, reduced });
+  const layoutTargets = [...hero.children, ...projects, ...writingRows, ...writingPinned, ...recommendations];
   const scrollCalls = [];
   environment.browserWindow.innerHeight = viewportHeight;
   const scrollingElement = {
@@ -83,7 +108,7 @@ function scrollingEnvironment({
       const delta = next - scrollTop;
       scrollTop = next;
       scrollCalls.push([0, delta]);
-      for (const element of [...hero.children, ...publication]) element.viewportOffset += delta;
+      for (const element of layoutTargets) element.viewportOffset += delta;
     },
   });
   environment.browserWindow.document = {
@@ -93,7 +118,7 @@ function scrollingEnvironment({
     ? () => { throw new Error('viewport anchoring must not request browser smooth scrolling'); }
     : (x, y) => {
       scrollCalls.push([x, y]);
-      for (const element of [...hero.children, ...publication]) element.viewportOffset += y;
+      for (const element of layoutTargets) element.viewportOffset += y;
     };
   return { ...environment, scrollCalls };
 }
@@ -113,9 +138,11 @@ function scrollingElementAt({ left = 0, top = 0 }) {
   };
 }
 
-test('uses the exact homepage breakpoint media queries', () => {
-  assert.equal(HOME_DESKTOP_MEDIA, '(min-width: 850px)');
+test('uses the actual CSS breakpoint media queries for each homepage layout group', () => {
+  assert.equal(HOME_COMPACT_MEDIA, '(min-width: 540px)');
+  assert.equal(HOME_WRITING_MEDIA, '(min-width: 760px)');
   assert.equal(HOME_PUBLICATION_MEDIA, '(min-width: 760px)');
+  assert.equal(HOME_DESKTOP_MEDIA, '(min-width: 850px)');
 });
 
 test('settles moved elements in DOM order with fully opaque keyframes', () => {
@@ -139,6 +166,20 @@ test('settles moved elements in DOM order with fully opaque keyframes', () => {
     duration: 520,
     easing: 'cubic-bezier(.16, 1, .3, 1)',
   });
+});
+
+test('settles pure responsive resizes with an opaque scale keyframe', () => {
+  const visual = elementAt({ left: 20, top: 400, width: 130, height: 74 });
+  const animations = animateHomeLayoutShift([visual], new Map([[
+    visual,
+    { left: 20, top: 400, width: 500, height: 281 },
+  ]]));
+
+  assert.equal(animations.length, 1);
+  assert.deepEqual(visual.calls[0].keyframes, [
+    { translate: '0px 0px', opacity: 1, scale: '3.8461538461538463 3.7972972972972974' },
+    { translate: '0 0', opacity: 1 },
+  ]);
 });
 
 test('skips unmoved elements and all motion when reduced motion is requested', () => {
@@ -169,7 +210,8 @@ test('treats a Story Beat inside an active layout-settle wrapper as settling', a
   const wrapper = elementAt({ left: 40, top: 700 });
   const beat = { parentElement: wrapper };
   const hero = { children: [], getAnimations() { return []; } };
-  const environment = motionEnvironment({ hero, publication: [wrapper] });
+  wrapper.contains = (element) => element === beat;
+  const environment = motionEnvironment({ hero, projects: [wrapper] });
 
   initHomeBreakpointMotion(environment.root, environment.browserWindow);
   await Promise.resolve();
@@ -250,7 +292,7 @@ test('does not animate either group on initial load or same-side resizes', async
   const heroItem = elementAt({ left: 40, top: 100 });
   const publicationItem = elementAt({ left: 40, top: 600 });
   const hero = { children: [heroItem], getAnimations() { return []; } };
-  const environment = motionEnvironment({ hero, publication: [publicationItem] });
+  const environment = motionEnvironment({ hero, projects: [publicationItem] });
 
   initHomeBreakpointMotion(environment.root, environment.browserWindow);
   await Promise.resolve();
@@ -265,7 +307,7 @@ test('settles only hero targets at 849/850/851 crossings', async () => {
   const heroItem = elementAt({ left: 40, top: 100 });
   const publicationItem = elementAt({ left: 40, top: 600 });
   const hero = { children: [heroItem], getAnimations() { return []; } };
-  const environment = motionEnvironment({ hero, publication: [publicationItem] });
+  const environment = motionEnvironment({ hero, projects: [publicationItem] });
 
   initHomeBreakpointMotion(environment.root, environment.browserWindow);
   await Promise.resolve();
@@ -281,32 +323,89 @@ test('settles only hero targets at 849/850/851 crossings', async () => {
   assert.equal(publicationItem.calls.length, 0);
 });
 
-test('settles only publication targets at 759/760/761 crossings', async () => {
+test('settles real Writing row and Recommendation visual/body targets at 539/540/541', async () => {
   const heroItem = elementAt({ left: 40, top: 100 });
+  const writingCopy = elementAt({ left: 40, top: 800 });
+  const writingDate = elementAt({ left: 40, top: 860 });
+  const recommendationVisual = elementAt({ left: 40, top: 1000 });
+  const recommendationBody = elementAt({ left: 40, top: 1250 });
   const project = elementAt({ left: 40, top: 600 });
-  const writing = elementAt({ left: 40, top: 800 });
-  const recommends = elementAt({ left: 40, top: 1000 });
+  const pinnedCopy = elementAt({ left: 40, top: 700 });
   const hero = { children: [heroItem], getAnimations() { return []; } };
-  const environment = motionEnvironment({ hero, publication: [project, writing, recommends] });
+  const environment = motionEnvironment({
+    hero,
+    projects: [project],
+    writingRows: [writingCopy, writingDate],
+    writingPinned: [pinnedCopy],
+    recommendations: [recommendationVisual, recommendationBody],
+  });
 
   initHomeBreakpointMotion(environment.root, environment.browserWindow);
   await Promise.resolve();
   await Promise.resolve();
-  project.rect = { left: 200, top: 600 }; // 759 -> 760
-  writing.rect = { left: 40, top: 800 }; // unchanged target
-  recommends.rect = { left: 200, top: 1000 };
-  environment.publicationMedia.cross(true);
-  project.rect = { left: 40, top: 600 }; // 760 -> 759
-  recommends.rect = { left: 40, top: 1000 };
-  environment.publicationMedia.cross(false);
-  project.rect = { left: 200, top: 600 }; // 759 -> 761
-  recommends.rect = { left: 200, top: 1000 };
-  environment.publicationMedia.cross(true);
+  writingDate.rect = { left: 400, top: 800 };
+  recommendationVisual.rect = { left: 40, top: 1000, width: 130 };
+  recommendationBody.rect = { left: 200, top: 1000, width: 350 };
+  environment.compactMedia.cross(true); // 539 -> 540
+  writingDate.rect = { left: 40, top: 860 };
+  recommendationVisual.rect = { left: 40, top: 1000, width: 500 };
+  recommendationBody.rect = { left: 40, top: 1250, width: 500 };
+  environment.compactMedia.cross(false); // 540 -> 539
+  writingDate.rect = { left: 400, top: 800 };
+  recommendationVisual.rect = { left: 40, top: 1000, width: 130 };
+  recommendationBody.rect = { left: 200, top: 1000, width: 350 };
+  environment.compactMedia.cross(true); // 539 -> 541
+
+  assert.equal(writingCopy.calls.length, 0);
+  assert.equal(writingDate.calls.length, 3);
+  assert.equal(recommendationVisual.calls.length, 2);
+  assert.equal(recommendationBody.calls.length, 3);
+  assert.equal(project.calls.length, 0);
+  assert.equal(pinnedCopy.calls.length, 0);
+  assert.equal(heroItem.calls.length, 0);
+});
+
+test('settles pinned Writing and Recommendation targets at 759/760/761', async () => {
+  const project = elementAt({ left: 40, top: 600 });
+  const pinnedCopy = elementAt({ left: 40, top: 800 });
+  const pinnedNote = elementAt({ left: 40, top: 1000 });
+  const recommendationVisual = elementAt({ left: 40, top: 1200 });
+  const recommendationBody = elementAt({ left: 200, top: 1200 });
+  const writingRow = elementAt({ left: 40, top: 1400 });
+  const hero = { children: [], getAnimations() { return []; } };
+  const environment = motionEnvironment({
+    hero,
+    projects: [project],
+    writingRows: [writingRow],
+    writingPinned: [pinnedCopy, pinnedNote],
+    recommendations: [recommendationVisual, recommendationBody],
+    compact: true,
+  });
+
+  initHomeBreakpointMotion(environment.root, environment.browserWindow);
+  await Promise.resolve();
+  await Promise.resolve();
+  project.rect = { left: 200, top: 600 };
+  pinnedNote.rect = { left: 500, top: 800 };
+  recommendationVisual.rect = { left: 40, top: 1200, width: 144 };
+  recommendationBody.rect = { left: 200, top: 1200, width: 350 };
+  environment.publicationMedia.cross(true); // 759 -> 760
+  project.rect = { left: 40, top: 600 };
+  pinnedNote.rect = { left: 40, top: 1000 };
+  recommendationVisual.rect = { left: 40, top: 1200, width: 130 };
+  recommendationBody.rect = { left: 200, top: 1200, width: 350 };
+  environment.publicationMedia.cross(false); // 760 -> 759
+  project.rect = { left: 200, top: 600 };
+  pinnedNote.rect = { left: 500, top: 800 };
+  recommendationVisual.rect = { left: 40, top: 1200, width: 144 };
+  environment.publicationMedia.cross(true); // 759 -> 761
 
   assert.equal(project.calls.length, 3);
-  assert.equal(writing.calls.length, 0);
-  assert.equal(recommends.calls.length, 3);
-  assert.equal(heroItem.calls.length, 0);
+  assert.equal(pinnedCopy.calls.length, 0);
+  assert.equal(pinnedNote.calls.length, 3);
+  assert.equal(recommendationVisual.calls.length, 2);
+  assert.equal(recommendationBody.calls.length, 0);
+  assert.equal(writingRow.calls.length, 0);
 });
 
 test('cancels stale batches during rapid crossings and preserves the latest group', async () => {
@@ -325,18 +424,18 @@ test('cancels stale batches during rapid crossings and preserves the latest grou
       return animation;
     },
   };
-  const hero = { children: [target], getAnimations() { return []; } };
-  const environment = motionEnvironment({ hero });
+  const hero = { children: [], getAnimations() { return []; } };
+  const environment = motionEnvironment({ hero, recommendations: [target] });
 
   initHomeBreakpointMotion(environment.root, environment.browserWindow);
   await Promise.resolve();
   await Promise.resolve();
   left = 500;
-  environment.desktopMedia.cross(true);
+  environment.compactMedia.cross(true);
   left = 40;
-  environment.desktopMedia.cross(false);
+  environment.compactMedia.cross(false);
   left = 500;
-  environment.desktopMedia.cross(true);
+  environment.compactMedia.cross(true);
 
   assert.equal(animations.length, 3);
   assert.equal(animations[0].cancelled, true);

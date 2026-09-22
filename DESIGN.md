@@ -431,13 +431,18 @@ measured vertical displacement, then settle the surrounding moved targets. The
 chosen anchor must remain at its pre-reflow viewport position rather than
 visibly drifting away from the reader.
 
-At the existing 850px breakpoint, targets are hero children. At the existing
-760px publication breakpoint, targets are homepage publication targets in DOM
-order: Projects, Writing, and Recommends headings, cards or rows, and their
-all-items links. Use the existing 520ms `cubic-bezier(.16, 1, .3, 1)` settle
-with every keyframe fully opaque. Do not run it on initial load or for a resize
-that stays on the same side of its relevant breakpoint. Rapid crossings cancel
-stale work, remeasure the newest layout, and never apply queued scroll deltas.
+At 850px, targets are hero children. At 760px, Projects targets are only the
+project rows that actually change grid placement; pinned Writing targets are its
+copy and `Why this now` note; and Recommendation visual/body targets settle
+again as their 9rem visual column takes effect. At 540px, Writing targets are
+each ordinary row's copy and date, while Recommendation targets are specifically
+its `.rec-visual` and `.rec-body` elements as the card changes from a stacked
+layout to two columns. Do not animate headings, links, or a generic section
+wrapper merely because nearby content moves. Use the existing 520ms
+`cubic-bezier(.16, 1, .3, 1)` settle with every keyframe fully opaque. Do not
+run it on initial load or for a resize that stays on the same side of its
+relevant breakpoint. Rapid crossings cancel stale work, remeasure the newest
+layout, and never apply queued scroll deltas.
 
 Do not request smooth scrolling or override browser scroll anchoring. If no
 suitable target is visible, scroll cannot move at a document edge or on a

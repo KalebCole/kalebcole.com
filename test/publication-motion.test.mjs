@@ -91,11 +91,12 @@ function wrapperChildEnvironment() {
   };
   const beat = motionElement(700);
   beat.parentElement = wrapper;
+  wrapper.contains = (element) => element === beat;
   const hero = { children: [], getAnimations() { return []; } };
   const root = {
     querySelector(selector) { return selector === '.home-hero' ? hero : null; },
     querySelectorAll(selector) {
-      if (selector === '[data-home-layout-settle]') return [wrapper];
+      if (selector === '[data-home-layout-project]') return [wrapper];
       if (selector === '[data-motion-beat]') return [beat];
       return [];
     },

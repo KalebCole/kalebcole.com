@@ -37,40 +37,34 @@ const homepageDescription = 'I share what interests me here, along with things t
     </section>
 
     <section class="recent-projects" aria-labelledby="recent-projects-title">
-      <div data-home-layout-settle>
-        <div class="recent-heading" data-motion-beat>
-          <h2 id="recent-projects-title">Recent projects</h2>
-        </div>
+      <div class="recent-heading" data-motion-beat>
+        <h2 id="recent-projects-title">Recent projects</h2>
       </div>
       <PinnedRepos limit={HOME_PROJECT_LIMIT} variant="home" layoutMotion />
-      <div data-home-layout-settle><a class="all-projects-link" data-motion-beat href="/projects">All projects <span aria-hidden="true">→</span></a></div>
+      <a class="all-projects-link" data-motion-beat href="/projects">All projects <span aria-hidden="true">→</span></a>
     </section>
 
     <section class="recent-writing" aria-labelledby="recent-title">
-      <div data-home-layout-settle>
-        <div class="recent-heading" data-motion-beat>
-          <h2 id="recent-title">Recent writing</h2>
-        </div>
+      <div class="recent-heading" data-motion-beat>
+        <h2 id="recent-title">Recent writing</h2>
       </div>
       {pinnedPost && <PinnedWriting post={pinnedPost} motion layoutMotion headingLevel={3} />}
       <div class="writing-list">
         {writingRows.map((post) => <WritingRow post={post} motion layoutMotion />)}
-        <div data-home-layout-settle><a class="all-writing-link" data-motion-beat href="/blog">All writing <span aria-hidden="true">→</span></a></div>
+        <a class="all-writing-link" data-motion-beat href="/blog">All writing <span aria-hidden="true">→</span></a>
       </div>
     </section>
 
     {recentRecommendations.length > 0 && (
       <section class="recent-recommendations" aria-labelledby="recent-recommendations-title">
-        <div data-home-layout-settle>
-          <div class="recent-heading" data-motion-beat>
-            <h2 id="recent-recommendations-title">Recent recommendations</h2>
-          </div>
+        <div class="recent-heading" data-motion-beat>
+          <h2 id="recent-recommendations-title">Recent recommendations</h2>
         </div>
         <div class="recommendations-list">
           {recentRecommendations.map((item) => <RecommendCard item={item} motion layoutMotion headingLevel={3} />)}
-          <div data-home-layout-settle><a class="all-recommendations-link" data-motion-beat href="/recommends">
-              All recommendations <span aria-hidden="true">→</span>
-            </a></div>
+          <a class="all-recommendations-link" data-motion-beat href="/recommends">
+            All recommendations <span aria-hidden="true">→</span>
+          </a>
         </div>
       </section>
     )}
