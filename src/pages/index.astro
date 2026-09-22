@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
+import PinnedRepos from '../components/PinnedRepos.astro';
 import PinnedWriting from '../components/PinnedWriting.astro';
 import Polaroid from '../components/Polaroid.astro';
 import RecommendCard from '../components/RecommendCard.astro';
@@ -13,6 +14,7 @@ const recentPosts = allPosts
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 const [pinnedPost, ...writingRows] = recentPosts;
+const HOME_PROJECT_LIMIT = 2;
 const HOME_RECOMMENDATION_LIMIT = 3;
 const recentRecommendations = (await getPublishedRecommends()).slice(0, HOME_RECOMMENDATION_LIMIT);
 const homepageDescription = 'I share what interests me here, along with things that might help someone else learn.';
@@ -34,6 +36,13 @@ const homepageDescription = 'I share what interests me here, along with things t
       </div>
     </section>
 
+    <section class="recent-projects" aria-labelledby="recent-projects-title">
+      <div class="recent-heading" data-motion-beat>
+        <h2 id="recent-projects-title">Recent projects</h2>
+      </div>
+      <PinnedRepos limit={HOME_PROJECT_LIMIT} variant="home" />
+      <a class="all-projects-link" data-motion-beat href="/projects">All projects <span aria-hidden="true">→</span></a>
+    </section>
 
     <section class="recent-writing" aria-labelledby="recent-title">
       <div class="recent-heading" data-motion-beat>

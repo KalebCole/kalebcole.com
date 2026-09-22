@@ -459,6 +459,7 @@ html[data-mode="dark"] [data-icon-dark] {
   object-position: center;
 }
 
+.recent-projects,
 .recent-writing,
 .recent-recommendations {
   display: grid;
@@ -475,6 +476,28 @@ html[data-mode="dark"] [data-icon-dark] {
   line-height: .92;
 }
 
+.home-project-index {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2rem);
+}
+
+.home-project-index .project-role {
+  display: none;
+}
+
+.home-project-index .project-visual {
+  margin-bottom: 1rem;
+}
+
+.project-index.home-project-index h3 {
+  margin-top: .4rem;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  line-height: 1.15;
+}
+
+.all-projects-link {
+  justify-self: start;
+}
 
 .writing-list {
   border-top: 1px solid var(--rule);
@@ -513,6 +536,7 @@ html[data-mode="dark"] [data-icon-dark] {
 }
 
 
+.all-projects-link,
 .all-writing-link,
 .all-recommendations-link {
   display: inline-flex;
