@@ -1,6 +1,12 @@
 export const HOME_DESKTOP_MEDIA = '(min-width: 850px)';
+export const HOME_PUBLICATION_MEDIA = '(min-width: 760px)';
 export const HOME_LAYOUT_MOTION_DURATION = 520;
 export const HOME_LAYOUT_MOTION_EASING = 'cubic-bezier(.16, 1, .3, 1)';
+const activeLayoutTargets = new Set();
+
+export function isHomeLayoutSettling(element) {
+  return activeLayoutTargets.has(element);
+}
 
 function captureRects(elements) {
   return new Map(elements.map((element) => [element, element.getBoundingClientRect()]));
@@ -39,48 +45,63 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
   const hero = root.querySelector('.home-hero');
   if (!hero || typeof browserWindow.matchMedia !== 'function') return;
 
-  const elements = Array.from(hero.children);
-  const desktopMedia = browserWindow.matchMedia(HOME_DESKTOP_MEDIA);
+  const groups = [
+    {
+      elements: Array.from(hero.children),
+      media: browserWindow.matchMedia(HOME_DESKTOP_MEDIA),
+    },
+    {
+      elements: Array.from(root.querySelectorAll?.('[data-home-layout-settle]') ?? []),
+      media: browserWindow.matchMedia(HOME_PUBLICATION_MEDIA),
+    },
+  ].filter(({ elements }) => elements.length > 0);
   const reducedMotion = browserWindow.matchMedia('(prefers-reduced-motion: reduce)');
-  let previousRects;
-  let wasDesktop;
   let activeAnimations = [];
   let motionVersion = 0;
   let resizeFrame;
 
   const updateRects = () => {
-    previousRects = captureRects(elements);
-    wasDesktop = desktopMedia.matches;
+    for (const group of groups) {
+      group.previousRects = captureRects(group.elements);
+      group.matches = group.media.matches;
+    }
   };
 
   const measureResize = () => {
     resizeFrame = undefined;
-    const isDesktop = desktopMedia.matches;
-    const currentRects = captureRects(elements);
+    const crossingGroups = groups.filter((group) => group.media.matches !== group.matches);
+    if (crossingGroups.length === 0) {
+      if (activeAnimations.length === 0) updateRects();
+      return;
+    }
 
-    if (isDesktop !== wasDesktop) {
-      const version = ++motionVersion;
-      for (const animation of activeAnimations) animation.cancel();
-      activeAnimations = animateHomeLayoutShift(elements, previousRects, {
+    const version = ++motionVersion;
+    for (const animation of activeAnimations) animation.cancel();
+    activeLayoutTargets.clear();
+    activeAnimations = crossingGroups.flatMap((group) => {
+      const movedElements = group.elements.filter((element) => {
+        const previous = group.previousRects.get(element);
+        const current = element.getBoundingClientRect();
+        return previous && (Math.abs(previous.left - current.left) >= 0.5 || Math.abs(previous.top - current.top) >= 0.5);
+      });
+      const animations = animateHomeLayoutShift(group.elements, group.previousRects, {
         reducedMotion: reducedMotion.matches,
       });
-      previousRects = currentRects;
-      wasDesktop = isDesktop;
+      if (animations.length > 0) movedElements.forEach((element) => activeLayoutTargets.add(element));
+      return animations;
+    });
+    updateRects();
 
-      const finished = activeAnimations
-        .map((animation) => animation.finished)
-        .filter(Boolean)
-        .map((promise) => promise.catch(() => undefined));
-      Promise.all(finished).then(() => {
-        if (version !== motionVersion) return;
-        activeAnimations = [];
-        if (desktopMedia.matches === wasDesktop) {
-          previousRects = captureRects(elements);
-        }
-      });
-    } else if (activeAnimations.length === 0) {
-      previousRects = currentRects;
-    }
+    const finished = activeAnimations
+      .map((animation) => animation.finished)
+      .filter(Boolean)
+      .map((promise) => promise.catch(() => undefined));
+    Promise.all(finished).then(() => {
+      if (version !== motionVersion) return;
+      activeAnimations = [];
+      activeLayoutTargets.clear();
+      updateRects();
+    });
   };
 
   const onResize = () => {
@@ -92,19 +113,11 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
 
   const start = () => {
     updateRects();
-    if (typeof desktopMedia.addEventListener === 'function') {
-      desktopMedia.addEventListener('change', onResize);
-      browserWindow.addEventListener('resize', () => {
-        if (desktopMedia.matches === wasDesktop && activeAnimations.length === 0) onResize();
-      }, { passive: true });
-    } else if (typeof desktopMedia.addListener === 'function') {
-      desktopMedia.addListener(onResize);
-      browserWindow.addEventListener('resize', () => {
-        if (desktopMedia.matches === wasDesktop && activeAnimations.length === 0) onResize();
-      }, { passive: true });
-    } else {
-      browserWindow.addEventListener('resize', onResize, { passive: true });
+    for (const group of groups) {
+      if (typeof group.media.addEventListener === 'function') group.media.addEventListener('change', onResize);
+      else if (typeof group.media.addListener === 'function') group.media.addListener(onResize);
     }
+    browserWindow.addEventListener('resize', onResize, { passive: true });
   };
 
   browserWindow.requestAnimationFrame(() => {

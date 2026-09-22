@@ -4,19 +4,22 @@ import type { CollectionEntry } from 'astro:content';
 interface Props {
   post: CollectionEntry<'blog'>;
   motion?: boolean;
+  layoutMotion?: boolean;
 }
 
-const { post, motion = false } = Astro.props;
+const { post, motion = false, layoutMotion = false } = Astro.props;
 const formattedDate = post.data.date.toLocaleDateString('en-US', {
   month: 'short',
   day: 'numeric',
   timeZone: 'UTC',
 });
 ---
-<article class="writing-row" data-motion-beat={motion ? '' : undefined}>
-  <div>
-    <h3><a href={`/blog/${post.id}`}>{post.data.title}</a></h3>
-    <p class="writing-summary">{post.data.description}</p>
-  </div>
-  <time datetime={post.data.date.toISOString()}>{formattedDate}</time>
-</article>
+<div data-home-layout-settle={layoutMotion ? '' : undefined}>
+  <article class="writing-row" data-motion-beat={motion ? '' : undefined}>
+    <div>
+      <h3><a href={`/blog/${post.id}`}>{post.data.title}</a></h3>
+      <p class="writing-summary">{post.data.description}</p>
+    </div>
+    <time datetime={post.data.date.toISOString()}>{formattedDate}</time>
+  </article>
+</div>

@@ -247,6 +247,7 @@ const projectsSource = text(join(root, 'src', 'pages', 'projects.astro'));
 const pinnedWritingSource = text(join(root, 'src', 'components', 'PinnedWriting.astro'));
 const recommendCardSource = text(join(root, 'src', 'components', 'RecommendCard.astro'));
 const breakpointMotionSource = text(join(root, 'src', 'scripts', 'home-breakpoint-motion.mjs'));
+const designSource = text(join(root, 'DESIGN.md'));
 assert.equal(packageJson.scripts.prebuild, 'npm run portrait', 'normal builds must regenerate every portrait derivative');
 assert.match(publicationMotionSource, /initProjectPointerMotion/, 'publication motion must provide project pointer tracking');
 const finePointerEdgeTilt = globalCss.match(/@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\.project-index-row:hover \.project-visual \{[\s\S]*?\n  \}/)?.[0] ?? '';
@@ -302,6 +303,18 @@ assert.match(
   breakpointMotionSource,
   /prefers-reduced-motion: reduce[\s\S]*?reducedMotion: reducedMotion\.matches/,
   'homepage breakpoint motion must honor reduced motion',
+);
+assert.match(breakpointMotionSource, /HOME_PUBLICATION_MEDIA = '\(min-width: 760px\)'/, 'homepage publication layout settle must retain its 760px breakpoint');
+assert.match(breakpointMotionSource, /\[data-home-layout-settle\]/, 'homepage layout settle must use dedicated markers rather than Story Beat hooks');
+assert.match(breakpointMotionSource, /activeLayoutTargets/, 'homepage layout settle must coordinate with concurrent Story Beats');
+assert.match(publicationMotionSource, /isHomeLayoutSettling/, 'Publication Story Beats must defer while a homepage layout settle is active');
+assert.match(designSource, /#### Homepage responsive layout settle[\s\S]*?850px[\s\S]*?760px[\s\S]*?fully opaque[\s\S]*?Publication Story Beats[\s\S]*?Reduced motion/i, 'DESIGN.md must define the canonical homepage layout-settle contract');
+const homepageLayoutTargets = matches(homepage, /\bdata-home-layout-settle\b/gi);
+assert.ok(homepageLayoutTargets.length > 0, 'homepage must emit dedicated layout-settle markers');
+assert.equal(
+  matches(homepage, /\bdata-home-layout-settle\b(?=[^>]*\bdata-motion-beat\b)|\bdata-motion-beat\b(?=[^>]*\bdata-home-layout-settle\b)/gi).length,
+  0,
+  'homepage layout-settle markers must not share an element with Publication Story Beat hooks',
 );
 const writingIndex = text(routes.get('/blog/'));
 assert.match(writingIndex, /<title>Writing \| Kaleb Cole<\/title>/i, 'Writing index document title');

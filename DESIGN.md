@@ -420,11 +420,23 @@ Homepage entrance choreography, always from an already-visible default:
 Use `cubic-bezier(.16, 1, .3, 1)`. The portrait straightens, lifts 6px, and
 extends its shadow over 300ms.
 
-When a live viewport crosses the 850px homepage breakpoint, settle each hero
-item from its previous screen position into the new composition over 520ms
-with the standard easing. Keep moving items fully opaque. Do not run this motion
-on initial page load. Keep the instant layout change when reduced motion is
-requested or JavaScript is unavailable.
+#### Homepage responsive layout settle
+
+Homepage layout settle preserves orientation across a live responsive reflow. It
+is not an entrance or opacity effect. At the existing 850px breakpoint, settle
+only hero children whose screen position changed. At the existing 760px
+publication breakpoint, settle only changed homepage publication targets in DOM
+order: Projects, Writing, and Recommends headings, cards or rows, and their
+all-items links. Use the existing 520ms `cubic-bezier(.16, 1, .3, 1)` settle
+with every keyframe fully opaque. Do not run it on initial load or for a resize
+that stays on the same side of its relevant breakpoint. Rapid crossings replace
+stale work with the newest layout.
+
+Publication Story Beats remain separate, one-shot below-fold entrance motion.
+They do not replay after a layout resize or fight a live layout settle. Reduced
+motion, JavaScript failure, and unsupported animation retain the immediate,
+correct layout. This contract preserves content, source order, and keyboard
+behavior.
 
 #### Publication Story Beats
 

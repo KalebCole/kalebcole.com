@@ -4,10 +4,11 @@ import type { CollectionEntry } from 'astro:content';
 interface Props {
   item: CollectionEntry<'recommends'>;
   motion?: boolean;
+  layoutMotion?: boolean;
   headingLevel?: 2 | 3;
 }
 
-const { item, motion = false, headingLevel = 2 } = Astro.props;
+const { item, motion = false, layoutMotion = false, headingLevel = 2 } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 const mediumMeta = {
   read: { label: 'Read', path: 'M6 4.75h8a3 3 0 0 1 3 3v11.5h-8a3 3 0 0 0-3 3V4.75Zm12 0h.5a2.5 2.5 0 0 1 2.5 2.5v12h-9a3 3 0 0 0-3 3' },
@@ -22,12 +23,13 @@ const formattedDate = item.data.date.toLocaleDateString('en-US', {
   timeZone: 'UTC',
 });
 ---
-<article
-  class:list={['rec', { 'rec-has-image': item.data.image, 'rec-no-image': !item.data.image }]}
-  data-recommendation
-  data-medium={item.data.medium}
-  data-motion-beat={motion ? '' : undefined}
->
+<div data-home-layout-settle={layoutMotion ? '' : undefined}>
+  <article
+    class:list={['rec', { 'rec-has-image': item.data.image, 'rec-no-image': !item.data.image }]}
+    data-recommendation
+    data-medium={item.data.medium}
+    data-motion-beat={motion ? '' : undefined}
+  >
   <div class:list={['rec-visual', { 'rec-visual-fallback': !item.data.image }]}>
     {item.data.image ? (
       <img
@@ -68,4 +70,5 @@ const formattedDate = item.data.date.toLocaleDateString('en-US', {
       </div>
     )}
   </div>
-</article>
+  </article>
+</div>

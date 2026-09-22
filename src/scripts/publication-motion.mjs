@@ -1,3 +1,5 @@
+import { isHomeLayoutSettling } from './home-breakpoint-motion.mjs';
+
 export const PUBLICATION_MOTION_DURATION = 430;
 export const PUBLICATION_MOTION_STAGGER = 55;
 export const PUBLICATION_MOTION_EASING = 'cubic-bezier(.2, .8, .2, 1)';
@@ -83,11 +85,17 @@ export function initPublicationMotion(root = document, browserWindow = window) {
   const targetIndexes = new Map(beats.map((target, index) => [target, index]));
   const animatedTargets = new Set();
   const animations = new Set();
+  let disposed = false;
 
-  const observer = new browserWindow.IntersectionObserver((entries) => {
+  let observer;
+  const runEntries = (entries) => {
     for (const entry of entries) {
       const { target } = entry;
-      if (!entry.isIntersecting || !targetIndexes.has(target) || animatedTargets.has(target)) continue;
+      if (disposed || !entry.isIntersecting || !targetIndexes.has(target) || animatedTargets.has(target)) continue;
+      if (isHomeLayoutSettling(target)) {
+        setTimeout(() => runEntries([entry]), 0);
+        continue;
+      }
 
       let animation;
       try {
@@ -108,11 +116,13 @@ export function initPublicationMotion(root = document, browserWindow = window) {
       observer.unobserve(target);
       if (animation && typeof animation.cancel === 'function') animations.add(animation);
     }
-  });
+  };
+  observer = new browserWindow.IntersectionObserver(runEntries);
 
   for (const target of targets) observer.observe(target);
 
   return () => {
+    disposed = true;
     cleanupPointerMotion();
     observer.disconnect();
     for (const animation of animations) animation.cancel();
