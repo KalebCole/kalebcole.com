@@ -3,9 +3,22 @@ export const HOME_PUBLICATION_MEDIA = '(min-width: 760px)';
 export const HOME_LAYOUT_MOTION_DURATION = 520;
 export const HOME_LAYOUT_MOTION_EASING = 'cubic-bezier(.16, 1, .3, 1)';
 const activeLayoutTargets = new Set();
+const layoutSettleListeners = new Set();
 
 export function isHomeLayoutSettling(element) {
-  return activeLayoutTargets.has(element);
+  for (let target = element; target; target = target.parentElement) {
+    if (activeLayoutTargets.has(target)) return true;
+  }
+  return false;
+}
+
+export function onHomeLayoutSettled(listener) {
+  layoutSettleListeners.add(listener);
+  return () => layoutSettleListeners.delete(listener);
+}
+
+function notifyHomeLayoutSettled() {
+  for (const listener of [...layoutSettleListeners]) listener();
 }
 
 function captureRects(elements) {
@@ -144,6 +157,7 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
       activeAnimations = [];
       activeLayoutTargets.clear();
       updateRects();
+      notifyHomeLayoutSettled();
     });
   };
 

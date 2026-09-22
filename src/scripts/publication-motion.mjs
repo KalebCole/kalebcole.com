@@ -1,4 +1,4 @@
-import { isHomeLayoutSettling } from './home-breakpoint-motion.mjs';
+import { isHomeLayoutSettling, onHomeLayoutSettled } from './home-breakpoint-motion.mjs';
 
 export const PUBLICATION_MOTION_DURATION = 430;
 export const PUBLICATION_MOTION_STAGGER = 55;
@@ -85,7 +85,9 @@ export function initPublicationMotion(root = document, browserWindow = window) {
   const targetIndexes = new Map(beats.map((target, index) => [target, index]));
   const animatedTargets = new Set();
   const animations = new Set();
+  const deferredEntries = new Map();
   let disposed = false;
+  let unsubscribeLayoutSettle = () => {};
 
   let observer;
   const runEntries = (entries) => {
@@ -93,7 +95,16 @@ export function initPublicationMotion(root = document, browserWindow = window) {
       const { target } = entry;
       if (disposed || !entry.isIntersecting || !targetIndexes.has(target) || animatedTargets.has(target)) continue;
       if (isHomeLayoutSettling(target)) {
-        setTimeout(() => runEntries([entry]), 0);
+        deferredEntries.set(target, entry);
+        unsubscribeLayoutSettle();
+        const unsubscribe = onHomeLayoutSettled(() => {
+          unsubscribe();
+          if (unsubscribeLayoutSettle === unsubscribe) unsubscribeLayoutSettle = () => {};
+          const entriesToRetry = [...deferredEntries.values()];
+          deferredEntries.clear();
+          runEntries(entriesToRetry);
+        });
+        unsubscribeLayoutSettle = unsubscribe;
         continue;
       }
 
@@ -123,6 +134,8 @@ export function initPublicationMotion(root = document, browserWindow = window) {
 
   return () => {
     disposed = true;
+    deferredEntries.clear();
+    unsubscribeLayoutSettle();
     cleanupPointerMotion();
     observer.disconnect();
     for (const animation of animations) animation.cancel();

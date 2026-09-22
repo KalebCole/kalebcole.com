@@ -6,6 +6,7 @@ import {
   animateHomeLayoutShift,
   findViewportAnchor,
   initHomeBreakpointMotion,
+  isHomeLayoutSettling,
 } from '../src/scripts/home-breakpoint-motion.mjs';
 
 function elementAt(rect) {
@@ -162,6 +163,22 @@ test('selects the visible target nearest the viewport center as the responsive a
     [hidden, hidden.rect],
   ]), 600), near);
   assert.equal(findViewportAnchor([hidden], new Map([[hidden, hidden.rect]]), 600), null);
+});
+
+test('treats a Story Beat inside an active layout-settle wrapper as settling', async () => {
+  const wrapper = elementAt({ left: 40, top: 700 });
+  const beat = { parentElement: wrapper };
+  const hero = { children: [], getAnimations() { return []; } };
+  const environment = motionEnvironment({ hero, publication: [wrapper] });
+
+  initHomeBreakpointMotion(environment.root, environment.browserWindow);
+  await Promise.resolve();
+  await Promise.resolve();
+  wrapper.rect = { left: 200, top: 700 };
+  environment.publicationMedia.cross(true);
+
+  assert.equal(isHomeLayoutSettling(wrapper), true);
+  assert.equal(isHomeLayoutSettling(beat), true);
 });
 
 test('keeps the visible anchor at its viewport position while settling surrounding targets', async () => {
