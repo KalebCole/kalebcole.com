@@ -5,6 +5,7 @@ date: 2026-07-13
 medium: read
 author: "Mario Zechner"
 source: "mariozechner.at"
+image: "https://mariozechner.at/img/band.png"
 tags: ["curation", "web"]
-take: "The inspiration for this page. A dead-simple, auto-generated feed of everything he's found worth sharing. Minimalism as a feature."
+take: "the inspiration for this page"
 ---
