@@ -4,14 +4,15 @@ import type { CollectionEntry } from 'astro:content';
 interface Props {
   post: CollectionEntry<'blog'>;
   motion?: boolean;
+  layoutMotion?: boolean;
   headingLevel?: 2 | 3;
 }
 
-const { post, motion = false, headingLevel = 2 } = Astro.props;
+const { post, motion = false, layoutMotion = false, headingLevel = 2 } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 ---
 <article class="pinned-writing" data-motion-beat={motion ? '' : undefined}>
-  <div class="pinned-copy">
+    <div class="pinned-copy" data-home-layout-writing-pinned={layoutMotion ? '' : undefined}>
     <p class="meta-line">
       <time datetime={post.data.date.toISOString()}>
         {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
@@ -19,9 +20,9 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
       {post.data.tags.length > 0 && <span>{post.data.tags.join(' · ')}</span>}
     </p>
     <Heading><a href={`/blog/${post.id}`}>{post.data.title}</a></Heading>
-  </div>
-  <aside class="note-mount" aria-label="Why this now">
-    <strong>Why this now</strong>
-    <p>{post.data.description}</p>
-  </aside>
+    </div>
+    <aside class="note-mount" data-home-layout-writing-pinned={layoutMotion ? '' : undefined} aria-label="Why this now">
+      <strong>Why this now</strong>
+      <p>{post.data.description}</p>
+    </aside>
 </article>

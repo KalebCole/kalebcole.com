@@ -40,7 +40,7 @@ const homepageDescription = 'I share what interests me here, along with things t
       <div class="recent-heading" data-motion-beat>
         <h2 id="recent-projects-title">Recent projects</h2>
       </div>
-      <PinnedRepos limit={HOME_PROJECT_LIMIT} variant="home" />
+      <PinnedRepos limit={HOME_PROJECT_LIMIT} variant="home" layoutMotion />
       <a class="all-projects-link" data-motion-beat href="/projects">All projects <span aria-hidden="true">→</span></a>
     </section>
 
@@ -48,9 +48,9 @@ const homepageDescription = 'I share what interests me here, along with things t
       <div class="recent-heading" data-motion-beat>
         <h2 id="recent-title">Recent writing</h2>
       </div>
-      {pinnedPost && <PinnedWriting post={pinnedPost} motion headingLevel={3} />}
+      {pinnedPost && <PinnedWriting post={pinnedPost} motion layoutMotion headingLevel={3} />}
       <div class="writing-list">
-        {writingRows.map((post) => <WritingRow post={post} motion />)}
+        {writingRows.map((post) => <WritingRow post={post} motion layoutMotion />)}
         <a class="all-writing-link" data-motion-beat href="/blog">All writing <span aria-hidden="true">→</span></a>
       </div>
     </section>
@@ -61,7 +61,7 @@ const homepageDescription = 'I share what interests me here, along with things t
           <h2 id="recent-recommendations-title">Recent recommendations</h2>
         </div>
         <div class="recommendations-list">
-          {recentRecommendations.map((item) => <RecommendCard item={item} motion headingLevel={3} />)}
+          {recentRecommendations.map((item) => <RecommendCard item={item} motion layoutMotion headingLevel={3} />)}
           <a class="all-recommendations-link" data-motion-beat href="/recommends">
             All recommendations <span aria-hidden="true">→</span>
           </a>

@@ -4,9 +4,10 @@ import { getPinnedRepos } from '../lib/github';
 interface Props {
   limit?: number;
   variant?: 'index' | 'home';
+  layoutMotion?: boolean;
 }
 
-const { limit, variant = 'index' } = Astro.props;
+const { limit, variant = 'index', layoutMotion = false } = Astro.props;
 const { repos } = await getPinnedRepos();
 const displayedRepos = typeof limit === 'number' ? repos.slice(0, Math.max(0, limit - 1)) : repos;
 const githubPreviewUrl = (name: string) => `https://opengraph.githubassets.com/1/KalebCole/${name}`;
@@ -44,7 +45,7 @@ const displayedProjects = displayedRepos.map((repo) => {
 const Heading = variant === 'home' ? 'h3' : 'h2';
 ---
 <ul class:list={['project-index', { 'home-project-index': variant === 'home' }]}>
-  <li class="project-index-row project-index-row-series">
+  <li class="project-index-row project-index-row-series" data-home-layout-project={layoutMotion ? '' : undefined}>
     <a class="project-visual" data-motion-beat href="https://aka.ms/student-learning-series-website">
       <img
         src="https://microsoft.github.io/student-learning-series/assets/share-plate.jpg"
@@ -62,7 +63,7 @@ const Heading = variant === 'home' ? 'h3' : 'h2';
     </div>
   </li>
   {displayedProjects.map((r) => (
-    <li class="project-index-row">
+    <li class="project-index-row" data-home-layout-project={layoutMotion ? '' : undefined}>
       <a class="project-visual" data-motion-beat href={r.url}>
         <img
           src={r.image}

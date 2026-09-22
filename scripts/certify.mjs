@@ -247,6 +247,7 @@ const projectsSource = text(join(root, 'src', 'pages', 'projects.astro'));
 const pinnedWritingSource = text(join(root, 'src', 'components', 'PinnedWriting.astro'));
 const recommendCardSource = text(join(root, 'src', 'components', 'RecommendCard.astro'));
 const breakpointMotionSource = text(join(root, 'src', 'scripts', 'home-breakpoint-motion.mjs'));
+const designSource = text(join(root, 'DESIGN.md'));
 assert.equal(packageJson.scripts.prebuild, 'npm run portrait', 'normal builds must regenerate every portrait derivative');
 assert.match(publicationMotionSource, /initProjectPointerMotion/, 'publication motion must provide project pointer tracking');
 const finePointerEdgeTilt = globalCss.match(/@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\.project-index-row:hover \.project-visual \{[\s\S]*?\n  \}/)?.[0] ?? '';
@@ -302,6 +303,24 @@ assert.match(
   breakpointMotionSource,
   /prefers-reduced-motion: reduce[\s\S]*?reducedMotion: reducedMotion\.matches/,
   'homepage breakpoint motion must honor reduced motion',
+);
+assert.match(breakpointMotionSource, /HOME_COMPACT_MEDIA = '\(min-width: 540px\)'/, 'homepage compact layout settle must use the 540px CSS breakpoint');
+assert.match(breakpointMotionSource, /HOME_PUBLICATION_MEDIA = '\(min-width: 760px\)'/, 'homepage publication layout settle must retain its 760px breakpoint');
+assert.match(breakpointMotionSource, /HOME_LAYOUT_GROUPS[\s\S]*?projects[\s\S]*?writing rows[\s\S]*?pinned writing[\s\S]*?recommendations compact[\s\S]*?recommendations publication/, 'homepage layout settle must map each actual responsive group to its CSS breakpoint');
+assert.match(breakpointMotionSource, /\[data-home-layout-writing-row\][\s\S]*?\[data-home-layout-writing-pinned\][\s\S]*?\[data-home-layout-recommendation\]/, 'homepage layout settle must target actual Writing and Recommendation responsive elements');
+assert.match(breakpointMotionSource, /activeLayoutTargets[\s\S]*?contains/, 'homepage layout settle must coordinate ancestor and descendant Story Beats');
+assert.match(publicationMotionSource, /isHomeLayoutSettling/, 'Publication Story Beats must defer while a homepage layout settle is active');
+assert.match(designSource, /#### Homepage responsive layout settle[\s\S]*?viewport anchoring[\s\S]*?850px[\s\S]*?760px[\s\S]*?540px[\s\S]*?fully opaque[\s\S]*?Reduced motion[\s\S]*?Publication Story Beats/i, 'DESIGN.md must define the canonical viewport-anchored homepage layout-settle contract');
+assert.match(breakpointMotionSource, /findViewportAnchor[\s\S]*?scrollTop \+= displacement/, 'homepage layout settle must synchronously compensate the visible reading anchor without requesting smooth scrolling');
+assert.doesNotMatch(homepage, /\bdata-home-layout-settle\b/i, 'homepage must not emit generic layout-settle wrappers');
+assert.match(homepage, /class="pinned-copy"[^>]*\bdata-home-layout-writing-pinned\b/i, 'homepage pinned Writing copy must be a direct responsive layout target');
+assert.match(homepage, /class="note-mount"[^>]*\bdata-home-layout-writing-pinned\b/i, 'homepage pinned Writing note must be a direct responsive layout target');
+assert.match(homepage, /class="writing-row"[\s\S]*?<div\b[^>]*\bdata-home-layout-writing-row\b[\s\S]*?<time\b[^>]*\bdata-home-layout-writing-row\b/i, 'homepage Writing row copy and date must be direct responsive layout targets');
+assert.match(homepage, /class="rec-visual"[^>]*\bdata-home-layout-recommendation\b[\s\S]*?class="rec-body"[^>]*\bdata-home-layout-recommendation\b/i, 'homepage Recommendation visual and body must be direct responsive layout targets');
+assert.equal(
+  matches(homepage, /\bdata-motion-beat\b(?=[^>]*\bdata-home-layout-(?:project|writing-row|writing-pinned|recommendation)\b)|\bdata-home-layout-(?:project|writing-row|writing-pinned|recommendation)\b(?=[^>]*\bdata-motion-beat\b)/gi).length,
+  0,
+  'homepage layout targets must not share an element with Publication Story Beat hooks',
 );
 const writingIndex = text(routes.get('/blog/'));
 assert.match(writingIndex, /<title>Writing \| Kaleb Cole<\/title>/i, 'Writing index document title');
