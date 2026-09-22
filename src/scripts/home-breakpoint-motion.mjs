@@ -168,26 +168,23 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
     const anchor = findViewportAnchor(targets, previousRects, browserWindow.innerHeight);
     if (anchor) preserveViewportAnchor(anchor, previousRects, browserWindow);
 
-    activeAnimations = crossingGroups.flatMap((group) => {
-      const movedElements = group.elements.filter((element) => {
-        const previous = group.previousRects.get(element);
-        const current = element.getBoundingClientRect();
-        if (!previous) return false;
-        const width = previous.width / current.width;
-        const height = previous.height / current.height;
-        return (
-          Math.abs(previous.left - current.left) >= 0.5
-          || Math.abs(previous.top - current.top) >= 0.5
-          || (Number.isFinite(width) && Math.abs(width - 1) >= 0.01)
-          || (Number.isFinite(height) && Math.abs(height - 1) >= 0.01)
-        );
-      });
-      const animations = animateHomeLayoutShift(group.elements, group.previousRects, {
-        reducedMotion: reducedMotion.matches,
-      });
-      if (animations.length > 0) movedElements.forEach((element) => activeLayoutTargets.add(element));
-      return animations;
+    const movedElements = targets.filter((element) => {
+      const previous = previousRects.get(element);
+      const current = element.getBoundingClientRect();
+      if (!previous) return false;
+      const width = previous.width / current.width;
+      const height = previous.height / current.height;
+      return (
+        Math.abs(previous.left - current.left) >= 0.5
+        || Math.abs(previous.top - current.top) >= 0.5
+        || (Number.isFinite(width) && Math.abs(width - 1) >= 0.01)
+        || (Number.isFinite(height) && Math.abs(height - 1) >= 0.01)
+      );
     });
+    activeAnimations = animateHomeLayoutShift(targets, previousRects, {
+      reducedMotion: reducedMotion.matches,
+    });
+    if (activeAnimations.length > 0) movedElements.forEach((element) => activeLayoutTargets.add(element));
     updateRects();
 
     const finished = activeAnimations

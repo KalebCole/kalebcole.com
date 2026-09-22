@@ -33,6 +33,7 @@ function media(matches = false) {
       this.matches = next;
       for (const listener of listeners) listener();
     },
+    setMatches(next) { this.matches = next; },
   };
 }
 
@@ -406,6 +407,58 @@ test('settles pinned Writing and Recommendation targets at 759/760/761', async (
   assert.equal(recommendationVisual.calls.length, 2);
   assert.equal(recommendationBody.calls.length, 0);
   assert.equal(writingRow.calls.length, 0);
+});
+
+test('deduplicates shared Recommendation targets across a simultaneous 539/761 resize in both directions', async () => {
+  const project = elementAt({ left: 40, top: 600, width: 500, height: 80 });
+  const writingDate = elementAt({ left: 40, top: 860, width: 500, height: 24 });
+  const recommendationVisual = elementAt({ left: 40, top: 1000, width: 500, height: 281 });
+  const recommendationBody = elementAt({ left: 40, top: 1250, width: 500, height: 180 });
+  const hero = { children: [], getAnimations() { return []; } };
+  const environment = motionEnvironment({
+    hero,
+    projects: [project],
+    writingRows: [writingDate],
+    recommendations: [recommendationVisual, recommendationBody],
+  });
+
+  initHomeBreakpointMotion(environment.root, environment.browserWindow);
+  await Promise.resolve();
+  await Promise.resolve();
+
+  // One resize measurement jumps from 539px to 761px, crossing both groups.
+  project.rect = { left: 200, top: 600, width: 350, height: 80 };
+  writingDate.rect = { left: 400, top: 800, width: 130, height: 24 };
+  recommendationVisual.rect = { left: 40, top: 1000, width: 144, height: 81 };
+  recommendationBody.rect = { left: 200, top: 1000, width: 350, height: 180 };
+  environment.compactMedia.setMatches(true);
+  environment.publicationMedia.setMatches(true);
+  environment.resize();
+
+  assert.equal(recommendationVisual.calls.length, 1);
+  assert.equal(recommendationBody.calls.length, 1);
+  assert.equal(project.calls.length, 1);
+  assert.equal(writingDate.calls.length, 1);
+  assert.deepEqual(recommendationVisual.calls[0].keyframes[0], {
+    translate: '0px 0px', opacity: 1, scale: '3.4722222222222223 3.4691358024691357',
+  });
+
+  // One resize measurement jumps from 761px to 539px, crossing both groups.
+  project.rect = { left: 40, top: 600, width: 500, height: 80 };
+  writingDate.rect = { left: 40, top: 860, width: 500, height: 24 };
+  recommendationVisual.rect = { left: 40, top: 1000, width: 500, height: 281 };
+  recommendationBody.rect = { left: 40, top: 1250, width: 500, height: 180 };
+  environment.compactMedia.setMatches(false);
+  environment.publicationMedia.setMatches(false);
+  environment.resize();
+
+  assert.equal(recommendationVisual.calls.length, 2);
+  assert.equal(recommendationBody.calls.length, 2);
+  assert.equal(project.calls.length, 2);
+  assert.equal(writingDate.calls.length, 2);
+  assert.deepEqual(recommendationBody.calls[1].keyframes[0], {
+    translate: '160px -250px', opacity: 1, scale: '0.7 1',
+  });
 });
 
 test('cancels stale batches during rapid crossings and preserves the latest group', async () => {
