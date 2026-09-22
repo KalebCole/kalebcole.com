@@ -243,6 +243,31 @@ test('keeps the visible anchor at its viewport position while settling surroundi
   assert.deepEqual(surrounding.calls[0].keyframes[0], { translate: '0px -100px', opacity: 1 });
 });
 
+test('anchors visible Writing and Recommendation targets through a hero-only 849 to 850 crossing', async () => {
+  for (const [name, targetKey] of [['Writing', 'writingRows'], ['Recommendations', 'recommendations']]) {
+    const heroItem = scrollingElementAt({ top: -100 });
+    const readerTarget = scrollingElementAt({ top: 250 });
+    const hero = { children: [heroItem], getAnimations() { return []; } };
+    const environment = scrollingEnvironment({
+      hero,
+      [targetKey]: [readerTarget],
+      rejectWindowScroll: true,
+    });
+
+    initHomeBreakpointMotion(environment.root, environment.browserWindow);
+    await Promise.resolve();
+    await Promise.resolve();
+    heroItem.top = -150;
+    readerTarget.top = 150;
+    environment.desktopMedia.cross(true);
+
+    assert.deepEqual(environment.scrollCalls, [[0, -100]], `${name} preserves the reader viewport position`);
+    assert.equal(readerTarget.getBoundingClientRect().top, 250, `${name} remains at its prior viewport position`);
+    assert.equal(readerTarget.calls.length, 0, `${name} does not animate without crossing its own breakpoint`);
+    assert.equal(heroItem.calls.length, 1, `${name} still allows only hero targets to animate`);
+  }
+});
+
 test('retains unanchored FLIP behavior when no layout target is visible', async () => {
   const offscreen = scrollingElementAt({ top: 900 });
   const hero = { children: [offscreen], getAnimations() { return []; } };

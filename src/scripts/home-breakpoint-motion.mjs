@@ -165,8 +165,13 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
       element,
       group.previousRects.get(element),
     ])));
-    const anchor = findViewportAnchor(targets, previousRects, browserWindow.innerHeight);
-    if (anchor) preserveViewportAnchor(anchor, previousRects, browserWindow);
+    const anchorTargets = uniqueElements(groups.flatMap((group) => group.elements));
+    const anchorPreviousRects = new Map(groups.flatMap((group) => group.elements.map((element) => [
+      element,
+      group.previousRects.get(element),
+    ])));
+    const anchor = findViewportAnchor(anchorTargets, anchorPreviousRects, browserWindow.innerHeight);
+    if (anchor) preserveViewportAnchor(anchor, anchorPreviousRects, browserWindow);
 
     const movedElements = targets.filter((element) => {
       const previous = previousRects.get(element);

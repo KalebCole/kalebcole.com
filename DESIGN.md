@@ -431,7 +431,10 @@ measured vertical displacement, then settle the surrounding moved targets. The
 chosen anchor must remain at its pre-reflow viewport position rather than
 visibly drifting away from the reader.
 
-At 850px, targets are hero children. At 760px, Projects targets are only the
+The reading anchor may be any current homepage layout target, including a
+noncrossing Writing or Recommendation target, while animation targets remain
+limited to the group or groups that crossed. At 850px, animation targets are
+hero children. At 760px, Projects targets are only the
 project rows that actually change grid placement; pinned Writing targets are its
 copy and `Why this now` note; and Recommendation visual/body targets settle
 again as their 9rem visual column takes effect. At 540px, Writing targets are
