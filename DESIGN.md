@@ -447,11 +447,14 @@ run it on initial load or for a resize that stays on the same side of its
 relevant breakpoint. Rapid crossings cancel stale work, remeasure the newest
 layout, and never apply queued scroll deltas.
 
-Do not request smooth scrolling or override browser scroll anchoring. If no
-suitable target is visible, scroll cannot move at a document edge or on a
-non-scrollable page, JavaScript fails, or animation is unsupported, retain the
-immediate correct layout and the existing FLIP behavior. Reduced motion may
-apply the same immediate reading-position compensation but does not animate.
+Do not request smooth scrolling or override browser scroll anchoring. At the
+top of the document, do not apply manual scroll compensation: retain scroll
+position zero and let the hero settle in place. If no suitable target is
+visible, scroll cannot move at another document edge or on a non-scrollable
+page, JavaScript fails, or animation is unsupported, retain the immediate
+correct layout and the existing FLIP behavior. Reduced motion may apply the
+same immediate reading-position compensation away from the document top but
+does not animate.
 
 Publication Story Beats remain separate, one-shot below-fold entrance motion.
 They do not replay after a layout resize or fight a live layout settle. This

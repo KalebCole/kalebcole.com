@@ -71,6 +71,7 @@ function preserveViewportAnchor(anchor, previousRects, browserWindow) {
 
   const scrollingRoot = browserWindow.document?.scrollingElement ?? browserWindow.document?.documentElement;
   if (scrollingRoot && scrollingRoot.scrollHeight <= scrollingRoot.clientHeight) return;
+  if (scrollingRoot?.scrollTop <= 0) return;
 
   const displacement = anchor.getBoundingClientRect().top - previous.top;
   if (Math.abs(displacement) < 0.5) return;

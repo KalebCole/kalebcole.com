@@ -93,6 +93,7 @@ function scrollingEnvironment({
   viewportHeight = 600,
   scrollable = true,
   rejectWindowScroll = false,
+  initialScrollTop = 0,
 }) {
   const environment = motionEnvironment({ hero, projects, writingRows, writingPinned, recommendations, reduced });
   const layoutTargets = [...hero.children, ...projects, ...writingRows, ...writingPinned, ...recommendations];
@@ -102,7 +103,7 @@ function scrollingEnvironment({
     scrollHeight: scrollable ? viewportHeight * 2 : viewportHeight,
     clientHeight: viewportHeight,
   };
-  let scrollTop = 0;
+  let scrollTop = initialScrollTop;
   Object.defineProperty(scrollingElement, 'scrollTop', {
     get() { return scrollTop; },
     set(next) {
@@ -228,7 +229,7 @@ test('keeps the visible anchor at its viewport position while settling surroundi
   const anchor = scrollingElementAt({ top: 250 });
   const surrounding = scrollingElementAt({ top: 500 });
   const hero = { children: [anchor, surrounding], getAnimations() { return []; } };
-  const environment = scrollingEnvironment({ hero, rejectWindowScroll: true });
+  const environment = scrollingEnvironment({ hero, rejectWindowScroll: true, initialScrollTop: 100 });
 
   initHomeBreakpointMotion(environment.root, environment.browserWindow);
   await Promise.resolve();
@@ -243,6 +244,24 @@ test('keeps the visible anchor at its viewport position while settling surroundi
   assert.deepEqual(surrounding.calls[0].keyframes[0], { translate: '0px -100px', opacity: 1 });
 });
 
+test('keeps document-top readers at scroll position zero through a hero reflow', async () => {
+  const heading = scrollingElementAt({ top: 100 });
+  const actions = scrollingElementAt({ top: 280 });
+  const hero = { children: [heading, actions], getAnimations() { return []; } };
+  const environment = scrollingEnvironment({ hero, rejectWindowScroll: true });
+
+  initHomeBreakpointMotion(environment.root, environment.browserWindow);
+  await Promise.resolve();
+  await Promise.resolve();
+  heading.top = 120;
+  actions.top = 530;
+  environment.desktopMedia.cross(true);
+
+  assert.deepEqual(environment.scrollCalls, [], 'document-top readers must not be manually scrolled to a hero target');
+  assert.equal(actions.calls.length, 1, 'hero targets still settle normally');
+  assert.deepEqual(actions.calls[0].keyframes[0], { translate: '0px -250px', opacity: 1 });
+});
+
 test('anchors visible Writing and Recommendation targets through a hero-only 849 to 850 crossing', async () => {
   for (const [name, targetKey] of [['Writing', 'writingRows'], ['Recommendations', 'recommendations']]) {
     const heroItem = scrollingElementAt({ top: -100 });
@@ -252,6 +271,7 @@ test('anchors visible Writing and Recommendation targets through a hero-only 849
       hero,
       [targetKey]: [readerTarget],
       rejectWindowScroll: true,
+      initialScrollTop: 100,
     });
 
     initHomeBreakpointMotion(environment.root, environment.browserWindow);
@@ -301,7 +321,7 @@ test('retains FLIP behavior without scroll compensation on a non-scrollable page
 test('anchors without animation when reduced motion is requested', async () => {
   const anchor = scrollingElementAt({ top: 250 });
   const hero = { children: [anchor], getAnimations() { return []; } };
-  const environment = scrollingEnvironment({ hero, reduced: true });
+  const environment = scrollingEnvironment({ hero, reduced: true, initialScrollTop: 100 });
 
   initHomeBreakpointMotion(environment.root, environment.browserWindow);
   await Promise.resolve();
