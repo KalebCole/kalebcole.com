@@ -308,7 +308,8 @@ assert.match(breakpointMotionSource, /HOME_PUBLICATION_MEDIA = '\(min-width: 760
 assert.match(breakpointMotionSource, /\[data-home-layout-settle\]/, 'homepage layout settle must use dedicated markers rather than Story Beat hooks');
 assert.match(breakpointMotionSource, /activeLayoutTargets/, 'homepage layout settle must coordinate with concurrent Story Beats');
 assert.match(publicationMotionSource, /isHomeLayoutSettling/, 'Publication Story Beats must defer while a homepage layout settle is active');
-assert.match(designSource, /#### Homepage responsive layout settle[\s\S]*?850px[\s\S]*?760px[\s\S]*?fully opaque[\s\S]*?Publication Story Beats[\s\S]*?Reduced motion/i, 'DESIGN.md must define the canonical homepage layout-settle contract');
+assert.match(designSource, /#### Homepage responsive layout settle[\s\S]*?viewport anchoring[\s\S]*?reading[\s\S]*?850px[\s\S]*?760px[\s\S]*?fully opaque[\s\S]*?Reduced motion[\s\S]*?Publication Story Beats/i, 'DESIGN.md must define the canonical viewport-anchored homepage layout-settle contract');
+assert.match(breakpointMotionSource, /findViewportAnchor[\s\S]*?scrollTop \+= displacement/, 'homepage layout settle must synchronously compensate the visible reading anchor without requesting smooth scrolling');
 const homepageLayoutTargets = matches(homepage, /\bdata-home-layout-settle\b/gi);
 assert.ok(homepageLayoutTargets.length > 0, 'homepage must emit dedicated layout-settle markers');
 assert.equal(

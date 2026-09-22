@@ -12,6 +12,39 @@ function captureRects(elements) {
   return new Map(elements.map((element) => [element, element.getBoundingClientRect()]));
 }
 
+export function findViewportAnchor(elements, previousRects, viewportHeight) {
+  if (!Number.isFinite(viewportHeight) || viewportHeight <= 0) return null;
+
+  const viewportCenter = viewportHeight / 2;
+  return elements.reduce((nearest, element) => {
+    const rect = previousRects.get(element);
+    if (!rect) return nearest;
+
+    const bottom = Number.isFinite(rect.bottom)
+      ? rect.bottom
+      : rect.top + (Number.isFinite(rect.height) ? rect.height : 0);
+    if (bottom < 0 || rect.top > viewportHeight) return nearest;
+
+    const center = rect.top + ((bottom - rect.top) / 2);
+    const distance = Math.abs(center - viewportCenter);
+    return !nearest || distance < nearest.distance ? { element, distance } : nearest;
+  }, null)?.element ?? null;
+}
+
+function preserveViewportAnchor(anchor, previousRects, browserWindow) {
+  const previous = previousRects.get(anchor);
+  if (!previous) return;
+
+  const scrollingRoot = browserWindow.document?.scrollingElement ?? browserWindow.document?.documentElement;
+  if (scrollingRoot && scrollingRoot.scrollHeight <= scrollingRoot.clientHeight) return;
+
+  const displacement = anchor.getBoundingClientRect().top - previous.top;
+  if (Math.abs(displacement) < 0.5) return;
+
+  if (scrollingRoot) scrollingRoot.scrollTop += displacement;
+  else if (typeof browserWindow.scrollBy === 'function') browserWindow.scrollBy(0, displacement);
+}
+
 export function animateHomeLayoutShift(
   elements,
   previousRects,
@@ -78,6 +111,16 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
     const version = ++motionVersion;
     for (const animation of activeAnimations) animation.cancel();
     activeLayoutTargets.clear();
+    const previousRects = new Map(crossingGroups.flatMap((group) => group.elements.map((element) => [
+      element,
+      group.previousRects.get(element),
+    ])));
+    const anchor = findViewportAnchor(
+      crossingGroups.flatMap((group) => group.elements),
+      previousRects,
+      browserWindow.innerHeight,
+    );
+    if (anchor) preserveViewportAnchor(anchor, previousRects, browserWindow);
     activeAnimations = crossingGroups.flatMap((group) => {
       const movedElements = group.elements.filter((element) => {
         const previous = group.previousRects.get(element);

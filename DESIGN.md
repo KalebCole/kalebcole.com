@@ -422,21 +422,33 @@ extends its shadow over 300ms.
 
 #### Homepage responsive layout settle
 
-Homepage layout settle preserves orientation across a live responsive reflow. It
-is not an entrance or opacity effect. At the existing 850px breakpoint, settle
-only hero children whose screen position changed. At the existing 760px
-publication breakpoint, settle only changed homepage publication targets in DOM
+Homepage layout settle uses **viewport anchoring** to preserve the reader’s
+current on-screen placement across a live responsive reflow. It is not an
+entrance or opacity effect. Before an applicable breakpoint change, choose the
+visible homepage layout target nearest the viewport center as the reading
+anchor. After reflow, apply one immediate scroll compensation for that target’s
+measured vertical displacement, then settle the surrounding moved targets. The
+chosen anchor must remain at its pre-reflow viewport position rather than
+visibly drifting away from the reader.
+
+At the existing 850px breakpoint, targets are hero children. At the existing
+760px publication breakpoint, targets are homepage publication targets in DOM
 order: Projects, Writing, and Recommends headings, cards or rows, and their
 all-items links. Use the existing 520ms `cubic-bezier(.16, 1, .3, 1)` settle
 with every keyframe fully opaque. Do not run it on initial load or for a resize
-that stays on the same side of its relevant breakpoint. Rapid crossings replace
-stale work with the newest layout.
+that stays on the same side of its relevant breakpoint. Rapid crossings cancel
+stale work, remeasure the newest layout, and never apply queued scroll deltas.
+
+Do not request smooth scrolling or override browser scroll anchoring. If no
+suitable target is visible, scroll cannot move at a document edge or on a
+non-scrollable page, JavaScript fails, or animation is unsupported, retain the
+immediate correct layout and the existing FLIP behavior. Reduced motion may
+apply the same immediate reading-position compensation but does not animate.
 
 Publication Story Beats remain separate, one-shot below-fold entrance motion.
-They do not replay after a layout resize or fight a live layout settle. Reduced
-motion, JavaScript failure, and unsupported animation retain the immediate,
-correct layout. This contract preserves content, source order, and keyboard
-behavior.
+They do not replay after a layout resize or fight a live layout settle. This
+contract preserves content, source order, keyboard behavior, and reading
+position.
 
 #### Publication Story Beats
 
