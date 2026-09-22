@@ -152,8 +152,8 @@ step.
   `clamp(2rem, 7vw, 7rem)` gap, and 64px vertical padding.
 - Recent projects, recent writing, and recent recommendations use the same
   stacked section pattern: a full-width heading above the content row, with a
-  2px top rule. Recent projects is capped at two items and ends with a link to
-  the full Projects index.
+  2px top rule. Recent projects is capped at two items and ends with an `All
+  projects →` link to the full Projects index.
 - Reading measure: 57–70 characters; target 65–70 characters for articles.
 - Article rows: 18px vertical padding, one-pixel rules, and no card container.
 - Detailed media breakout: centered on the prose column and capped near 56rem.
@@ -393,16 +393,20 @@ zero missing icon requests.
 - On phones, place the portrait after the greeting and before the rest of the
   introduction. Center the complete hero and use a 30px vertical rhythm, with
   the portrait shrinking only when required to prevent narrow-screen overflow.
-- Move directly into the three newest published pieces using the approved split
-  composition. End with one `All writing →` link.
-- Follow with a compact, capped recent-recommendations sibling using the same
-  split composition, rules, row rhythm, and responsive collapse. Omit imagery
-  consistently, retain medium, title, source or author, UTC date, and optional
-  My thoughts, then end with `All recommendations →`.
+- Follow the introduction with up to two recent projects and an `All projects
+  →` link to the full Projects index. Then move into up to three newest
+  published pieces using the Writing
+  index presentation: the newest receives pinned-writing treatment with its
+  `Why this now` note, and later entries use the ruled archive row. Do not add
+  year headings. End with one `All writing →` link to the full Writing index.
+- Follow with up to three newest recommendations using the same `RecommendCard`
+  presentation as the full Recommends index, including source artwork when
+  supplied, medium, source, UTC date, author, My thoughts, and the external-link
+  cue. End with `All recommendations →` linking to the full Recommends index.
 - Omit the recommendations sibling when no published recommendations exist.
-- Show up to two projects before Recent writing and end that preview with a
-  link to the full Projects page. Do not add a credential strip, metrics, or
-  conversion-focused copy.
+- Filters, year archive grouping, empty states, and RSS discovery belong only
+  on the full indexes. Do not add a credential strip, metrics, or
+  conversion-focused copy to the homepage.
 
 Homepage entrance choreography, always from an already-visible default:
 
@@ -426,9 +430,9 @@ requested or JavaScript is unavailable.
 
 The Homepage uses one-shot Publication Story Beats after the hero, in source
 order: Recent projects heading, each project visual and copy block, All
-projects link, Recent writing heading, each writing row, All writing link,
-Recent recommendations heading, each recommendation row, then All
-recommendations link. The hero does not receive Publication Story Beats.
+projects link, Recent writing heading, pinned writing, each writing row, All
+writing link, Recent recommendations heading, each recommendation row, then
+All recommendations link. The hero does not receive Publication Story Beats.
 
 Projects uses Project Story Beats in source order: page heading, then each
 project visual and copy block.
