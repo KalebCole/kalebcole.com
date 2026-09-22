@@ -244,6 +244,8 @@ const publicationMotionSource = text(join(root, 'src', 'scripts', 'publication-m
 const polaroidSource = text(join(root, 'src', 'components', 'Polaroid.astro'));
 const homepageSource = text(join(root, 'src', 'pages', 'index.astro'));
 const projectsSource = text(join(root, 'src', 'pages', 'projects.astro'));
+const pinnedWritingSource = text(join(root, 'src', 'components', 'PinnedWriting.astro'));
+const recommendCardSource = text(join(root, 'src', 'components', 'RecommendCard.astro'));
 const breakpointMotionSource = text(join(root, 'src', 'scripts', 'home-breakpoint-motion.mjs'));
 assert.equal(packageJson.scripts.prebuild, 'npm run portrait', 'normal builds must regenerate every portrait derivative');
 assert.match(publicationMotionSource, /initProjectPointerMotion/, 'publication motion must provide project pointer tracking');
@@ -271,8 +273,8 @@ assert.ok(
     && globalCss.indexOf('@media (pointer: coarse)') > globalCss.indexOf('.project-index-row:hover .project-visual'),
   'coarse pressed state must cascade after keyboard and hover project states',
 );
-assert.match(globalCss, /\.writing-row:has\(a:hover\),[\s\S]*?\.home-recommendation-row:has\(a:hover\)\s*\{[\s\S]*?translateX\(\.55rem\)[\s\S]*?\.writing-row:has\(a:hover\) h3 a,[\s\S]*?color: var\(--blue\);/, 'writing and recommendations must retain their Reading Nudge');
-assert.match(globalCss, /\.home-page \.writing-row:focus-within,[\s\S]*?\.home-page \.home-recommendation-row:focus-within\s*\{[\s\S]*?translateX\(\.55rem\)[\s\S]*?\.home-page \.writing-row:focus-within h3 a,[\s\S]*?color: var\(--blue\);/, 'homepage Reading Nudge must provide the same keyboard focus movement and cobalt title color');
+assert.match(globalCss, /\.writing-row:has\(a:hover\),[\s\S]*?\.home-page \.rec:has\(\.rec-title a:hover\)\s*\{[\s\S]*?translateX\(\.55rem\)[\s\S]*?\.writing-row:has\(a:hover\) h3 a,[\s\S]*?color: var\(--blue\);/, 'writing and homepage recommendations must retain their Reading Nudge');
+assert.match(globalCss, /\.home-page \.writing-row:focus-within,[\s\S]*?\.home-page \.rec:focus-within\s*\{[\s\S]*?translateX\(\.55rem\)[\s\S]*?\.home-page \.writing-row:focus-within h3 a,[\s\S]*?color: var\(--blue\);/, 'homepage Reading Nudge must provide the same keyboard focus movement and cobalt title color');
 assert.doesNotMatch(globalCss, /(?:^|\n)\s*\.writing-row:focus-within\s*\{/m, 'keyboard Reading Nudge must not affect writing indexes or article pages');
 assert.match(globalCss, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.project-visual,[\s\S]*?\.project-visual img\s*\{[\s\S]*?transition: none;[\s\S]*?transform: none !important;[\s\S]*?\.project-visual\s*\{[\s\S]*?box-shadow: 6px 7px 0 var\(--coral\);/, 'reduced motion must provide the fixed project Static Mount');
 assert.doesNotMatch(globalCss, /\.prose[^,{]*(?::hover|:active|:focus-within)/, 'article prose must not gain interaction motion');
@@ -288,7 +290,7 @@ assert.equal(
 );
 assert.doesNotMatch(
   globalCss,
-  /\.recent-(?:projects|writing|recommendations)\s*\{\s*animation:/,
+  /\.recent-(?:writing|recommendations)\s*\{\s*animation:/,
   'homepage sections must not retain superseded settle-up entrances outside Publication Story Beats',
 );
 assert.match(
@@ -319,22 +321,41 @@ assert.match(homepage, /href="\/blog"[^>]*>\s*Read my writing\s*<\/a>/i, 'homepa
 const homepageHero = homepage.match(/<section\b[^>]*class="home-hero"[^>]*>[\s\S]*?<\/section>/i)?.[0] ?? '';
 assert.doesNotMatch(homepageHero, /\bdata-motion-beat\b/i, 'homepage hero and its children must not receive publication motion hooks');
 assert.match(homepage, /<section\b[^>]*class="recent-writing"[\s\S]*?<div\b[^>]*class="recent-heading"[^>]*\bdata-motion-beat\b[^>]*>[\s\S]*?<h2[^>]*>Recent writing<\/h2>/i, 'Recent writing heading must be a publication motion beat');
-const homepageWritingRows = matches(homepage, /<article\b[^>]*class="writing-row"[^>]*>/gi);
+const homepageWritingRows = matches(homepage, /<article\b[^>]*class="writing-row"[^>]*>[\s\S]*?<\/article>/gi)
+  .map((match) => match[0]);
 const homepageWritingMotionRows = matches(homepage, /<article\b[^>]*class="writing-row"[^>]*\bdata-motion-beat\b[^>]*>/gi);
 assert.equal(homepageWritingMotionRows.length, homepageWritingRows.length, 'every homepage writing row must be a publication motion beat');
+const writingIndexArchiveRows = matches(writingIndex, /<article\b[^>]*class="writing-row"[^>]*>[\s\S]*?<\/article>/gi)
+  .map((match) => match[0]);
+const writingDatePresentation = (row, surface) => {
+  const href = row.match(/<h3[^>]*>\s*<a\b[^>]*href="([^"]+)"/i)?.[1];
+  const date = row.match(/<time\b[^>]*>([\s\S]*?)<\/time>/i)?.[1]?.replace(/\s+/g, ' ').trim();
+  assert.ok(href && date, `${surface} writing rows must expose a linked title and date`);
+  return [href, date];
+};
+const writingIndexDates = new Map(writingIndexArchiveRows.map((row) => writingDatePresentation(row, 'Writing index')));
+for (const row of homepageWritingRows) {
+  const [href, date] = writingDatePresentation(row, 'homepage');
+  assert.equal(writingIndexDates.get(href), date, `homepage Writing date presentation must match the corresponding Writing index row (${href})`);
+}
+const homepagePinnedWriting = homepage.match(/<article\b[^>]*class="pinned-writing"[^>]*>[\s\S]*?<\/article>/i)?.[0];
+const writingIndexPinned = writingIndex.match(/<article\b[^>]*class="pinned-writing"[^>]*>[\s\S]*?<\/article>/i)?.[0];
+const writingIndexUrls = matches(writingIndex, /<(?:h2|h3)[^>]*>\s*<a\b[^>]*href="([^"]+)"/gi).map((match) => match[1]);
+const homepageWritingUrls = [
+  homepagePinnedWriting?.match(/<h3[^>]*>\s*<a\b[^>]*href="([^"]+)"/i)?.[1],
+  ...matches(homepage, /<article\b[^>]*class="writing-row"[^>]*>[\s\S]*?<h3[^>]*>\s*<a\b[^>]*href="([^"]+)"/gi).map((match) => match[1]),
+].filter(Boolean);
+assert.equal(Boolean(homepagePinnedWriting), Boolean(writingIndexPinned), 'homepage must use pinned writing whenever the Writing index does');
+if (homepagePinnedWriting) {
+  assert.match(homepagePinnedWriting, /class="note-mount"[^>]*aria-label="Why this now"/i, 'homepage pinned writing must include Why this now');
+  assert.match(homepagePinnedWriting, /<h3[^>]*>\s*<a\b/i, 'homepage pinned writing title must follow its section heading at h3');
+  assert.match(writingIndexPinned, /<h2[^>]*>\s*<a\b/i, 'Writing index pinned title must retain its default h2 level');
+}
+assert.equal(homepageWritingUrls.length, Math.min(3, writingIndexUrls.length), 'homepage writing must use the deliberate three-item cap');
+assert.deepEqual(homepageWritingUrls, writingIndexUrls.slice(0, 3), 'homepage writing must match the Writing index newest-first chronology');
+assert.doesNotMatch(homepage, /class="year-heading"/i, 'homepage writing preview must not render year headings');
 assert.match(homepage, /class="all-writing-link"[^>]*\bdata-motion-beat\b[^>]*href="\/blog"[^>]*>\s*All writing/i, 'homepage writing preview must end with a motion-enabled All writing link');
-assert.match(homepage, /<section\b[^>]*class="recent-projects"[\s\S]*?<div\b[^>]*class="recent-heading"[^>]*\bdata-motion-beat\b[^>]*>[\s\S]*?<h2[^>]*>Recent projects<\/h2>/i, 'Recent projects heading must be a publication motion beat');
-assert.match(homepage, /class="all-projects-link"[^>]*\bdata-motion-beat\b[^>]*href="\/projects"[^>]*>\s*All projects\s*<span[^>]*>→<\/span>\s*<\/a>/i, 'homepage project preview must end with a motion-enabled All projects link');
-const homepageProjectCards = matches(homepage, /<li\b[^>]*class="[^"]*project-index-row[^"]*"[^>]*>/gi);
-const homepageProjectVisuals = matches(homepage, /<a\b[^>]*class="project-visual"[^>]*\bdata-motion-beat\b[^>]*>/gi);
-const homepageProjectCopies = matches(homepage, /<div\b[^>]*class="project-index-copy"[^>]*\bdata-motion-beat\b[^>]*>/gi);
-assert.ok(homepageProjectCards.length > 0 && homepageProjectCards.length <= 2, 'homepage must show between one and two projects');
-assert.equal(homepageProjectVisuals.length, homepageProjectCards.length, 'every homepage project visual must be a publication motion beat');
-assert.equal(homepageProjectCopies.length, homepageProjectCards.length, 'every homepage project copy block must be a publication motion beat');
-assert.match(homepage, /Build Your Personal Brand with Copilot/i, 'homepage must use the published series title');
-assert.match(homepage, /A YouTube series for the Microsoft Developer channel that guides college students and beginners through turning an existing PDF resume into a portfolio website with GitHub Copilot\./i, 'homepage must explain the series audience and outcome');
-assert.doesNotMatch(homepage, /Website \+ video/i, 'homepage must not show redundant project taxonomy');
-assert.doesNotMatch(homepage, /Website \+ PowerShell/i, 'homepage must not show redundant project taxonomy');
+assert.doesNotMatch(homepage, /class="recent-projects"|class="home-project-index"|class="all-projects-link"/i, 'Projects must stay off the homepage');
 assert.doesNotMatch(pinnedReposSource, /class="repo-lang"/, 'project cards must not render language metadata');
 assert.match(pinnedReposSource, /url: 'https:\/\/kalebcole\.github\.io\/uprint-cli\/'/i, 'uprint override must target its website');
 assert.match(pinnedReposSource, /name: 'uprint-cli'/, 'uprint override must use the repository name');
@@ -445,12 +466,14 @@ assert.match(recommends, /role="status"[^>]*aria-live="polite"[^>]*aria-atomic="
 assert.match(recommends, /class="sr-only"> \(external site\)<\/span>/i, 'external recommendation links must name context');
 assert.doesNotMatch(recommends, /class="rec-tags"/i, 'recommendation topic tags must stay off the page');
 
-const homepageRecommendations = matches(homepage, /<article\b[^>]*data-home-recommendation[^>]*>[\s\S]*?<\/article>/gi)
+const homepageRecommendations = matches(homepage, /<article\b[^>]*class="[^"]*\brec\b[^"]*"[^>]*\bdata-recommendation\b[^>]*>[\s\S]*?<\/article>/gi)
+  .map((match) => match[0]);
+const recommendationCards = matches(recommends, /<article\b[^>]*class="[^"]*\brec\b[^"]*"[^>]*\bdata-recommendation\b[^>]*>[\s\S]*?<\/article>/gi)
   .map((match) => match[0]);
 const publishedRecommendationUrls = matches(recommends, /class="rec-title"[\s\S]*?<a\b[^>]*href="([^"]+)"/gi)
   .map((match) => match[1]);
 const homepageRecommendationUrls = homepageRecommendations
-  .map((item) => item.match(/class="home-recommendation-title"[\s\S]*?<a\b[^>]*href="([^"]+)"/i)?.[1]);
+  .map((item) => item.match(/class="rec-title"[\s\S]*?<a\b[^>]*href="([^"]+)"/i)?.[1]);
 assert.equal(
   homepageRecommendations.length,
   Math.min(3, publishedRecommendationUrls.length),
@@ -461,18 +484,30 @@ assert.deepEqual(
   publishedRecommendationUrls.slice(0, 3),
   'homepage recommendations must match the published newest-first chronology',
 );
+assert.doesNotMatch(homepage, /home-recommendation-row|data-home-recommendation|home-recommendation-title/i, 'homepage must not use legacy recommendation markup');
 if (homepageRecommendations.length > 0) {
-  const homepageRecommendationMotionRows = matches(homepage, /<article\b[^>]*class="home-recommendation-row"[^>]*\bdata-motion-beat\b[^>]*>/gi);
-  assert.equal(homepageRecommendationMotionRows.length, homepageRecommendations.length, 'every homepage recommendation row must be a publication motion beat');
+  const homepageRecommendationMotionRows = matches(homepage, /<article\b[^>]*class="[^"]*\brec\b[^"]*"[^>]*\bdata-motion-beat\b[^>]*>/gi);
+  assert.equal(homepageRecommendationMotionRows.length, homepageRecommendations.length, 'every homepage recommendation must be a publication motion beat');
   assert.match(homepage, /class="all-recommendations-link"[^>]*\bdata-motion-beat\b[^>]*href="\/recommends"[^>]*>\s*All recommendations/i, 'homepage must end recommendations with a motion-enabled All recommendations link');
   assert.match(homepage, /href="\/recommends"[^>]*>\s*All recommendations/i, 'homepage must link to all recommendations');
   for (const item of homepageRecommendations) {
+    assert.match(item, /class="rec-visual"/i, 'homepage recommendation must preserve RecommendCard artwork or medium-mark markup');
+    assert.match(item, /class="rec-meta"/i, 'homepage recommendation must preserve RecommendCard metadata');
+    assert.match(item, /class="rec-title"/i, 'homepage recommendation must preserve RecommendCard titles');
+    assert.match(item, /<h3\b[^>]*class="rec-title"[^>]*>/i, 'homepage recommendation titles must follow their section heading at h3');
     assert.match(item, /data-medium="(?:read|watch|listen)"/i, 'homepage recommendation must expose its medium');
     assert.match(item, /<time\b[^>]*datetime="[^"]+"[^>]*>/i, 'homepage recommendation must include a machine-readable date');
     assert.match(item, /class="sr-only"> \(external site\)<\/span>/i, 'homepage external links must name context');
     assert.doesNotMatch(item, /\b(?:rec-tags|priority)\b/i, 'homepage recommendations must not expose tags or priority');
   }
 }
+for (const item of recommendationCards) {
+  assert.match(item, /<h2\b[^>]*class="rec-title"[^>]*>/i, 'Recommends index titles must retain their default h2 level');
+}
+assert.match(pinnedWritingSource, /headingLevel\?: 2 \| 3/, 'PinnedWriting must expose an explicit heading-level prop');
+assert.match(recommendCardSource, /headingLevel\?: 2 \| 3/, 'RecommendCard must expose an explicit heading-level prop');
+assert.match(homepageSource, /<PinnedWriting\b[^>]*\bheadingLevel=\{3\}/, 'homepage pinned writing must request h3 titles');
+assert.match(homepageSource, /<RecommendCard\b[^>]*\bheadingLevel=\{3\}/, 'homepage recommendations must request h3 titles');
 
 const cssFiles = walk(dist).filter((path) => extname(path) === '.css');
 assert.ok(cssFiles.length > 0, 'production build must emit CSS');

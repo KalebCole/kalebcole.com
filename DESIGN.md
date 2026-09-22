@@ -150,18 +150,17 @@ step.
 - Navigation: 86px minimum height with a 2px ink rule.
 - Homepage hero: asymmetric `1.35fr / 0.65fr` grid, `61vh` minimum height,
   `clamp(2rem, 7vw, 7rem)` gap, and 64px vertical padding.
-- Recent projects, recent writing, and recent recommendations use the same
-  stacked section pattern: a full-width heading above the content row, with a
-  2px top rule. Recent projects is capped at two items and ends with a link to
-  the full Projects index.
+- Recent writing and recent recommendations use the same stacked section
+  pattern: a full-width heading above the content row, with a 2px top rule.
 - Reading measure: 57–70 characters; target 65–70 characters for articles.
 - Article rows: 18px vertical padding, one-pixel rules, and no card container.
 - Detailed media breakout: centered on the prose column and capped near 56rem.
 
 The introduction owns the opening view and offers direct links to Projects and
-Writing. A compact project preview of no more than two items arrives before
-recent writing, and a capped recent-recommendations sibling may follow. Do not
-add metrics, credentials, or conversion-focused copy.
+Writing. Projects remains a navigation destination rather than a homepage
+preview. Recent writing follows the introduction, and a capped
+recent-recommendations sibling may follow. Do not add metrics, credentials, or
+conversion-focused copy.
 
 ### Responsive foundation
 
@@ -172,7 +171,7 @@ add metrics, credentials, or conversion-focused copy.
 - At 760px and below, every multi-column composition becomes one continuous
   column.
 - Homepage mobile order is navigation, greeting, portrait, the rest of the
-  introduction and actions, recent projects, then recent writing. Never put the
+  introduction and actions, then recent writing. Never put the
   portrait before the greeting or squeeze it beside a narrowed paragraph.
 - Center the homepage introduction, portrait, supporting copy, and actions only
   below 850px. Preserve the text-left, portrait-right desktop composition.
@@ -393,16 +392,19 @@ zero missing icon requests.
 - On phones, place the portrait after the greeting and before the rest of the
   introduction. Center the complete hero and use a 30px vertical rhythm, with
   the portrait shrinking only when required to prevent narrow-screen overflow.
-- Move directly into the three newest published pieces using the approved split
-  composition. End with one `All writing →` link.
-- Follow with a compact, capped recent-recommendations sibling using the same
-  split composition, rules, row rhythm, and responsive collapse. Omit imagery
-  consistently, retain medium, title, source or author, UTC date, and optional
-  My thoughts, then end with `All recommendations →`.
+- Move directly into up to three newest published pieces using the Writing
+  index presentation: the newest receives pinned-writing treatment with its
+  `Why this now` note, and later entries use the ruled archive row. Do not add
+  year headings. End with one `All writing →` link to the full Writing index.
+- Follow with up to three newest recommendations using the same `RecommendCard`
+  presentation as the full Recommends index, including source artwork when
+  supplied, medium, source, UTC date, author, My thoughts, and the external-link
+  cue. End with `All recommendations →` linking to the full Recommends index.
 - Omit the recommendations sibling when no published recommendations exist.
-- Show up to two projects before Recent writing and end that preview with a
-  link to the full Projects page. Do not add a credential strip, metrics, or
-  conversion-focused copy.
+- Filters, year archive grouping, empty states, and RSS discovery belong only
+  on the full indexes. Projects stays off the homepage publication previews.
+- Do not add a Projects preview, credential strip, metrics, or conversion-focused
+  copy to the homepage.
 
 Homepage entrance choreography, always from an already-visible default:
 
@@ -425,9 +427,8 @@ requested or JavaScript is unavailable.
 #### Publication Story Beats
 
 The Homepage uses one-shot Publication Story Beats after the hero, in source
-order: Recent projects heading, each project visual and copy block, All
-projects link, Recent writing heading, each writing row, All writing link,
-Recent recommendations heading, each recommendation row, then All
+order: Recent writing heading, pinned writing, each writing row, All writing
+link, Recent recommendations heading, each recommendation row, then All
 recommendations link. The hero does not receive Publication Story Beats.
 
 Projects uses Project Story Beats in source order: page heading, then each
@@ -690,8 +691,8 @@ through an explicit decision backed by measured user benefit.
 ### Do
 
 - **Do** let visitors meet a person before presenting publishing modes.
-- **Do** keep the homepage project preview capped at two and visually
-  subordinate to the introduction.
+- **Do** keep Projects in navigation and on its dedicated page; do not add a
+  homepage project preview.
 - **Do** preserve first-person uncertainty, enthusiasm, humor, and changing
   interests in copy.
 - **Do** use cobalt links, underlines, programmatic state, and a 2px/3px-offset

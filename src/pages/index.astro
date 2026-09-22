@@ -1,9 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import HomeRecommendRow from '../components/HomeRecommendRow.astro';
-import PinnedRepos from '../components/PinnedRepos.astro';
+import PinnedWriting from '../components/PinnedWriting.astro';
 import Polaroid from '../components/Polaroid.astro';
+import RecommendCard from '../components/RecommendCard.astro';
+import WritingRow from '../components/WritingRow.astro';
 import { getPublishedRecommends } from '../lib/recommends';
 import { HOMEPAGE_SOCIAL_IMAGE } from '../lib/social-image.mjs';
 
@@ -11,8 +12,8 @@ const allPosts = await getCollection('blog', ({ data }) => !data.draft);
 const recentPosts = allPosts
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
+const [pinnedPost, ...writingRows] = recentPosts;
 const HOME_RECOMMENDATION_LIMIT = 3;
-const HOME_PROJECT_LIMIT = 2;
 const recentRecommendations = (await getPublishedRecommends()).slice(0, HOME_RECOMMENDATION_LIMIT);
 const homepageDescription = 'I share what interests me here, along with things that might help someone else learn.';
 ---
@@ -33,37 +34,14 @@ const homepageDescription = 'I share what interests me here, along with things t
       </div>
     </section>
 
-    <section class="recent-projects" aria-labelledby="recent-projects-title">
-      <div class="recent-heading" data-motion-beat>
-        <h2 id="recent-projects-title">Recent projects</h2>
-      </div>
-      <PinnedRepos limit={HOME_PROJECT_LIMIT} variant="home" />
-      <a class="all-projects-link" data-motion-beat href="/projects">All projects <span aria-hidden="true">→</span></a>
-    </section>
 
     <section class="recent-writing" aria-labelledby="recent-title">
       <div class="recent-heading" data-motion-beat>
         <h2 id="recent-title">Recent writing</h2>
       </div>
+      {pinnedPost && <PinnedWriting post={pinnedPost} motion headingLevel={3} />}
       <div class="writing-list">
-        {recentPosts.map((post) => (
-          <article class="writing-row" data-motion-beat>
-            <div>
-              <h3><a href={`/blog/${post.id}`}>{post.data.title}</a></h3>
-              <p class="writing-summary">{post.data.description}</p>
-              <p class="home-feed-meta">
-                <time datetime={post.data.date.toISOString()}>
-                  {post.data.date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    timeZone: 'UTC',
-                  })}
-                </time>
-              </p>
-            </div>
-          </article>
-        ))}
+        {writingRows.map((post) => <WritingRow post={post} motion />)}
         <a class="all-writing-link" data-motion-beat href="/blog">All writing <span aria-hidden="true">→</span></a>
       </div>
     </section>
@@ -73,8 +51,8 @@ const homepageDescription = 'I share what interests me here, along with things t
         <div class="recent-heading" data-motion-beat>
           <h2 id="recent-recommendations-title">Recent recommendations</h2>
         </div>
-        <div class="home-recommendation-list">
-          {recentRecommendations.map((item) => <HomeRecommendRow item={item} />)}
+        <div class="recommendations-list">
+          {recentRecommendations.map((item) => <RecommendCard item={item} motion headingLevel={3} />)}
           <a class="all-recommendations-link" data-motion-beat href="/recommends">
             All recommendations <span aria-hidden="true">→</span>
           </a>
