@@ -114,31 +114,53 @@ async function setViewport(cdp, width, height = 900) {
 
 async function navigate(cdp, url) {
   await cdp.send('Page.navigate', { url });
+  const expectedUrl = new URL(url).href;
   await eventually(async () => {
-    const state = await cdp.send('Runtime.evaluate', { expression: 'document.readyState', returnByValue: true });
-    assert.equal(state.result.value, 'complete');
+    const state = await cdp.send('Runtime.evaluate', { expression: '({ readyState: document.readyState, href: location.href })', returnByValue: true });
+    assert.ok(state.result && Object.hasOwn(state.result, 'value'), 'navigation readiness evaluation must return document state');
+    assert.equal(state.result.value.href, expectedUrl, 'navigation readiness must observe the requested page, not the previous document');
+    assert.equal(state.result.value.readyState, 'complete');
   });
   await new Promise((resolve) => setTimeout(resolve, 2_300));
 }
 
-async function layout(cdp) {
-  const evaluation = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
-    const rect = (element) => { const box = element.getBoundingClientRect(); return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height }; };
-    const actions = document.querySelector('.home-actions');
-    const primary = document.querySelector('.home-primary-actions');
-    const elsewhere = document.querySelector('.home-elsewhere');
-    const ctas = [...primary.querySelectorAll('.home-action')];
-    const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
-    if (!actions || !primary || !elsewhere || bubbles.length !== 3) throw new Error('Expected action cluster, CTA pair, and three bubbles');
-    return {
-      actions: rect(actions), primary: rect(primary), elsewhere: rect(elsewhere), ctas: ctas.map(rect), bubbles: bubbles.map(rect),
-      actionsDisplay: getComputedStyle(actions).display, actionsDirection: getComputedStyle(actions).flexDirection,
-      gap: getComputedStyle(actions).gap, scrollWidth: document.documentElement.scrollWidth, innerWidth: innerWidth,
-      bubbleSizes: bubbles.map((bubble) => ({ width: getComputedStyle(bubble).width, height: getComputedStyle(bubble).height })),
-      links: bubbles.map((bubble) => ({ href: bubble.href, label: bubble.getAttribute('aria-label'), target: bubble.getAttribute('target') })),
-    };
-  })()` });
+function layoutValue(evaluation) {
+  assert.ok(!evaluation.exceptionDetails, `layout measurement must evaluate: ${evaluation.exceptionDetails?.exception?.description ?? evaluation.exceptionDetails?.text}`);
+  assert.ok(evaluation.result && Object.hasOwn(evaluation.result, 'value'), 'layout measurement must return a value after the action cluster is available');
   return evaluation.result.value;
+}
+
+test('layout measurement reports incomplete CDP responses before layout assertions run', () => {
+  assert.throws(
+    () => layoutValue({ exceptionDetails: { text: 'action cluster is not available' }, result: {} }),
+    /layout measurement must evaluate: action cluster is not available/,
+  );
+  assert.throws(
+    () => layoutValue({ result: {} }),
+    /layout measurement must return a value after the action cluster is available/,
+  );
+});
+
+async function layout(cdp) {
+  return eventually(async () => {
+    const evaluation = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
+      const rect = (element) => { const box = element.getBoundingClientRect(); return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height }; };
+      const actions = document.querySelector('.home-actions');
+      const primary = document.querySelector('.home-primary-actions');
+      const elsewhere = document.querySelector('.home-elsewhere');
+      const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
+      if (!actions || !primary || !elsewhere || bubbles.length !== 3) throw new Error('Expected action cluster, CTA pair, and three bubbles');
+      const ctas = [...primary.querySelectorAll('.home-action')];
+      return {
+        actions: rect(actions), primary: rect(primary), elsewhere: rect(elsewhere), ctas: ctas.map(rect), bubbles: bubbles.map(rect),
+        actionsDisplay: getComputedStyle(actions).display, actionsDirection: getComputedStyle(actions).flexDirection,
+        gap: getComputedStyle(actions).gap, scrollWidth: document.documentElement.scrollWidth, innerWidth: innerWidth,
+        bubbleSizes: bubbles.map((bubble) => ({ width: getComputedStyle(bubble).width, height: getComputedStyle(bubble).height })),
+        links: bubbles.map((bubble) => ({ href: bubble.href, label: bubble.getAttribute('aria-label'), target: bubble.getAttribute('target') })),
+      };
+    })()` });
+    return layoutValue(evaluation);
+  });
 }
 
 async function socialMarkContrasts(cdp) {
