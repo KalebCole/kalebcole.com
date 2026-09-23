@@ -425,9 +425,9 @@ html[data-mode="dark"] [data-icon-dark] {
   max-width: 100%;
 }
 
-/* The 850px hero grid starts before its text column can hold the complete
- * 522px action cluster. Keep it stacked until the whole cluster fits. */
-@media (min-width: 987px) {
+/* MacBook Chrome at a 995px inner viewport leaves only 514.65px for this
+ * 522px cluster. Keep the CTAs together with centered bubbles until 1024px. */
+@media (min-width: 1024px) {
   .home-actions {
     flex-direction: row;
     align-items: center;

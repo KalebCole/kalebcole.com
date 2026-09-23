@@ -367,8 +367,8 @@ assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?border-radius: 50%;
 assert.match(globalCss, /\.home-elsewhere-bubble::after\s*\{[\s\S]*?inset: 5px;[\s\S]*?var\(--ink\) 8%, var\(--ground\)/, 'profile bubbles must retain the approved restrained inner ring');
 assert.match(
   globalCss,
-  /\.home-actions\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?@media \(min-width: 987px\) \{[\s\S]*?\.home-actions\s*\{[\s\S]*?flex-direction: row;[\s\S]*?gap: 1\.5rem;[\s\S]*?\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 auto;/,
-  'profile bubbles must remain below the CTAs until the 987px full-cluster inline breakpoint',
+  /\.home-actions\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?@media \(min-width: 1024px\) \{[\s\S]*?\.home-actions\s*\{[\s\S]*?flex-direction: row;[\s\S]*?gap: 1\.5rem;[\s\S]*?\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 auto;/,
+  'profile bubbles must remain below the CTAs through 1023px and inline from 1024px',
 );
 assert.doesNotMatch(globalCss, /\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 100%/, 'profile bubbles must not retain the former always-below full-width rule');
 assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-bubble\s*\{[\s\S]*?border-color: ButtonText;/, 'profile bubbles must remain visible in forced colors');

@@ -152,7 +152,7 @@ test('uses the actual CSS breakpoint media queries for each homepage layout grou
   assert.equal(HOME_WRITING_MEDIA, '(min-width: 760px)');
   assert.equal(HOME_PUBLICATION_MEDIA, '(min-width: 760px)');
   assert.equal(HOME_DESKTOP_MEDIA, '(min-width: 850px)');
-  assert.equal(HOME_ACTIONS_INLINE_MEDIA, '(min-width: 987px)');
+  assert.equal(HOME_ACTIONS_INLINE_MEDIA, '(min-width: 1024px)');
 });
 
 test('settles moved elements in DOM order with fully opaque keyframes', () => {

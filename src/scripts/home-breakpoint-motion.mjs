@@ -2,7 +2,7 @@ export const HOME_COMPACT_MEDIA = '(min-width: 540px)';
 export const HOME_PUBLICATION_MEDIA = '(min-width: 760px)';
 export const HOME_WRITING_MEDIA = HOME_PUBLICATION_MEDIA;
 export const HOME_DESKTOP_MEDIA = '(min-width: 850px)';
-export const HOME_ACTIONS_INLINE_MEDIA = '(min-width: 987px)';
+export const HOME_ACTIONS_INLINE_MEDIA = '(min-width: 1024px)';
 export const HOME_LAYOUT_MOTION_DURATION = 520;
 export const HOME_LAYOUT_MOTION_EASING = 'cubic-bezier(.16, 1, .3, 1)';
 

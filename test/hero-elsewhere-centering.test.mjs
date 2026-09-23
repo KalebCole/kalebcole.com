@@ -14,7 +14,7 @@ const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
     ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
     : null);
-const inlineActionsViewport = 987;
+const inlineActionsViewport = 1024;
 
 function contentType(path) {
   return ({
@@ -171,14 +171,14 @@ test('production hero uses the approved inline-desktop and below-mobile action c
   const { server, origin } = await startStaticServer();
   try {
     await withBrowser(origin, async (cdp) => {
-      for (const width of [1440, 1024, inlineActionsViewport, inlineActionsViewport + 1]) {
+      for (const width of [1440, inlineActionsViewport, inlineActionsViewport + 1]) {
         await setViewport(cdp, width);
         await navigate(cdp, origin);
         const measurement = await layout(cdp);
         assertDesktopInline(measurement, width);
         assert.ok(measurement.scrollWidth <= measurement.innerWidth, `${width}px desktop hero must not introduce horizontal overflow`);
       }
-      for (const width of [inlineActionsViewport - 1, 900, 850, 390, 320]) {
+      for (const width of [inlineActionsViewport - 1, 995, 900, 850, 390, 320]) {
         await setViewport(cdp, width);
         await navigate(cdp, origin);
         const measurement = await layout(cdp);
@@ -212,7 +212,7 @@ test('production hero preserves bubble targets, exact destinations, and same-tab
   }
 });
 
-test('hero action cluster FLIPs as one target at its 987px inline threshold and respects reduced motion', async () => {
+test('hero action cluster FLIPs as one target at its 1024px inline threshold and respects reduced motion', async () => {
   assert.ok(existsSync(dist), 'dist must exist; run the production build first');
   const { server, origin } = await startStaticServer();
   try {
@@ -230,12 +230,12 @@ test('hero action cluster FLIPs as one target at its 987px inline threshold and 
       await new Promise((resolve) => setTimeout(resolve, 100));
       assertDesktopInline(await layout(cdp), inlineActionsViewport);
       const flipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
-      assert.equal(flipCount.result.value, 1, '986 to 987 must animate the single .home-actions target');
+      assert.equal(flipCount.result.value, 1, '1023 to 1024 must animate the single .home-actions target');
       await setViewport(cdp, inlineActionsViewport - 1);
       await new Promise((resolve) => setTimeout(resolve, 100));
       assertBubblesBelow(await layout(cdp), inlineActionsViewport - 1);
       const returnFlipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
-      assert.equal(returnFlipCount.result.value, 2, '987 to 986 must animate the same combined target back');
+      assert.equal(returnFlipCount.result.value, 2, '1024 to 1023 must animate the same combined target back');
 
       await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
       await setViewport(cdp, inlineActionsViewport - 1);
