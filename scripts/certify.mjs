@@ -365,6 +365,12 @@ for (const [index, [label, href, accessibleName]] of expectedElsewhereLinks.entr
 assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?width: 48px;[\s\S]*?height: 48px;[\s\S]*?flex: 0 0 48px;/, 'profile bubbles must retain 44px-plus reduced-scale native targets');
 assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?border-radius: 50%;[\s\S]*?box-shadow: 3px 4px 0 var\(--coral\);/, 'profile bubbles must remain individual reduced physical stamped circles');
 assert.match(globalCss, /\.home-elsewhere-bubble::after\s*\{[\s\S]*?inset: 5px;[\s\S]*?var\(--ink\) 8%, var\(--ground\)/, 'profile bubbles must retain the approved restrained inner ring');
+assert.match(
+  globalCss,
+  /\.home-actions\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?@media \(min-width: 850px\) \{[\s\S]*?\.home-actions\s*\{[\s\S]*?flex-direction: row;[\s\S]*?gap: 1\.5rem;[\s\S]*?\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 auto;/,
+  'profile bubbles must be below the CTAs on mobile and inline after them at the desktop breakpoint',
+);
+assert.doesNotMatch(globalCss, /\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 100%/, 'profile bubbles must not retain the former always-below full-width rule');
 assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-bubble\s*\{[\s\S]*?border-color: ButtonText;/, 'profile bubbles must remain visible in forced colors');
 assert.doesNotMatch(homeElsewhere, /\bdata-motion-beat\b/i, 'bubbles must not become Publication Story Beats');
 assert.match(homepage, /<section\b[^>]*class="recent-writing"[\s\S]*?<div\b[^>]*class="recent-heading"[^>]*\bdata-motion-beat\b[^>]*>[\s\S]*?<h2[^>]*>Recent writing<\/h2>/i, 'Recent writing heading must be a publication motion beat');

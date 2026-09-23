@@ -401,7 +401,8 @@ html[data-mode="dark"] [data-icon-dark] {
 }
 
 .home-actions {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   grid-area: actions;
   justify-self: start;
   width: fit-content;
@@ -418,14 +419,27 @@ html[data-mode="dark"] [data-icon-dark] {
 
 .home-elsewhere {
   display: flex;
-  flex: 0 0 100%;
   flex-wrap: wrap;
   justify-content: center;
   gap: .65rem;
-  margin-top: -.05rem;
-  /* Counterbalance the stamp's 3px right-hand shadow so its visible footprint centers under the CTAs. */
-  margin-left: -1.5px;
   max-width: 100%;
+}
+
+@media (min-width: 850px) {
+  .home-actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .home-primary-actions {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .home-elsewhere {
+    flex: 0 0 auto;
+  }
 }
 
 .home-elsewhere-bubble {
@@ -1340,10 +1354,6 @@ html[data-mode="dark"] .prose {
   .home-actions {
     justify-content: center;
     justify-self: center;
-  }
-
-  .home-elsewhere {
-    margin-left: 0;
   }
 
   .portrait-mount {

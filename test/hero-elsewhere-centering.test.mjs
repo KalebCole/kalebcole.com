@@ -10,8 +10,6 @@ import test from 'node:test';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const dist = join(root, 'dist');
-const desktopViewport = { width: 1440, height: 900 };
-const centerTolerancePx = 0.75;
 const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
     ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -36,27 +34,19 @@ async function startStaticServer() {
     const requested = normalize(join(dist, relativePath));
     const path = requested.endsWith('/') ? join(requested, 'index.html') : requested;
     const file = existsSync(path) ? path : join(path, 'index.html');
-    if (!file.startsWith(dist) || !existsSync(file)) {
-      response.writeHead(404).end();
-      return;
-    }
+    if (!file.startsWith(dist) || !existsSync(file)) return response.writeHead(404).end();
     response.writeHead(200, { 'content-type': contentType(file) });
     response.end(readFileSync(file));
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-  return {
-    server,
-    origin: `http://127.0.0.1:${server.address().port}`,
-  };
+  return { server, origin: `http://127.0.0.1:${server.address().port}` };
 }
 
 async function eventually(callback, timeoutMs = 10_000) {
   const deadline = Date.now() + timeoutMs;
   let lastError;
   while (Date.now() < deadline) {
-    try {
-      return await callback();
-    } catch (error) {
+    try { return await callback(); } catch (error) {
       lastError = error;
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -65,24 +55,20 @@ async function eventually(callback, timeoutMs = 10_000) {
 }
 
 async function openCdpSocket(debugOrigin) {
-  const targets = await eventually(async () => {
+  const target = await eventually(async () => {
     const response = await fetch(`${debugOrigin}/json/list`);
     assert.ok(response.ok, 'Chrome remote-debugging endpoint must respond');
-    const pages = await response.json();
-    const page = pages.find((target) => target.type === 'page');
+    const page = (await response.json()).find((candidate) => candidate.type === 'page');
     assert.ok(page?.webSocketDebuggerUrl, 'Chrome must expose a page CDP target');
     return page;
   });
-  const socket = new WebSocket(targets.webSocketDebuggerUrl);
+  const socket = new WebSocket(target.webSocketDebuggerUrl);
   const messages = new Map();
   let nextId = 1;
   socket.addEventListener('message', (event) => {
     const message = JSON.parse(event.data);
     const pending = messages.get(message.id);
-    if (pending) {
-      messages.delete(message.id);
-      pending.resolve(message);
-    }
+    if (pending) { messages.delete(message.id); pending.resolve(message); }
   });
   await new Promise((resolve, reject) => {
     socket.addEventListener('open', resolve, { once: true });
@@ -91,9 +77,7 @@ async function openCdpSocket(debugOrigin) {
   return {
     async send(method, params = {}) {
       const id = nextId++;
-      const response = new Promise((resolve, reject) => {
-        messages.set(id, { resolve, reject });
-      });
+      const response = new Promise((resolve) => messages.set(id, { resolve }));
       socket.send(JSON.stringify({ id, method, params }));
       const message = await response;
       if (message.error) throw new Error(`${method}: ${message.error.message}`);
@@ -103,72 +87,153 @@ async function openCdpSocket(debugOrigin) {
   };
 }
 
-async function measureCenters(origin) {
+async function withBrowser(origin, callback) {
   assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for browser layout certification');
-  const profile = await mkdtemp(join(tmpdir(), 'kalebcole-centering-'));
+  const profile = await mkdtemp(join(tmpdir(), 'kalebcole-inline-actions-'));
   const debugPort = 9322 + (process.pid % 500);
   const chrome = spawn(chromeExecutable, [
-    '--headless=new',
-    `--remote-debugging-port=${debugPort}`,
-    `--user-data-dir=${profile}`,
-    '--no-first-run',
-    '--no-default-browser-check',
-    '--disable-gpu',
-    'about:blank',
+    '--headless=new', `--remote-debugging-port=${debugPort}`, `--user-data-dir=${profile}`,
+    '--no-first-run', '--no-default-browser-check', '--disable-gpu', 'about:blank',
   ], { stdio: 'ignore' });
-  const debugOrigin = `http://127.0.0.1:${debugPort}`;
-  let cdp;
+  const cdp = await openCdpSocket(`http://127.0.0.1:${debugPort}`);
   try {
-    cdp = await openCdpSocket(debugOrigin);
-    await cdp.send('Emulation.setDeviceMetricsOverride', {
-      width: desktopViewport.width,
-      height: desktopViewport.height,
-      deviceScaleFactor: 1,
-      mobile: false,
-    });
     await cdp.send('Page.enable');
-    await cdp.send('Page.navigate', { url: origin });
-    await eventually(async () => {
-      const readyState = await cdp.send('Runtime.evaluate', { expression: 'document.readyState', returnByValue: true });
-      assert.equal(readyState.result.value, 'complete');
-    });
-    const evaluation = await cdp.send('Runtime.evaluate', {
-      returnByValue: true,
-      expression: `(() => {
-        const primary = document.querySelector('.home-primary-actions');
-        const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
-        if (!primary || bubbles.length !== 3) throw new Error('Expected CTA pair and three profile bubbles');
-        const primaryRect = primary.getBoundingClientRect();
-        const boxes = bubbles.map((bubble) => {
-          const rect = bubble.getBoundingClientRect();
-          const shadow = getComputedStyle(bubble).boxShadow.match(/(-?\\d+(?:\\.\\d+)?)px\\s+(-?\\d+(?:\\.\\d+)?)px/);
-          if (!shadow) throw new Error('Expected a measurable bubble stamp shadow');
-          return { left: rect.left, right: rect.right, shadowX: Number(shadow[1]) };
-        });
-        const visibleLeft = Math.min(...boxes.map((box) => Math.min(box.left, box.left + box.shadowX)));
-        const visibleRight = Math.max(...boxes.map((box) => Math.max(box.right, box.right + box.shadowX)));
-        const ctaCenter = primaryRect.left + primaryRect.width / 2;
-        const bubbleFootprintCenter = (visibleLeft + visibleRight) / 2;
-        return { ctaCenter, bubbleFootprintCenter, delta: bubbleFootprintCenter - ctaCenter, visibleLeft, visibleRight };
-      })()`,
-    });
-    return evaluation.result.value;
+    await callback(cdp, origin);
   } finally {
-    cdp?.close();
+    cdp.close();
     chrome.kill();
-    await rm(profile, { recursive: true, force: true });
+    await new Promise((resolve) => chrome.once('exit', resolve));
+    await rm(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
   }
 }
 
-test('desktop hero profile-bubble footprint is centered under the CTA pair', async () => {
+async function setViewport(cdp, width, height = 900) {
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+}
+
+async function navigate(cdp, url) {
+  await cdp.send('Page.navigate', { url });
+  await eventually(async () => {
+    const state = await cdp.send('Runtime.evaluate', { expression: 'document.readyState', returnByValue: true });
+    assert.equal(state.result.value, 'complete');
+  });
+  await new Promise((resolve) => setTimeout(resolve, 2_300));
+}
+
+async function layout(cdp) {
+  const evaluation = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
+    const rect = (element) => { const box = element.getBoundingClientRect(); return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height }; };
+    const actions = document.querySelector('.home-actions');
+    const primary = document.querySelector('.home-primary-actions');
+    const elsewhere = document.querySelector('.home-elsewhere');
+    const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
+    if (!actions || !primary || !elsewhere || bubbles.length !== 3) throw new Error('Expected action cluster, CTA pair, and three bubbles');
+    return {
+      actions: rect(actions), primary: rect(primary), elsewhere: rect(elsewhere), bubbles: bubbles.map(rect),
+      actionsDisplay: getComputedStyle(actions).display, actionsDirection: getComputedStyle(actions).flexDirection,
+      gap: getComputedStyle(actions).gap, scrollWidth: document.documentElement.scrollWidth, innerWidth: innerWidth,
+      bubbleSizes: bubbles.map((bubble) => ({ width: getComputedStyle(bubble).width, height: getComputedStyle(bubble).height })),
+      links: bubbles.map((bubble) => ({ href: bubble.href, label: bubble.getAttribute('aria-label'), target: bubble.getAttribute('target') })),
+    };
+  })()` });
+  return evaluation.result.value;
+}
+
+function assertDesktopInline(measurement, width) {
+  assert.equal(measurement.actionsDisplay, 'flex', `${width}px action cluster uses flex composition`);
+  assert.equal(measurement.actionsDirection, 'row', `${width}px bubbles share the desktop CTA row`);
+  assert.ok(measurement.elsewhere.left > measurement.primary.right, `${width}px bubble group is to the right of the primary CTA pair`);
+  assert.ok(measurement.elsewhere.left - measurement.primary.right >= 20, `${width}px cluster preserves a deliberate primary-to-secondary gap`);
+  assert.ok(Math.abs((measurement.elsewhere.top + measurement.elsewhere.bottom) / 2 - (measurement.primary.top + measurement.primary.bottom) / 2) <= 1, `${width}px secondary bubbles align with the primary CTA group`);
+}
+
+function assertMobileBelow(measurement, width) {
+  assert.equal(measurement.actionsDisplay, 'flex', `${width}px action cluster uses flex composition`);
+  assert.equal(measurement.actionsDirection, 'column', `${width}px bubble group moves below the CTAs`);
+  assert.ok(measurement.elsewhere.top >= measurement.primary.bottom + 10, `${width}px bubbles sit immediately below the primary CTA group`);
+  const bubbleCenter = (measurement.elsewhere.left + measurement.elsewhere.right) / 2;
+  const primaryCenter = (measurement.primary.left + measurement.primary.right) / 2;
+  assert.ok(Math.abs(bubbleCenter - primaryCenter) <= 1, `${width}px bubble group is centered under the CTAs`);
+}
+
+test('production hero uses the approved inline-desktop and below-mobile action composition', async () => {
   assert.ok(existsSync(dist), 'dist must exist; run the production build first');
   const { server, origin } = await startStaticServer();
   try {
-    const measurement = await measureCenters(origin);
-    assert.ok(
-      Math.abs(measurement.delta) <= centerTolerancePx,
-      `visible bubble footprint must align with CTA center within ${centerTolerancePx}px at ${desktopViewport.width}px; delta was ${measurement.delta.toFixed(2)}px`,
-    );
+    await withBrowser(origin, async (cdp) => {
+      for (const width of [1440, 1024, 850]) {
+        await setViewport(cdp, width);
+        await navigate(cdp, origin);
+        const measurement = await layout(cdp);
+        assertDesktopInline(measurement, width);
+        assert.ok(measurement.scrollWidth <= measurement.innerWidth, `${width}px desktop hero must not introduce horizontal overflow`);
+      }
+      for (const width of [849, 760, 390, 320]) {
+        await setViewport(cdp, width);
+        await navigate(cdp, origin);
+        const measurement = await layout(cdp);
+        assertMobileBelow(measurement, width);
+        assert.ok(measurement.scrollWidth <= measurement.innerWidth, `${width}px mobile hero must not introduce horizontal overflow`);
+      }
+    });
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test('production hero preserves bubble targets, exact destinations, and same-tab accessibility', async () => {
+  assert.ok(existsSync(dist), 'dist must exist; run the production build first');
+  const { server, origin } = await startStaticServer();
+  try {
+    await withBrowser(origin, async (cdp) => {
+      await setViewport(cdp, 850);
+      await navigate(cdp, origin);
+      const measurement = await layout(cdp);
+      assert.deepEqual(measurement.bubbleSizes, Array.from({ length: 3 }, () => ({ width: '48px', height: '48px' })));
+      assert.deepEqual(measurement.links, [
+        { href: 'https://www.linkedin.com/in/kaleb-cole', label: 'Kaleb Cole on LinkedIn, external link', target: null },
+        { href: 'https://github.com/KalebCole', label: 'Kaleb Cole on GitHub, external link', target: null },
+        { href: 'mailto:kalebcole2021@gmail.com', label: 'Email Kaleb Cole, opens email client', target: null },
+      ]);
+    });
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test('the 849 to 850 crossing FLIPs only the combined action cluster and reduced motion settles immediately', async () => {
+  assert.ok(existsSync(dist), 'dist must exist; run the production build first');
+  const { server, origin } = await startStaticServer();
+  try {
+    await withBrowser(origin, async (cdp) => {
+      await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: `(() => {
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (...args) {
+          if (this.matches?.('.home-actions')) window.__homeActionFlips = (window.__homeActionFlips || 0) + 1;
+          return animate.call(this, ...args);
+        };
+      })()` });
+      await setViewport(cdp, 849);
+      await navigate(cdp, origin);
+      await setViewport(cdp, 850);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      assertDesktopInline(await layout(cdp), 850);
+      const flipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
+      assert.equal(flipCount.result.value, 1, '849 to 850 must animate the single .home-actions target');
+      await setViewport(cdp, 849);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      assertMobileBelow(await layout(cdp), 849);
+      const returnFlipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
+      assert.equal(returnFlipCount.result.value, 2, '850 to 849 must animate the same combined target back');
+
+      await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+      await setViewport(cdp, 849);
+      await navigate(cdp, origin);
+      await setViewport(cdp, 850);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const reduced = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
+      assert.equal(reduced.result.value, 0, 'reduced motion must reflow without FLIP animation');
+    });
   } finally {
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
