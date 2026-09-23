@@ -486,6 +486,13 @@ assert.match(
   /@media \(min-width: 850px\) \{[\s\S]*?\.home-hero \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) auto;/,
   'homepage desktop composition must wait for a stable text column',
 );
+const desktopHeroCss = globalCss.match(/@media \(min-width: 850px\) \{([\s\S]*?)\n\}\n\n@media \(min-width: 850px\) and \(max-height: 850px\)/)?.[1] ?? '';
+assert.match(
+  desktopHeroCss,
+  /grid-template-areas:\s*"greeting portrait"\s*"statement portrait"\s*"subtitle portrait"\s*"actions portrait";/,
+  'desktop hero must end its grid at the combined CTA and profile-bubble action row',
+);
+assert.doesNotMatch(desktopHeroCss, /"elsewhere portrait"/, 'desktop hero must not retain an empty profile-bubble grid row');
 assert.match(
   polaroidSource,
   /sizes="\(max-width: 343px\) calc\(100vw - 52px\), \(max-width: 849px\) 292px, 300px"/,

@@ -1274,8 +1274,7 @@ html[data-mode="dark"] .prose {
       "greeting portrait"
       "statement portrait"
       "subtitle portrait"
-      "actions portrait"
-      "elsewhere portrait";
+      "actions portrait";
     align-items: center;
     column-gap: clamp(2rem, 7vw, 7rem);
     row-gap: 2rem;
