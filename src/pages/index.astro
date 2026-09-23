@@ -35,16 +35,16 @@ const homepageDescription = 'I share what interests me here, along with things t
         <a class="home-action home-action-primary" href="/projects">See my projects</a>
         <a class="home-action" href="/blog">Read my writing</a>
       </div>
-      <section class="home-elsewhere" aria-label="Elsewhere" data-home-layout-hero>
+      <div class="home-elsewhere" data-home-layout-hero>
         <span class="home-elsewhere-label">Elsewhere</span>
-        <nav class="home-elsewhere-links" aria-label="Elsewhere">
+        <nav class="home-elsewhere-links" aria-label="Profile links">
           {ELSEWHERE_LINKS.map((link) => (
             <a href={link.href} aria-label={link.accessibleName}>
               {link.label} <span aria-hidden="true">↗</span>
             </a>
           ))}
         </nav>
-      </section>
+      </div>
     </section>
 
     <section class="recent-projects" aria-labelledby="recent-projects-title">

@@ -5,7 +5,7 @@ const footerElsewhereLinks = [...ELSEWHERE_LINKS].sort((first, second) => first.
 ---
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <nav aria-label="Elsewhere">
+    <nav aria-label="Footer profile links">
       {footerElsewhereLinks.map((link) => <a href={link.href} aria-label={link.accessibleName}>{link.label}</a>)}
     </nav>
     <p>© {new Date().getFullYear()} Kaleb Cole.</p>

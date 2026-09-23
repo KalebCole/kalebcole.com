@@ -339,13 +339,15 @@ assert.match(homepage, /href="\/projects"[^>]*>\s*See my projects\s*<\/a>/i, 'ho
 assert.match(homepage, /href="\/blog"[^>]*>\s*Read my writing\s*<\/a>/i, 'homepage hero must link to Writing');
 const homepageHero = homepage.match(/<section\b[^>]*class="home-hero"[^>]*>[\s\S]*?<\/section>/i)?.[0] ?? '';
 assert.doesNotMatch(homepageHero, /\bdata-motion-beat\b/i, 'homepage hero and its children must not receive publication motion hooks');
-const homeElsewhere = homepageHero.match(/<section\b[^>]*class="home-elsewhere"[^>]*>[\s\S]*?<\/section>/i)?.[0] ?? '';
+const homeElsewhere = homepageHero.match(/<div\b[^>]*class="home-elsewhere"[^>]*>[\s\S]*?<\/div>/i)?.[0] ?? '';
 assert.ok(homeElsewhere, 'homepage hero must render the Elsewhere action band');
 assert.ok(
   homepageHero.indexOf('class="home-actions"') < homepageHero.indexOf('class="home-elsewhere"'),
   'Elsewhere must follow the primary hero actions in source order',
 );
-assert.match(homeElsewhere, /<nav\b[^>]*aria-label="Elsewhere"[^>]*>/i, 'Elsewhere must use a named navigation landmark');
+assert.doesNotMatch(homeElsewhere, /<section\b/i, 'Elsewhere must use a neutral structural wrapper');
+assert.match(homeElsewhere, /<nav\b[^>]*aria-label="Profile links"[^>]*>/i, 'Elsewhere must use a distinct named navigation landmark');
+assert.match(homepage, /<footer\b[\s\S]*?<nav\b[^>]*aria-label="Footer profile links"[^>]*>/i, 'footer profile links must use a distinct navigation landmark name');
 assert.match(homeElsewhere, /class="home-elsewhere-label"[^>]*>Elsewhere<\/span>/i, 'Elsewhere must expose its muted visible label');
 const elsewhereLinks = matches(homeElsewhere, /<a\b[^>]*>[\s\S]*?<\/a>/gi).map((match) => match[0]);
 assert.equal(elsewhereLinks.length, 3, 'Elsewhere must render exactly three links');
