@@ -112,13 +112,21 @@ async function setViewport(cdp, width, height = 900) {
   await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
 }
 
+let navigationCertificate = 0;
+
+function certifiedNavigationUrl(url) {
+  const certifiedUrl = new URL(url);
+  certifiedUrl.searchParams.set('__certifyNavigation', String(++navigationCertificate));
+  return certifiedUrl.href;
+}
+
 async function navigate(cdp, url) {
-  await cdp.send('Page.navigate', { url });
-  const expectedUrl = new URL(url).href;
+  const expectedUrl = certifiedNavigationUrl(url);
+  await cdp.send('Page.navigate', { url: expectedUrl });
   await eventually(async () => {
     const state = await cdp.send('Runtime.evaluate', { expression: '({ readyState: document.readyState, href: location.href })', returnByValue: true });
     assert.ok(state.result && Object.hasOwn(state.result, 'value'), 'navigation readiness evaluation must return document state');
-    assert.equal(state.result.value.href, expectedUrl, 'navigation readiness must observe the requested page, not the previous document');
+    assert.equal(state.result.value.href, expectedUrl, 'navigation readiness must observe the exact unique requested page, not the previous document');
     assert.equal(state.result.value.readyState, 'complete');
   });
   await new Promise((resolve) => setTimeout(resolve, 2_300));
@@ -129,6 +137,17 @@ function layoutValue(evaluation) {
   assert.ok(evaluation.result && Object.hasOwn(evaluation.result, 'value'), 'layout measurement must return a value after the action cluster is available');
   return evaluation.result.value;
 }
+
+test('navigation readiness uses a unique exact URL for every navigation', () => {
+  const first = new URL(certifiedNavigationUrl('http://example.test/?preserved=first'));
+  const second = new URL(certifiedNavigationUrl('http://example.test/?preserved=second&__certifyNavigation=stale'));
+
+  assert.equal(first.searchParams.get('preserved'), 'first');
+  assert.equal(second.searchParams.get('preserved'), 'second');
+  assert.equal(first.searchParams.getAll('__certifyNavigation').length, 1);
+  assert.equal(second.searchParams.getAll('__certifyNavigation').length, 1);
+  assert.notEqual(first.href, second.href, 'each navigation must receive a URL that cannot match a previous document');
+});
 
 test('layout measurement reports incomplete CDP responses before layout assertions run', () => {
   assert.throws(
