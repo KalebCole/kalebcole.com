@@ -425,7 +425,9 @@ html[data-mode="dark"] [data-icon-dark] {
   max-width: 100%;
 }
 
-@media (min-width: 850px) {
+/* The 850px hero grid starts before its text column can hold the complete
+ * 522px action cluster. Keep it stacked until the whole cluster fits. */
+@media (min-width: 987px) {
   .home-actions {
     flex-direction: row;
     align-items: center;

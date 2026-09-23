@@ -14,6 +14,7 @@ const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
     ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
     : null);
+const inlineActionsViewport = 987;
 
 function contentType(path) {
   return ({
@@ -126,10 +127,11 @@ async function layout(cdp) {
     const actions = document.querySelector('.home-actions');
     const primary = document.querySelector('.home-primary-actions');
     const elsewhere = document.querySelector('.home-elsewhere');
+    const ctas = [...primary.querySelectorAll('.home-action')];
     const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
     if (!actions || !primary || !elsewhere || bubbles.length !== 3) throw new Error('Expected action cluster, CTA pair, and three bubbles');
     return {
-      actions: rect(actions), primary: rect(primary), elsewhere: rect(elsewhere), bubbles: bubbles.map(rect),
+      actions: rect(actions), primary: rect(primary), elsewhere: rect(elsewhere), ctas: ctas.map(rect), bubbles: bubbles.map(rect),
       actionsDisplay: getComputedStyle(actions).display, actionsDirection: getComputedStyle(actions).flexDirection,
       gap: getComputedStyle(actions).gap, scrollWidth: document.documentElement.scrollWidth, innerWidth: innerWidth,
       bubbleSizes: bubbles.map((bubble) => ({ width: getComputedStyle(bubble).width, height: getComputedStyle(bubble).height })),
@@ -145,15 +147,23 @@ function assertDesktopInline(measurement, width) {
   assert.ok(measurement.elsewhere.left > measurement.primary.right, `${width}px bubble group is to the right of the primary CTA pair`);
   assert.ok(measurement.elsewhere.left - measurement.primary.right >= 20, `${width}px cluster preserves a deliberate primary-to-secondary gap`);
   assert.ok(Math.abs((measurement.elsewhere.top + measurement.elsewhere.bottom) / 2 - (measurement.primary.top + measurement.primary.bottom) / 2) <= 1, `${width}px secondary bubbles align with the primary CTA group`);
+  assertPrimaryPairIsOneRow(measurement, width);
 }
 
-function assertMobileBelow(measurement, width) {
+function assertPrimaryPairIsOneRow(measurement, width) {
+  assert.equal(measurement.ctas.length, 2, `${width}px includes the two primary CTAs`);
+  assert.ok(Math.abs(measurement.ctas[0].top - measurement.ctas[1].top) <= 1, `${width}px primary CTA pair never splits across rows`);
+  assert.ok(measurement.ctas[1].left > measurement.ctas[0].right, `${width}px primary CTA order remains left to right`);
+}
+
+function assertBubblesBelow(measurement, width) {
   assert.equal(measurement.actionsDisplay, 'flex', `${width}px action cluster uses flex composition`);
   assert.equal(measurement.actionsDirection, 'column', `${width}px bubble group moves below the CTAs`);
   assert.ok(measurement.elsewhere.top >= measurement.primary.bottom + 10, `${width}px bubbles sit immediately below the primary CTA group`);
   const bubbleCenter = (measurement.elsewhere.left + measurement.elsewhere.right) / 2;
   const primaryCenter = (measurement.primary.left + measurement.primary.right) / 2;
   assert.ok(Math.abs(bubbleCenter - primaryCenter) <= 1, `${width}px bubble group is centered under the CTAs`);
+  assert.ok(measurement.ctas.every((cta) => cta.bottom <= measurement.elsewhere.top), `${width}px primary CTAs stay together before the bubble row`);
 }
 
 test('production hero uses the approved inline-desktop and below-mobile action composition', async () => {
@@ -161,18 +171,19 @@ test('production hero uses the approved inline-desktop and below-mobile action c
   const { server, origin } = await startStaticServer();
   try {
     await withBrowser(origin, async (cdp) => {
-      for (const width of [1440, 1024, 850]) {
+      for (const width of [1440, 1024, inlineActionsViewport, inlineActionsViewport + 1]) {
         await setViewport(cdp, width);
         await navigate(cdp, origin);
         const measurement = await layout(cdp);
         assertDesktopInline(measurement, width);
         assert.ok(measurement.scrollWidth <= measurement.innerWidth, `${width}px desktop hero must not introduce horizontal overflow`);
       }
-      for (const width of [849, 760, 390, 320]) {
+      for (const width of [inlineActionsViewport - 1, 900, 850, 390, 320]) {
         await setViewport(cdp, width);
         await navigate(cdp, origin);
         const measurement = await layout(cdp);
-        assertMobileBelow(measurement, width);
+        assertBubblesBelow(measurement, width);
+        if (width >= 850) assertPrimaryPairIsOneRow(measurement, width);
         assert.ok(measurement.scrollWidth <= measurement.innerWidth, `${width}px mobile hero must not introduce horizontal overflow`);
       }
     });
@@ -201,7 +212,7 @@ test('production hero preserves bubble targets, exact destinations, and same-tab
   }
 });
 
-test('the 849 to 850 crossing FLIPs only the combined action cluster and reduced motion settles immediately', async () => {
+test('hero action cluster FLIPs as one target at its 987px inline threshold and respects reduced motion', async () => {
   assert.ok(existsSync(dist), 'dist must exist; run the production build first');
   const { server, origin } = await startStaticServer();
   try {
@@ -213,23 +224,23 @@ test('the 849 to 850 crossing FLIPs only the combined action cluster and reduced
           return animate.call(this, ...args);
         };
       })()` });
-      await setViewport(cdp, 849);
+      await setViewport(cdp, inlineActionsViewport - 1);
       await navigate(cdp, origin);
-      await setViewport(cdp, 850);
+      await setViewport(cdp, inlineActionsViewport);
       await new Promise((resolve) => setTimeout(resolve, 100));
-      assertDesktopInline(await layout(cdp), 850);
+      assertDesktopInline(await layout(cdp), inlineActionsViewport);
       const flipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
-      assert.equal(flipCount.result.value, 1, '849 to 850 must animate the single .home-actions target');
-      await setViewport(cdp, 849);
+      assert.equal(flipCount.result.value, 1, '986 to 987 must animate the single .home-actions target');
+      await setViewport(cdp, inlineActionsViewport - 1);
       await new Promise((resolve) => setTimeout(resolve, 100));
-      assertMobileBelow(await layout(cdp), 849);
+      assertBubblesBelow(await layout(cdp), inlineActionsViewport - 1);
       const returnFlipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
-      assert.equal(returnFlipCount.result.value, 2, '850 to 849 must animate the same combined target back');
+      assert.equal(returnFlipCount.result.value, 2, '987 to 986 must animate the same combined target back');
 
       await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
-      await setViewport(cdp, 849);
+      await setViewport(cdp, inlineActionsViewport - 1);
       await navigate(cdp, origin);
-      await setViewport(cdp, 850);
+      await setViewport(cdp, inlineActionsViewport);
       await new Promise((resolve) => setTimeout(resolve, 100));
       const reduced = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
       assert.equal(reduced.result.value, 0, 'reduced motion must reflow without FLIP animation');

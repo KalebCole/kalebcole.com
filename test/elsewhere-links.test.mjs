@@ -47,8 +47,8 @@ test('homepage and footer consume the shared Elsewhere source', () => {
   assert.match(footer, /<nav\b[^>]*aria-label="Footer profile links"/);
   assert.match(
     globalCss,
-    /\.home-actions\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?@media \(min-width: 850px\) \{[\s\S]*?\.home-actions\s*\{[\s\S]*?flex-direction: row;[\s\S]*?gap: 1\.5rem;[\s\S]*?\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 auto;/,
-    'the combined action cluster must place bubbles below CTAs on mobile and inline after them at the 850px desktop breakpoint',
+    /\.home-actions\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?@media \(min-width: 987px\) \{[\s\S]*?\.home-actions\s*\{[\s\S]*?flex-direction: row;[\s\S]*?gap: 1\.5rem;[\s\S]*?\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 auto;/,
+    'the combined action cluster must keep bubbles below the CTAs until the 987px full-cluster inline breakpoint',
   );
   assert.doesNotMatch(globalCss, /\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 100%/, 'bubbles must not retain the former always-below full-width rule');
 
