@@ -492,6 +492,10 @@ html[data-mode="dark"] [data-icon-dark] {
     color: var(--blue);
     transform: translate(-1px, -2px);
   }
+
+  .home-elsewhere-bubble:hover svg {
+    color: var(--blue);
+  }
 }
 
 .home-elsewhere-bubble:active {
@@ -1680,10 +1684,19 @@ html[data-mode="dark"] .prose {
     color: ButtonText;
   }
 
+  .home-elsewhere-bubble svg {
+    color: ButtonText;
+  }
+
   .home-elsewhere-bubble:hover,
   .home-elsewhere-bubble:active {
     background: Highlight;
     border-color: Highlight;
+    color: HighlightText;
+  }
+
+  .home-elsewhere-bubble:hover svg,
+  .home-elsewhere-bubble:active svg {
     color: HighlightText;
   }
 }

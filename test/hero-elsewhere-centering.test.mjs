@@ -141,6 +141,36 @@ async function layout(cdp) {
   return evaluation.result.value;
 }
 
+async function socialMarkContrasts(cdp) {
+  const evaluation = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
+    const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    const rgb = (value) => {
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = value;
+      context.fillRect(0, 0, 1, 1);
+      return [...context.getImageData(0, 0, 1, 1).data];
+    };
+    const luminance = ([red, green, blue]) => [red, green, blue].map((channel) => {
+      const normalized = channel / 255;
+      return normalized <= .04045 ? normalized / 12.92 : ((normalized + .055) / 1.055) ** 2.4;
+    }).reduce((total, channel, index) => total + channel * [.2126, .7152, .0722][index], 0);
+    const contrast = (foreground, background) => {
+      const [lighter, darker] = [luminance(rgb(foreground)), luminance(rgb(background))].sort((a, b) => b - a);
+      return (lighter + .05) / (darker + .05);
+    };
+    return bubbles.map((bubble) => {
+      const mark = getComputedStyle(bubble.querySelector('svg'));
+      const mount = getComputedStyle(bubble);
+      return { hovered: bubble.matches(':hover'), mark: mark.color, mount: mount.backgroundColor, contrast: contrast(mark.color, mount.backgroundColor) };
+    });
+  })()` });
+  assert.ok(!evaluation.exceptionDetails, `contrast measurement must evaluate: ${evaluation.exceptionDetails?.exception?.description ?? evaluation.exceptionDetails?.text}`);
+  return evaluation.result.value;
+}
+
 function assertDesktopInline(measurement, width) {
   assert.equal(measurement.actionsDisplay, 'flex', `${width}px action cluster uses flex composition`);
   assert.equal(measurement.actionsDirection, 'row', `${width}px bubbles share the desktop CTA row`);
@@ -256,56 +286,26 @@ test('production hero keeps mount-ink social marks readable across color modes a
   try {
     await withBrowser(origin, async (cdp) => {
       for (const [mode, widths] of [['light', [1440]], ['dark', [1440, 1024, 995, 390, 320]]]) {
-        await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: mode }] });
+        await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: mode }, { name: 'hover', value: 'hover' }] });
         for (const width of widths) {
           await setViewport(cdp, width);
           await navigate(cdp, origin);
-          const result = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
-            document.documentElement.dataset.mode = '${mode}';
-            const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            const toRgb = (value) => { context.fillStyle = '#000'; context.fillStyle = value; return context.fillStyle; };
-            const rgb = (value) => {
-              if (value.startsWith('#')) return [1, 3, 5].map((index) => Number.parseInt(value.slice(index, index + 2), 16));
-              const channels = value.match(/[0-9.]+/g)?.map(Number);
-              if (value.startsWith('oklch') && channels?.length === 3) {
-                const [lightness, chroma, hue] = channels;
-                const angle = hue * Math.PI / 180;
-                const a = chroma * Math.cos(angle);
-                const b = chroma * Math.sin(angle);
-                const l = lightness + .3963377774 * a + .2158037573 * b;
-                const m = lightness - .1055613458 * a - .0638541728 * b;
-                const s = lightness - .0894841775 * a - 1.291485548 * b;
-                const [red, green, blue] = [
-                  4.0767416621 * l ** 3 - 3.3077115913 * m ** 3 + .2309699292 * s ** 3,
-                  -1.2684380046 * l ** 3 + 2.6097574011 * m ** 3 - .3413193965 * s ** 3,
-                  -.0041960863 * l ** 3 - .7034186147 * m ** 3 + 1.707614701 * s ** 3,
-                ];
-                const gamma = (channel) => 255 * (channel <= .0031308 ? 12.92 * channel : 1.055 * channel ** (1 / 2.4) - .055);
-                return [gamma(red), gamma(green), gamma(blue)];
-              }
-              if (!channels) throw new Error('Unable to convert color to sRGB');
-              return channels.slice(0, 3);
-            };
-            const luminance = ([red, green, blue]) => [red, green, blue].map((channel) => {
-              const normalized = channel / 255;
-              return normalized <= .04045 ? normalized / 12.92 : ((normalized + .055) / 1.055) ** 2.4;
-            }).reduce((total, channel, index) => total + channel * [.2126, .7152, .0722][index], 0);
-            const contrast = (foreground, background) => {
-              const [lighter, darker] = [luminance(rgb(foreground)), luminance(rgb(background))].sort((a, b) => b - a);
-              return (lighter + .05) / (darker + .05);
-            };
-            return bubbles.map((bubble) => {
-              const mark = getComputedStyle(bubble.querySelector('svg'));
-              const mount = getComputedStyle(bubble);
-              return { mark: mark.color, mount: mount.backgroundColor, contrast: contrast(toRgb(mark.color), toRgb(mount.backgroundColor)) };
-            });
-          })()` });
-          assert.ok(!result.exceptionDetails, `contrast measurement must evaluate: ${result.exceptionDetails?.exception?.description ?? result.exceptionDetails?.text}`);
-          assert.equal(result.result.value.length, 3, `${mode} ${width}px renders three social marks`);
-          for (const mark of result.result.value) {
+          await cdp.send('Runtime.evaluate', { expression: `document.documentElement.dataset.mode = '${mode}'` });
+          await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0 });
+          const normal = await socialMarkContrasts(cdp);
+          assert.equal(normal.length, 3, `${mode} ${width}px renders three social marks`);
+          for (const mark of normal) {
             assert.ok(mark.contrast >= 4.5, mode + ' ' + width + 'px social mark must clear 4.5:1: ' + JSON.stringify(mark));
+          }
+          if (width === 1440) {
+            const bubbleRects = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `([...document.querySelectorAll('.home-elsewhere-bubble')].map((bubble) => { const rect = bubble.getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }))` });
+            for (const [index, point] of bubbleRects.result.value.entries()) {
+              await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: point.x, y: point.y });
+              await new Promise((resolve) => setTimeout(resolve, 200));
+              const hover = (await socialMarkContrasts(cdp)).find((mark) => mark.hovered);
+              assert.ok(hover, `${mode} ${width}px social bubble ${index} receives an actual hover state`);
+              assert.ok(hover.contrast >= 3, mode + ' ' + width + 'px hovered social mark must clear 3:1: ' + JSON.stringify(hover));
+            }
           }
           const measurement = await layout(cdp);
           if (width >= inlineActionsViewport) assertDesktopInline(measurement, width);
@@ -329,11 +329,14 @@ test('production hero keeps mount-ink social marks readable across color modes a
       const forcedColors = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
         const bubble = document.activeElement;
         const style = getComputedStyle(bubble);
-        return { borderColor: style.borderTopColor, outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
+        const mark = getComputedStyle(bubble.querySelector('svg'));
+        return { borderColor: style.borderTopColor, backgroundColor: style.backgroundColor, outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth, markColor: mark.color };
       })()` });
       assert.notEqual(forcedColors.result.value.borderColor, 'rgba(0, 0, 0, 0)', 'forced colors retains a visible social-bubble border');
       assert.notEqual(forcedColors.result.value.outlineStyle, 'none', 'keyboard focus remains visible in forced colors');
       assert.notEqual(forcedColors.result.value.outlineWidth, '0px', 'keyboard focus retains a non-zero outline width in forced colors');
+      assert.notEqual(forcedColors.result.value.markColor, 'rgba(0, 0, 0, 0)', 'forced colors retains a visible social SVG mark');
+      assert.notEqual(forcedColors.result.value.markColor, forcedColors.result.value.backgroundColor, 'forced-colors social SVG mark contrasts with its bubble background');
     });
   } finally {
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
