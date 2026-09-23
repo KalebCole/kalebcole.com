@@ -423,7 +423,8 @@ html[data-mode="dark"] [data-icon-dark] {
   justify-content: center;
   gap: .65rem;
   margin-top: -.05rem;
-  margin-left: .12rem;
+  /* Counterbalance the stamp's 3px right-hand shadow so its visible footprint centers under the CTAs. */
+  margin-left: -1.5px;
   max-width: 100%;
 }
 
