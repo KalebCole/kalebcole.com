@@ -112,32 +112,103 @@ async function setViewport(cdp, width, height = 900) {
   await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
 }
 
+let navigationCertificate = 0;
+
+function certifiedNavigationUrl(url) {
+  const certifiedUrl = new URL(url);
+  certifiedUrl.searchParams.set('__certifyNavigation', String(++navigationCertificate));
+  return certifiedUrl.href;
+}
+
 async function navigate(cdp, url) {
-  await cdp.send('Page.navigate', { url });
+  const expectedUrl = certifiedNavigationUrl(url);
+  await cdp.send('Page.navigate', { url: expectedUrl });
   await eventually(async () => {
-    const state = await cdp.send('Runtime.evaluate', { expression: 'document.readyState', returnByValue: true });
-    assert.equal(state.result.value, 'complete');
+    const state = await cdp.send('Runtime.evaluate', { expression: '({ readyState: document.readyState, href: location.href })', returnByValue: true });
+    assert.ok(state.result && Object.hasOwn(state.result, 'value'), 'navigation readiness evaluation must return document state');
+    assert.equal(state.result.value.href, expectedUrl, 'navigation readiness must observe the exact unique requested page, not the previous document');
+    assert.equal(state.result.value.readyState, 'complete');
   });
   await new Promise((resolve) => setTimeout(resolve, 2_300));
 }
 
+function layoutValue(evaluation) {
+  assert.ok(!evaluation.exceptionDetails, `layout measurement must evaluate: ${evaluation.exceptionDetails?.exception?.description ?? evaluation.exceptionDetails?.text}`);
+  assert.ok(evaluation.result && Object.hasOwn(evaluation.result, 'value'), 'layout measurement must return a value after the action cluster is available');
+  return evaluation.result.value;
+}
+
+test('navigation readiness uses a unique exact URL for every navigation', () => {
+  const first = new URL(certifiedNavigationUrl('http://example.test/?preserved=first'));
+  const second = new URL(certifiedNavigationUrl('http://example.test/?preserved=second&__certifyNavigation=stale'));
+
+  assert.equal(first.searchParams.get('preserved'), 'first');
+  assert.equal(second.searchParams.get('preserved'), 'second');
+  assert.equal(first.searchParams.getAll('__certifyNavigation').length, 1);
+  assert.equal(second.searchParams.getAll('__certifyNavigation').length, 1);
+  assert.notEqual(first.href, second.href, 'each navigation must receive a URL that cannot match a previous document');
+});
+
+test('layout measurement reports incomplete CDP responses before layout assertions run', () => {
+  assert.throws(
+    () => layoutValue({ exceptionDetails: { text: 'action cluster is not available' }, result: {} }),
+    /layout measurement must evaluate: action cluster is not available/,
+  );
+  assert.throws(
+    () => layoutValue({ result: {} }),
+    /layout measurement must return a value after the action cluster is available/,
+  );
+});
+
 async function layout(cdp) {
+  return eventually(async () => {
+    const evaluation = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
+      const rect = (element) => { const box = element.getBoundingClientRect(); return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height }; };
+      const actions = document.querySelector('.home-actions');
+      const primary = document.querySelector('.home-primary-actions');
+      const elsewhere = document.querySelector('.home-elsewhere');
+      const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
+      if (!actions || !primary || !elsewhere || bubbles.length !== 3) throw new Error('Expected action cluster, CTA pair, and three bubbles');
+      const ctas = [...primary.querySelectorAll('.home-action')];
+      return {
+        actions: rect(actions), primary: rect(primary), elsewhere: rect(elsewhere), ctas: ctas.map(rect), bubbles: bubbles.map(rect),
+        actionsDisplay: getComputedStyle(actions).display, actionsDirection: getComputedStyle(actions).flexDirection,
+        gap: getComputedStyle(actions).gap, scrollWidth: document.documentElement.scrollWidth, innerWidth: innerWidth,
+        bubbleSizes: bubbles.map((bubble) => ({ width: getComputedStyle(bubble).width, height: getComputedStyle(bubble).height })),
+        links: bubbles.map((bubble) => ({ href: bubble.href, label: bubble.getAttribute('aria-label'), target: bubble.getAttribute('target') })),
+      };
+    })()` });
+    return layoutValue(evaluation);
+  });
+}
+
+async function socialMarkContrasts(cdp) {
   const evaluation = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
-    const rect = (element) => { const box = element.getBoundingClientRect(); return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height }; };
-    const actions = document.querySelector('.home-actions');
-    const primary = document.querySelector('.home-primary-actions');
-    const elsewhere = document.querySelector('.home-elsewhere');
-    const ctas = [...primary.querySelectorAll('.home-action')];
     const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
-    if (!actions || !primary || !elsewhere || bubbles.length !== 3) throw new Error('Expected action cluster, CTA pair, and three bubbles');
-    return {
-      actions: rect(actions), primary: rect(primary), elsewhere: rect(elsewhere), ctas: ctas.map(rect), bubbles: bubbles.map(rect),
-      actionsDisplay: getComputedStyle(actions).display, actionsDirection: getComputedStyle(actions).flexDirection,
-      gap: getComputedStyle(actions).gap, scrollWidth: document.documentElement.scrollWidth, innerWidth: innerWidth,
-      bubbleSizes: bubbles.map((bubble) => ({ width: getComputedStyle(bubble).width, height: getComputedStyle(bubble).height })),
-      links: bubbles.map((bubble) => ({ href: bubble.href, label: bubble.getAttribute('aria-label'), target: bubble.getAttribute('target') })),
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    const rgb = (value) => {
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = value;
+      context.fillRect(0, 0, 1, 1);
+      return [...context.getImageData(0, 0, 1, 1).data];
     };
+    const luminance = ([red, green, blue]) => [red, green, blue].map((channel) => {
+      const normalized = channel / 255;
+      return normalized <= .04045 ? normalized / 12.92 : ((normalized + .055) / 1.055) ** 2.4;
+    }).reduce((total, channel, index) => total + channel * [.2126, .7152, .0722][index], 0);
+    const contrast = (foreground, background) => {
+      const [lighter, darker] = [luminance(rgb(foreground)), luminance(rgb(background))].sort((a, b) => b - a);
+      return (lighter + .05) / (darker + .05);
+    };
+    return bubbles.map((bubble) => {
+      const mark = getComputedStyle(bubble.querySelector('svg'));
+      const mount = getComputedStyle(bubble);
+      return { hovered: bubble.matches(':hover'), mark: mark.color, mount: mount.backgroundColor, contrast: contrast(mark.color, mount.backgroundColor) };
+    });
   })()` });
+  assert.ok(!evaluation.exceptionDetails, `contrast measurement must evaluate: ${evaluation.exceptionDetails?.exception?.description ?? evaluation.exceptionDetails?.text}`);
   return evaluation.result.value;
 }
 
@@ -244,6 +315,69 @@ test('hero action cluster FLIPs as one target at its 1024px inline threshold and
       await new Promise((resolve) => setTimeout(resolve, 100));
       const reduced = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
       assert.equal(reduced.result.value, 0, 'reduced motion must reflow without FLIP animation');
+    });
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test('production hero keeps mount-ink social marks readable across color modes and accessibility states', async () => {
+  assert.ok(existsSync(dist), 'dist must exist; run the production build first');
+  const { server, origin } = await startStaticServer();
+  try {
+    await withBrowser(origin, async (cdp) => {
+      for (const [mode, widths] of [['light', [1440]], ['dark', [1440, 1024, 995, 390, 320]]]) {
+        await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: mode }, { name: 'hover', value: 'hover' }] });
+        for (const width of widths) {
+          await setViewport(cdp, width);
+          await navigate(cdp, origin);
+          await cdp.send('Runtime.evaluate', { expression: `document.documentElement.dataset.mode = '${mode}'` });
+          await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0 });
+          const normal = await socialMarkContrasts(cdp);
+          assert.equal(normal.length, 3, `${mode} ${width}px renders three social marks`);
+          for (const mark of normal) {
+            assert.ok(mark.contrast >= 4.5, mode + ' ' + width + 'px social mark must clear 4.5:1: ' + JSON.stringify(mark));
+          }
+          if (width === 1440) {
+            const bubbleRects = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `([...document.querySelectorAll('.home-elsewhere-bubble')].map((bubble) => { const rect = bubble.getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }))` });
+            for (const [index, point] of bubbleRects.result.value.entries()) {
+              await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: point.x, y: point.y });
+              await new Promise((resolve) => setTimeout(resolve, 200));
+              const hover = (await socialMarkContrasts(cdp)).find((mark) => mark.hovered);
+              assert.ok(hover, `${mode} ${width}px social bubble ${index} receives an actual hover state`);
+              assert.ok(hover.contrast >= 3, mode + ' ' + width + 'px hovered social mark must clear 3:1: ' + JSON.stringify(hover));
+            }
+          }
+          const measurement = await layout(cdp);
+          if (width >= inlineActionsViewport) assertDesktopInline(measurement, width);
+          else assertBubblesBelow(measurement, width);
+          assert.ok(measurement.scrollWidth <= measurement.innerWidth, `${mode} ${width}px hero must not introduce horizontal overflow`);
+        }
+      }
+
+      await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: 'active' }] });
+      await setViewport(cdp, 390);
+      await navigate(cdp, origin);
+      await cdp.send('Runtime.evaluate', { expression: 'document.activeElement?.blur()' });
+      let bubbleFocused = false;
+      for (let index = 0; index < 16 && !bubbleFocused; index += 1) {
+        await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+        await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+        const active = await cdp.send('Runtime.evaluate', { expression: "document.activeElement?.matches('.home-elsewhere-bubble')", returnByValue: true });
+        bubbleFocused = active.result.value;
+      }
+      assert.equal(bubbleFocused, true, 'keyboard Tab navigation reaches a social bubble');
+      const forcedColors = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
+        const bubble = document.activeElement;
+        const style = getComputedStyle(bubble);
+        const mark = getComputedStyle(bubble.querySelector('svg'));
+        return { borderColor: style.borderTopColor, backgroundColor: style.backgroundColor, outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth, markColor: mark.color };
+      })()` });
+      assert.notEqual(forcedColors.result.value.borderColor, 'rgba(0, 0, 0, 0)', 'forced colors retains a visible social-bubble border');
+      assert.notEqual(forcedColors.result.value.outlineStyle, 'none', 'keyboard focus remains visible in forced colors');
+      assert.notEqual(forcedColors.result.value.outlineWidth, '0px', 'keyboard focus retains a non-zero outline width in forced colors');
+      assert.notEqual(forcedColors.result.value.markColor, 'rgba(0, 0, 0, 0)', 'forced colors retains a visible social SVG mark');
+      assert.notEqual(forcedColors.result.value.markColor, forcedColors.result.value.backgroundColor, 'forced-colors social SVG mark contrasts with its bubble background');
     });
   } finally {
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));

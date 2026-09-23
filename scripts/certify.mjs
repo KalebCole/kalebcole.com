@@ -372,6 +372,14 @@ assert.match(
 );
 assert.doesNotMatch(globalCss, /\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 100%/, 'profile bubbles must not retain the former always-below full-width rule');
 assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-bubble\s*\{[\s\S]*?border-color: ButtonText;/, 'profile bubbles must remain visible in forced colors');
+assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-bubble svg\s*\{[\s\S]*?color: ButtonText;/, 'profile SVG marks must remain visible in forced colors');
+assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-bubble:hover svg,[\s\S]*?\.home-elsewhere-bubble:active svg\s*\{[\s\S]*?color: HighlightText;/, 'profile SVG marks must remain visible against forced-colors highlights');
+assert.match(globalCss, /\.home-elsewhere-bubble svg\s*\{[\s\S]*?color: var\(--mount-ink\);[\s\S]*?fill: currentColor;/, 'profile SVG marks must use dark mount ink rather than page ink');
+assert.match(globalCss, /\.home-elsewhere-bubble \.home-elsewhere-mail\s*\{[\s\S]*?fill: none;[\s\S]*?stroke: currentColor;/, 'email SVG mark must inherit mount ink');
+const socialMarkRule = globalCss.match(/\.home-elsewhere-bubble svg\s*\{[\s\S]*?\n\}/)?.[0] ?? '';
+assert.doesNotMatch(socialMarkRule, /(?:white|#fff|#ffffff)/i, 'profile SVG marks must not hardcode white against the pale mount');
+assert.match(globalCss, /\.home-elsewhere-bubble:hover\s*\{[\s\S]*?background: var\(--soft-blue\);[\s\S]*?color: var\(--blue\);[\s\S]*?transform: translate\(-1px, -2px\);/, 'profile bubble hover must retain its intentional physical lift in both themes');
+assert.match(globalCss, /\.home-elsewhere-bubble:hover svg\s*\{[\s\S]*?color: var\(--blue\);/, 'profile SVG marks must use blue against the soft-blue hover mount');
 assert.doesNotMatch(homeElsewhere, /\bdata-motion-beat\b/i, 'bubbles must not become Publication Story Beats');
 assert.match(homepage, /<section\b[^>]*class="recent-writing"[\s\S]*?<div\b[^>]*class="recent-heading"[^>]*\bdata-motion-beat\b[^>]*>[\s\S]*?<h2[^>]*>Recent writing<\/h2>/i, 'Recent writing heading must be a publication motion beat');
 const homepageWritingRows = matches(homepage, /<article\b[^>]*class="writing-row"[^>]*>[\s\S]*?<\/article>/gi)
