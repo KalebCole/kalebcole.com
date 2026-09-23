@@ -37,8 +37,10 @@ test('homepage and footer consume the shared Elsewhere source', () => {
   const footer = source('src/components/SiteFooter.astro');
 
   assert.match(homepage, /import \{ ELSEWHERE_LINKS \} from '\.\.\/lib\/elsewhere\.mjs';/);
-  assert.match(homepage, /<div\b[^>]*class="home-elsewhere"[^>]*>[\s\S]*?<nav\b[^>]*aria-label="Profile links"[^>]*>[\s\S]*?ELSEWHERE_LINKS\.map/);
+  assert.match(homepage, /<div\b[^>]*class="home-actions"[^>]*>[\s\S]*?<div\b[^>]*class="home-primary-actions"[^>]*>[\s\S]*?<div\b[^>]*class="home-elsewhere"[^>]*>[\s\S]*?ELSEWHERE_LINKS\.map/);
   assert.doesNotMatch(homepage, /<section\b[^>]*class="home-elsewhere"/);
+  assert.doesNotMatch(homepage, /home-elsewhere-label|aria-label="Profile links"/);
+  assert.match(homepage, /class="home-elsewhere-bubble"[\s\S]*?<svg\b[\s\S]*?aria-hidden="true"/);
   assert.match(footer, /import \{ ELSEWHERE_LINKS \} from '\.\.\/lib\/elsewhere\.mjs';/);
   assert.match(footer, /\[\.\.\.ELSEWHERE_LINKS\]\.sort/);
   assert.match(footer, /<nav\b[^>]*aria-label="Footer profile links"/);

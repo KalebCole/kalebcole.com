@@ -339,18 +339,16 @@ assert.match(homepage, /href="\/projects"[^>]*>\s*See my projects\s*<\/a>/i, 'ho
 assert.match(homepage, /href="\/blog"[^>]*>\s*Read my writing\s*<\/a>/i, 'homepage hero must link to Writing');
 const homepageHero = homepage.match(/<section\b[^>]*class="home-hero"[^>]*>[\s\S]*?<\/section>/i)?.[0] ?? '';
 assert.doesNotMatch(homepageHero, /\bdata-motion-beat\b/i, 'homepage hero and its children must not receive publication motion hooks');
-const homeElsewhere = homepageHero.match(/<div\b[^>]*class="home-elsewhere"[^>]*>[\s\S]*?<\/div>/i)?.[0] ?? '';
-assert.ok(homeElsewhere, 'homepage hero must render the Elsewhere action band');
-assert.ok(
-  homepageHero.indexOf('class="home-actions"') < homepageHero.indexOf('class="home-elsewhere"'),
-  'Elsewhere must follow the primary hero actions in source order',
-);
-assert.doesNotMatch(homeElsewhere, /<section\b/i, 'Elsewhere must use a neutral structural wrapper');
-assert.match(homeElsewhere, /<nav\b[^>]*aria-label="Profile links"[^>]*>/i, 'Elsewhere must use a distinct named navigation landmark');
-assert.match(homepage, /<footer\b[\s\S]*?<nav\b[^>]*aria-label="Footer profile links"[^>]*>/i, 'footer profile links must use a distinct navigation landmark name');
-assert.match(homeElsewhere, /class="home-elsewhere-label"[^>]*>Elsewhere<\/span>/i, 'Elsewhere must expose its muted visible label');
+const homeActions = homepageHero.match(/<div\b[^>]*class="home-actions"[^>]*>[\s\S]*?<\/div>\s*<\/section>/i)?.[0] ?? '';
+const homeElsewhere = homeActions.match(/<div\b[^>]*class="home-elsewhere"[^>]*>[\s\S]*?<\/div>/i)?.[0] ?? '';
+assert.ok(homeElsewhere, 'homepage hero must render the stamped profile bubbles');
+assert.match(homeActions, /<div\b[^>]*class="home-primary-actions"[^>]*>[\s\S]*?<div\b[^>]*class="home-elsewhere"/i, 'profile bubbles must follow the primary CTA pair in the same subordinate action group');
+assert.match(homeActions, /\bdata-home-layout-hero\b/i, 'the action group must remain an explicit hero layout-motion target');
+assert.doesNotMatch(homeElsewhere, /\bdata-home-layout-hero\b/i, 'bubbles must move with their action group, not become an incidental standalone motion target');
+assert.doesNotMatch(homeElsewhere, /<section\b|<nav\b|home-elsewhere-label|>\s*Elsewhere\s*</i, 'bubbles must not add a label or navigation landmark');
+assert.match(homepage, /<footer\b[\s\S]*?<nav\b[^>]*aria-label="Footer profile links"[^>]*>/i, 'footer profile links must retain their visible behavior and named landmark');
 const elsewhereLinks = matches(homeElsewhere, /<a\b[^>]*>[\s\S]*?<\/a>/gi).map((match) => match[0]);
-assert.equal(elsewhereLinks.length, 3, 'Elsewhere must render exactly three links');
+assert.equal(elsewhereLinks.length, 3, 'profile bubbles must render exactly three links');
 const expectedElsewhereLinks = [
   ['LinkedIn', 'https://www.linkedin.com/in/kaleb-cole', 'Kaleb Cole on LinkedIn, external link'],
   ['GitHub', 'https://github.com/KalebCole', 'Kaleb Cole on GitHub, external link'],
@@ -358,14 +356,16 @@ const expectedElsewhereLinks = [
 ];
 for (const [index, [label, href, accessibleName]] of expectedElsewhereLinks.entries()) {
   const link = elsewhereLinks[index];
-  assert.equal(attribute(link, 'href'), href, `Elsewhere ${label} destination`);
-  assert.equal(attribute(link, 'aria-label'), accessibleName, `Elsewhere ${label} accessible name`);
-  assert.doesNotMatch(link, /\btarget=/i, `Elsewhere ${label} must remain same-tab`);
-  assert.match(link, new RegExp(`${label}[\\s\\S]*?↗`), `Elsewhere ${label} must expose the visible cue`);
+  assert.equal(attribute(link, 'href'), href, `${label} bubble destination`);
+  assert.equal(attribute(link, 'aria-label'), accessibleName, `${label} bubble accessible name`);
+  assert.doesNotMatch(link, /\btarget=/i, `${label} bubble must remain same-tab`);
+  assert.match(link, /class="home-elsewhere-bubble"/i, `${label} must use the stamped bubble treatment`);
+  assert.match(link, /<svg\b[^>]*aria-hidden="true"/i, `${label} bubble must expose an inline decorative logo`);
 }
-assert.match(globalCss, /\.home-elsewhere-links a\s*\{[\s\S]*?min-height: 44px;/, 'Elsewhere links must retain 44px targets');
-assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-links,[\s\S]*?border-color: CanvasText;/, 'Elsewhere rules must remain visible in forced colors');
-assert.doesNotMatch(homeElsewhere, /\bdata-motion-beat\b/i, 'Elsewhere must not become a Publication Story Beat');
+assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?width: 52px;[\s\S]*?height: 52px;/, 'profile bubbles must retain 44px-plus native targets');
+assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?border-radius: 50%;[\s\S]*?box-shadow: 4px 5px 0 var\(--coral\);/, 'profile bubbles must remain individual physical stamped circles');
+assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-bubble\s*\{[\s\S]*?border-color: ButtonText;/, 'profile bubbles must remain visible in forced colors');
+assert.doesNotMatch(homeElsewhere, /\bdata-motion-beat\b/i, 'bubbles must not become Publication Story Beats');
 assert.match(homepage, /<section\b[^>]*class="recent-writing"[\s\S]*?<div\b[^>]*class="recent-heading"[^>]*\bdata-motion-beat\b[^>]*>[\s\S]*?<h2[^>]*>Recent writing<\/h2>/i, 'Recent writing heading must be a publication motion beat');
 const homepageWritingRows = matches(homepage, /<article\b[^>]*class="writing-row"[^>]*>[\s\S]*?<\/article>/gi)
   .map((match) => match[0]);
@@ -466,7 +466,7 @@ for (const [surface, html] of [['homepage', homepage], ['Projects index', projec
 }
 assert.match(
   globalCss,
-  /grid-template-areas:\s*"greeting"\s*"portrait"\s*"statement"\s*"subtitle"\s*"actions"\s*"elsewhere";/,
+  /grid-template-areas:\s*"greeting"\s*"portrait"\s*"statement"\s*"subtitle"\s*"actions";/,
   'homepage mobile layout must place the portrait between the greeting and statement',
 );
 const homepageGreetingIndex = homepage.indexOf('class="home-greeting"');

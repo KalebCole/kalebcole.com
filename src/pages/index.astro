@@ -32,18 +32,32 @@ const homepageDescription = 'I share what interests me here, along with things t
       <p class="home-statement" data-home-layout-hero>I make things, write down what I learn, and follow whatever has me <span class="home-accent">curious</span> right now.</p>
       <p class="home-subtitle" data-home-layout-hero>I’m a software engineer at Microsoft, building what interests me and designing how we work with agents.</p>
       <div class="home-actions" aria-label="Explore my work" data-home-layout-hero>
-        <a class="home-action home-action-primary" href="/projects">See my projects</a>
-        <a class="home-action" href="/blog">Read my writing</a>
-      </div>
-      <div class="home-elsewhere" data-home-layout-hero>
-        <span class="home-elsewhere-label">Elsewhere</span>
-        <nav class="home-elsewhere-links" aria-label="Profile links">
+        <div class="home-primary-actions">
+          <a class="home-action home-action-primary" href="/projects">See my projects</a>
+          <a class="home-action" href="/blog">Read my writing</a>
+        </div>
+        <div class="home-elsewhere">
           {ELSEWHERE_LINKS.map((link) => (
-            <a href={link.href} aria-label={link.accessibleName}>
-              {link.label} <span aria-hidden="true">↗</span>
+            <a class="home-elsewhere-bubble" href={link.href} aria-label={link.accessibleName}>
+              {link.id === 'linkedin' && (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5.1 3.5A2.1 2.1 0 1 1 .9 3.5a2.1 2.1 0 0 1 4.2 0ZM1.4 8h3.4v14H1.4V8Zm5.5 0h3.25v1.9h.05c.45-.86 1.56-2.27 3.7-2.27 3.96 0 4.7 2.61 4.7 6v8.37h-3.39v-7.42c0-1.77-.04-4.05-2.47-4.05-2.48 0-2.86 1.93-2.86 3.92V22H6.9V8Z" />
+                </svg>
+              )}
+              {link.id === 'github' && (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 1.5A10.5 10.5 0 0 0 8.68 22c.53.1.72-.23.72-.5v-1.85c-2.95.64-3.57-1.25-3.57-1.25-.48-1.22-1.17-1.55-1.17-1.55-.96-.66.07-.65.07-.65 1.06.07 1.62 1.09 1.62 1.09.94 1.61 2.46 1.15 3.06.88.1-.68.37-1.15.67-1.42-2.35-.27-4.82-1.17-4.82-5.23 0-1.16.41-2.1 1.09-2.85-.11-.27-.47-1.35.1-2.82 0 0 .89-.28 2.89 1.09a10.1 10.1 0 0 1 5.26 0c2-1.37 2.88-1.09 2.88-1.09.58 1.47.22 2.55.11 2.82.68.75 1.09 1.69 1.09 2.85 0 4.07-2.48 4.95-4.84 5.22.38.33.72.97.72 1.96v2.9c0 .28.19.61.73.5A10.5 10.5 0 0 0 12 1.5Z" />
+                </svg>
+              )}
+              {link.id === 'email' && (
+                <svg class="home-elsewhere-mail" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="m4 7 8 6 8-6" />
+                </svg>
+              )}
             </a>
           ))}
-        </nav>
+        </div>
       </div>
     </section>
 

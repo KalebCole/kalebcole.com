@@ -362,8 +362,7 @@ html[data-mode="dark"] [data-icon-dark] {
     "portrait"
     "statement"
     "subtitle"
-    "actions"
-    "elsewhere";
+    "actions";
   align-items: center;
   column-gap: 1rem;
   row-gap: 1.35rem;
@@ -402,54 +401,89 @@ html[data-mode="dark"] [data-icon-dark] {
 }
 
 .home-actions {
-  display: flex;
+  display: grid;
   grid-area: actions;
-  flex-wrap: wrap;
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
   gap: .75rem;
 }
 
-.home-elsewhere {
-  display: grid;
-  grid-area: elsewhere;
-  justify-self: center;
-  gap: .4rem;
+.home-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
   max-width: 100%;
 }
 
-.home-elsewhere-label {
-  color: var(--muted);
-  font-family: "Azeret Mono", ui-monospace, monospace;
-  font-size: .72rem;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.home-elsewhere-links {
+.home-elsewhere {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  gap: .8rem;
   max-width: 100%;
-  border-block: 1px solid var(--rule);
 }
 
-.home-elsewhere-links a {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  padding-inline: clamp(.4rem, 1.5vw, .875rem);
+.home-elsewhere-bubble {
+  position: relative;
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--mount);
+  box-shadow: 4px 5px 0 var(--coral);
   color: var(--ink);
-  font-size: .9rem;
-  font-weight: 600;
   text-decoration: none;
+  transition: transform 180ms var(--ease-settle), background-color 180ms ease, border-color 180ms ease, box-shadow 180ms var(--ease-settle), color 180ms ease;
 }
 
-.home-elsewhere-links a + a {
-  border-inline-start: 1px solid var(--rule);
+.home-elsewhere-bubble::after {
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in oklch, var(--ink) 25%, transparent);
+  border-radius: inherit;
+  content: "";
 }
 
-.home-elsewhere-links a:active {
-  background: color-mix(in oklch, var(--soft-blue), var(--blue) 16%);
+.home-elsewhere-bubble svg {
+  width: 21px;
+  height: 21px;
+  fill: currentColor;
+}
+
+.home-elsewhere-bubble .home-elsewhere-mail {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.1;
+}
+
+.home-elsewhere-bubble:nth-child(2) {
+  transform: rotate(3deg);
+}
+
+.home-elsewhere-bubble:hover {
+  background: var(--blue);
+  border-color: var(--blue);
+  box-shadow: 7px 9px 0 var(--coral);
+  color: var(--ground);
+  transform: translate(-2px, -3px) rotate(-5deg);
+}
+
+.home-elsewhere-bubble:nth-child(2):hover {
+  transform: translate(-2px, -3px) rotate(7deg);
+}
+
+.home-elsewhere-bubble:active {
+  transform: translateY(2px) scale(.96);
+}
+
+.home-elsewhere-bubble:nth-child(2):active {
+  transform: translateY(2px) scale(.96) rotate(3deg);
 }
 
 .home-action {
@@ -1311,9 +1345,6 @@ html[data-mode="dark"] .prose {
 
   .home-actions {
     justify-content: center;
-  }
-
-  .home-elsewhere {
     justify-self: center;
   }
 
@@ -1481,11 +1512,6 @@ html[data-mode="dark"] .prose {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .home-elsewhere-links a:hover {
-    background: var(--soft-blue);
-    color: var(--blue);
-  }
-
   .project-index-row {
     --motion-x: 0;
     --motion-y: 0;
@@ -1636,14 +1662,17 @@ html[data-mode="dark"] .prose {
     color: ButtonText;
   }
 
-  .home-elsewhere-links,
-  .home-elsewhere-links a + a {
-    border-color: CanvasText;
+  .home-elsewhere-bubble {
+    forced-color-adjust: auto;
+    border-color: ButtonText;
+    box-shadow: none;
+    color: ButtonText;
   }
 
-  .home-elsewhere-links a:hover,
-  .home-elsewhere-links a:active {
+  .home-elsewhere-bubble:hover,
+  .home-elsewhere-bubble:active {
     background: Highlight;
+    border-color: Highlight;
     color: HighlightText;
   }
 }
