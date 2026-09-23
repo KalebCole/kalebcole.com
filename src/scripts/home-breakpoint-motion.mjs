@@ -2,11 +2,13 @@ export const HOME_COMPACT_MEDIA = '(min-width: 540px)';
 export const HOME_PUBLICATION_MEDIA = '(min-width: 760px)';
 export const HOME_WRITING_MEDIA = HOME_PUBLICATION_MEDIA;
 export const HOME_DESKTOP_MEDIA = '(min-width: 850px)';
+export const HOME_ACTIONS_INLINE_MEDIA = '(min-width: 1024px)';
 export const HOME_LAYOUT_MOTION_DURATION = 520;
 export const HOME_LAYOUT_MOTION_EASING = 'cubic-bezier(.16, 1, .3, 1)';
 
 // Each group names an element that CSS itself repositions at that breakpoint.
 export const HOME_LAYOUT_GROUPS = [
+  { name: 'hero actions inline', media: HOME_ACTIONS_INLINE_MEDIA, selector: '.home-actions' },
   { name: 'projects', media: HOME_PUBLICATION_MEDIA, selector: '[data-home-layout-project]' },
   { name: 'writing rows', media: HOME_COMPACT_MEDIA, selector: '[data-home-layout-writing-row]' },
   { name: 'pinned writing', media: HOME_WRITING_MEDIA, selector: '[data-home-layout-writing-pinned]' },
@@ -126,7 +128,9 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
   const groups = [
     hero && {
       name: 'hero',
-      elements: Array.from(hero.children),
+      // Only explicitly marked hero pieces settle at 850px. This keeps
+      // secondary hero details from becoming incidental layout-motion targets.
+      elements: Array.from(hero.querySelectorAll?.('[data-home-layout-hero]') ?? hero.children),
       media: browserWindow.matchMedia(HOME_DESKTOP_MEDIA),
     },
     ...HOME_LAYOUT_GROUPS.map((definition) => ({

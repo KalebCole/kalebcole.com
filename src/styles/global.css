@@ -402,9 +402,99 @@ html[data-mode="dark"] [data-icon-dark] {
 
 .home-actions {
   display: flex;
+  flex-direction: column;
   grid-area: actions;
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  gap: .75rem;
+}
+
+.home-primary-actions {
+  display: flex;
   flex-wrap: wrap;
   gap: .75rem;
+  max-width: 100%;
+}
+
+.home-elsewhere {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .65rem;
+  max-width: 100%;
+}
+
+/* MacBook Chrome at a 995px inner viewport leaves only 514.65px for this
+ * 522px cluster. Keep the CTAs together with centered bubbles until 1024px. */
+@media (min-width: 1024px) {
+  .home-actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .home-primary-actions {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .home-elsewhere {
+    flex: 0 0 auto;
+  }
+}
+
+.home-elsewhere-bubble {
+  position: relative;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  background: var(--mount);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 3px 4px 0 var(--coral);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 160ms var(--ease-settle), box-shadow 160ms var(--ease-settle), background-color 160ms var(--ease-settle), color 160ms var(--ease-settle);
+}
+
+.home-elsewhere-bubble::after {
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in oklch, var(--ink) 8%, var(--ground));
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+}
+
+.home-elsewhere-bubble svg {
+  position: relative;
+  z-index: 1;
+  width: 19px;
+  height: 19px;
+  fill: currentColor;
+}
+
+.home-elsewhere-bubble .home-elsewhere-mail {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+@media (hover: hover) {
+  .home-elsewhere-bubble:hover {
+    background: var(--soft-blue);
+    color: var(--blue);
+    transform: translate(-1px, -2px);
+  }
+}
+
+.home-elsewhere-bubble:active {
+  transform: translate(0, 0);
 }
 
 .home-action {
@@ -1265,6 +1355,7 @@ html[data-mode="dark"] .prose {
 
   .home-actions {
     justify-content: center;
+    justify-self: center;
   }
 
   .portrait-mount {
@@ -1579,6 +1670,20 @@ html[data-mode="dark"] .prose {
   .recommendations-filter button[aria-pressed="true"] {
     border: 3px double ButtonText;
     color: ButtonText;
+  }
+
+  .home-elsewhere-bubble {
+    forced-color-adjust: auto;
+    border-color: ButtonText;
+    box-shadow: none;
+    color: ButtonText;
+  }
+
+  .home-elsewhere-bubble:hover,
+  .home-elsewhere-bubble:active {
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
   }
 }
 

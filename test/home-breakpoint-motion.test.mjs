@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  HOME_ACTIONS_INLINE_MEDIA,
   HOME_COMPACT_MEDIA,
   HOME_DESKTOP_MEDIA,
   HOME_PUBLICATION_MEDIA,
@@ -43,12 +44,15 @@ function motionEnvironment({
   writingRows = [],
   writingPinned = [],
   recommendations = [],
+  actions = [],
   desktop = false,
+  actionsInline = false,
   compact = false,
   publicationWide = false,
   reduced = false,
 }) {
   const desktopMedia = media(desktop);
+  const actionsInlineMedia = media(actionsInline);
   const compactMedia = media(compact);
   const publicationMedia = media(publicationWide);
   const reducedMotion = media(reduced);
@@ -56,6 +60,7 @@ function motionEnvironment({
   const browserWindow = {
     matchMedia(query) {
       if (query === HOME_DESKTOP_MEDIA) return desktopMedia;
+      if (query === HOME_ACTIONS_INLINE_MEDIA) return actionsInlineMedia;
       if (query === HOME_COMPACT_MEDIA) return compactMedia;
       if (query === HOME_PUBLICATION_MEDIA) return publicationMedia;
       return reducedMotion;
@@ -65,6 +70,7 @@ function motionEnvironment({
     addEventListener(type, listener) { if (type === 'resize') resizeListeners.push(listener); },
   };
   const targets = {
+    '.home-actions': actions,
     '[data-home-layout-project]': projects,
     '[data-home-layout-writing-row]': writingRows,
     '[data-home-layout-writing-pinned]': writingPinned,
@@ -73,6 +79,7 @@ function motionEnvironment({
   return {
     browserWindow,
     compactMedia,
+    actionsInlineMedia,
     desktopMedia,
     publicationMedia,
     root: {
@@ -145,6 +152,7 @@ test('uses the actual CSS breakpoint media queries for each homepage layout grou
   assert.equal(HOME_WRITING_MEDIA, '(min-width: 760px)');
   assert.equal(HOME_PUBLICATION_MEDIA, '(min-width: 760px)');
   assert.equal(HOME_DESKTOP_MEDIA, '(min-width: 850px)');
+  assert.equal(HOME_ACTIONS_INLINE_MEDIA, '(min-width: 1024px)');
 });
 
 test('settles moved elements in DOM order with fully opaque keyframes', () => {
@@ -367,6 +375,27 @@ test('settles only hero targets at 849/850/851 crossings', async () => {
 
   assert.equal(heroItem.calls.length, 3);
   assert.equal(publicationItem.calls.length, 0);
+});
+
+test('settles only explicitly marked hero layout targets at the desktop crossing', async () => {
+  const markedHeroItem = elementAt({ left: 40, top: 100 });
+  const unmarkedHeroItem = elementAt({ left: 40, top: 180 });
+  const hero = {
+    children: [markedHeroItem, unmarkedHeroItem],
+    getAnimations() { return []; },
+    querySelectorAll(selector) { return selector === '[data-home-layout-hero]' ? [markedHeroItem] : []; },
+  };
+  const environment = motionEnvironment({ hero });
+
+  initHomeBreakpointMotion(environment.root, environment.browserWindow);
+  await Promise.resolve();
+  await Promise.resolve();
+  markedHeroItem.rect = { left: 500, top: 100 };
+  unmarkedHeroItem.rect = { left: 500, top: 180 };
+  environment.desktopMedia.cross(true);
+
+  assert.equal(markedHeroItem.calls.length, 1);
+  assert.equal(unmarkedHeroItem.calls.length, 0);
 });
 
 test('settles real Writing row and Recommendation visual/body targets at 539/540/541', async () => {

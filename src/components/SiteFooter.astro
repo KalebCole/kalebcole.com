@@ -1,9 +1,12 @@
+---
+import { ELSEWHERE_LINKS } from '../lib/elsewhere.mjs';
+
+const footerElsewhereLinks = [...ELSEWHERE_LINKS].sort((first, second) => first.footerOrder - second.footerOrder);
+---
 <footer class="site-footer">
   <div class="site-footer-inner">
-    <nav aria-label="Elsewhere">
-      <a href="https://github.com/KalebCole" aria-label="Kaleb Cole on GitHub">GitHub</a>
-      <a href="https://www.linkedin.com/in/kaleb-cole" aria-label="Kaleb Cole on LinkedIn">LinkedIn</a>
-      <a href="mailto:kalebcole2021@gmail.com" aria-label="Email Kaleb Cole">Email</a>
+    <nav aria-label="Footer profile links">
+      {footerElsewhereLinks.map((link) => <a href={link.href} aria-label={link.accessibleName}>{link.label}</a>)}
     </nav>
     <p>© {new Date().getFullYear()} Kaleb Cole.</p>
   </div>
