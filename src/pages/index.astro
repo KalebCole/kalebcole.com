@@ -6,6 +6,7 @@ import PinnedWriting from '../components/PinnedWriting.astro';
 import Polaroid from '../components/Polaroid.astro';
 import RecommendCard from '../components/RecommendCard.astro';
 import WritingRow from '../components/WritingRow.astro';
+import { ELSEWHERE_LINKS } from '../lib/elsewhere.mjs';
 import { getPublishedRecommends } from '../lib/recommends';
 import { HOMEPAGE_SOCIAL_IMAGE } from '../lib/social-image.mjs';
 
@@ -26,14 +27,24 @@ const homepageDescription = 'I share what interests me here, along with things t
 >
   <main id="main-content" class="site-shell home-page">
     <section class="home-hero" aria-labelledby="home-title">
-      <h1 id="home-title" class="home-greeting">Hi, I’m Kaleb.</h1>
+      <h1 id="home-title" class="home-greeting" data-home-layout-hero>Hi, I’m Kaleb.</h1>
       <Polaroid />
-      <p class="home-statement">I make things, write down what I learn, and follow whatever has me <span class="home-accent">curious</span> right now.</p>
-      <p class="home-subtitle">I’m a software engineer at Microsoft, building what interests me and designing how we work with agents.</p>
-      <div class="home-actions" aria-label="Explore my work">
+      <p class="home-statement" data-home-layout-hero>I make things, write down what I learn, and follow whatever has me <span class="home-accent">curious</span> right now.</p>
+      <p class="home-subtitle" data-home-layout-hero>I’m a software engineer at Microsoft, building what interests me and designing how we work with agents.</p>
+      <div class="home-actions" aria-label="Explore my work" data-home-layout-hero>
         <a class="home-action home-action-primary" href="/projects">See my projects</a>
         <a class="home-action" href="/blog">Read my writing</a>
       </div>
+      <section class="home-elsewhere" aria-label="Elsewhere" data-home-layout-hero>
+        <span class="home-elsewhere-label">Elsewhere</span>
+        <nav class="home-elsewhere-links" aria-label="Elsewhere">
+          {ELSEWHERE_LINKS.map((link) => (
+            <a href={link.href} aria-label={link.accessibleName}>
+              {link.label} <span aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </nav>
+      </section>
     </section>
 
     <section class="recent-projects" aria-labelledby="recent-projects-title">

@@ -339,6 +339,31 @@ assert.match(homepage, /href="\/projects"[^>]*>\s*See my projects\s*<\/a>/i, 'ho
 assert.match(homepage, /href="\/blog"[^>]*>\s*Read my writing\s*<\/a>/i, 'homepage hero must link to Writing');
 const homepageHero = homepage.match(/<section\b[^>]*class="home-hero"[^>]*>[\s\S]*?<\/section>/i)?.[0] ?? '';
 assert.doesNotMatch(homepageHero, /\bdata-motion-beat\b/i, 'homepage hero and its children must not receive publication motion hooks');
+const homeElsewhere = homepageHero.match(/<section\b[^>]*class="home-elsewhere"[^>]*>[\s\S]*?<\/section>/i)?.[0] ?? '';
+assert.ok(homeElsewhere, 'homepage hero must render the Elsewhere action band');
+assert.ok(
+  homepageHero.indexOf('class="home-actions"') < homepageHero.indexOf('class="home-elsewhere"'),
+  'Elsewhere must follow the primary hero actions in source order',
+);
+assert.match(homeElsewhere, /<nav\b[^>]*aria-label="Elsewhere"[^>]*>/i, 'Elsewhere must use a named navigation landmark');
+assert.match(homeElsewhere, /class="home-elsewhere-label"[^>]*>Elsewhere<\/span>/i, 'Elsewhere must expose its muted visible label');
+const elsewhereLinks = matches(homeElsewhere, /<a\b[^>]*>[\s\S]*?<\/a>/gi).map((match) => match[0]);
+assert.equal(elsewhereLinks.length, 3, 'Elsewhere must render exactly three links');
+const expectedElsewhereLinks = [
+  ['LinkedIn', 'https://www.linkedin.com/in/kaleb-cole', 'Kaleb Cole on LinkedIn, external link'],
+  ['GitHub', 'https://github.com/KalebCole', 'Kaleb Cole on GitHub, external link'],
+  ['Email', 'mailto:kalebcole2021@gmail.com', 'Email Kaleb Cole, opens email client'],
+];
+for (const [index, [label, href, accessibleName]] of expectedElsewhereLinks.entries()) {
+  const link = elsewhereLinks[index];
+  assert.equal(attribute(link, 'href'), href, `Elsewhere ${label} destination`);
+  assert.equal(attribute(link, 'aria-label'), accessibleName, `Elsewhere ${label} accessible name`);
+  assert.doesNotMatch(link, /\btarget=/i, `Elsewhere ${label} must remain same-tab`);
+  assert.match(link, new RegExp(`${label}[\\s\\S]*?↗`), `Elsewhere ${label} must expose the visible cue`);
+}
+assert.match(globalCss, /\.home-elsewhere-links a\s*\{[\s\S]*?min-height: 44px;/, 'Elsewhere links must retain 44px targets');
+assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-links,[\s\S]*?border-color: CanvasText;/, 'Elsewhere rules must remain visible in forced colors');
+assert.doesNotMatch(homeElsewhere, /\bdata-motion-beat\b/i, 'Elsewhere must not become a Publication Story Beat');
 assert.match(homepage, /<section\b[^>]*class="recent-writing"[\s\S]*?<div\b[^>]*class="recent-heading"[^>]*\bdata-motion-beat\b[^>]*>[\s\S]*?<h2[^>]*>Recent writing<\/h2>/i, 'Recent writing heading must be a publication motion beat');
 const homepageWritingRows = matches(homepage, /<article\b[^>]*class="writing-row"[^>]*>[\s\S]*?<\/article>/gi)
   .map((match) => match[0]);
@@ -439,7 +464,7 @@ for (const [surface, html] of [['homepage', homepage], ['Projects index', projec
 }
 assert.match(
   globalCss,
-  /grid-template-areas:\s*"greeting"\s*"portrait"\s*"statement"\s*"subtitle"\s*"actions";/,
+  /grid-template-areas:\s*"greeting"\s*"portrait"\s*"statement"\s*"subtitle"\s*"actions"\s*"elsewhere";/,
   'homepage mobile layout must place the portrait between the greeting and statement',
 );
 const homepageGreetingIndex = homepage.indexOf('class="home-greeting"');

@@ -369,6 +369,27 @@ test('settles only hero targets at 849/850/851 crossings', async () => {
   assert.equal(publicationItem.calls.length, 0);
 });
 
+test('settles only explicitly marked hero layout targets at the desktop crossing', async () => {
+  const markedHeroItem = elementAt({ left: 40, top: 100 });
+  const unmarkedHeroItem = elementAt({ left: 40, top: 180 });
+  const hero = {
+    children: [markedHeroItem, unmarkedHeroItem],
+    getAnimations() { return []; },
+    querySelectorAll(selector) { return selector === '[data-home-layout-hero]' ? [markedHeroItem] : []; },
+  };
+  const environment = motionEnvironment({ hero });
+
+  initHomeBreakpointMotion(environment.root, environment.browserWindow);
+  await Promise.resolve();
+  await Promise.resolve();
+  markedHeroItem.rect = { left: 500, top: 100 };
+  unmarkedHeroItem.rect = { left: 500, top: 180 };
+  environment.desktopMedia.cross(true);
+
+  assert.equal(markedHeroItem.calls.length, 1);
+  assert.equal(unmarkedHeroItem.calls.length, 0);
+});
+
 test('settles real Writing row and Recommendation visual/body targets at 539/540/541', async () => {
   const heroItem = elementAt({ left: 40, top: 100 });
   const writingCopy = elementAt({ left: 40, top: 800 });

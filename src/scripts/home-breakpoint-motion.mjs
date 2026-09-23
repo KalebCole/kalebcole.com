@@ -126,7 +126,9 @@ export function initHomeBreakpointMotion(root = document, browserWindow = window
   const groups = [
     hero && {
       name: 'hero',
-      elements: Array.from(hero.children),
+      // Only explicitly marked hero pieces settle at 850px. This keeps
+      // secondary hero details from becoming incidental layout-motion targets.
+      elements: Array.from(hero.querySelectorAll?.('[data-home-layout-hero]') ?? hero.children),
       media: browserWindow.matchMedia(HOME_DESKTOP_MEDIA),
     },
     ...HOME_LAYOUT_GROUPS.map((definition) => ({

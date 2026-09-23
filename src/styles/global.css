@@ -362,7 +362,8 @@ html[data-mode="dark"] [data-icon-dark] {
     "portrait"
     "statement"
     "subtitle"
-    "actions";
+    "actions"
+    "elsewhere";
   align-items: center;
   column-gap: 1rem;
   row-gap: 1.35rem;
@@ -405,6 +406,50 @@ html[data-mode="dark"] [data-icon-dark] {
   grid-area: actions;
   flex-wrap: wrap;
   gap: .75rem;
+}
+
+.home-elsewhere {
+  display: grid;
+  grid-area: elsewhere;
+  justify-self: center;
+  gap: .4rem;
+  max-width: 100%;
+}
+
+.home-elsewhere-label {
+  color: var(--muted);
+  font-family: "Azeret Mono", ui-monospace, monospace;
+  font-size: .72rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.home-elsewhere-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+  border-block: 1px solid var(--rule);
+}
+
+.home-elsewhere-links a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: clamp(.4rem, 1.5vw, .875rem);
+  color: var(--ink);
+  font-size: .9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home-elsewhere-links a + a {
+  border-inline-start: 1px solid var(--rule);
+}
+
+.home-elsewhere-links a:active {
+  background: color-mix(in oklch, var(--soft-blue), var(--blue) 16%);
 }
 
 .home-action {
@@ -1195,7 +1240,8 @@ html[data-mode="dark"] .prose {
       "greeting portrait"
       "statement portrait"
       "subtitle portrait"
-      "actions portrait";
+      "actions portrait"
+      "elsewhere portrait";
     align-items: center;
     column-gap: clamp(2rem, 7vw, 7rem);
     row-gap: 2rem;
@@ -1265,6 +1311,10 @@ html[data-mode="dark"] .prose {
 
   .home-actions {
     justify-content: center;
+  }
+
+  .home-elsewhere {
+    justify-self: center;
   }
 
   .portrait-mount {
@@ -1431,6 +1481,11 @@ html[data-mode="dark"] .prose {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .home-elsewhere-links a:hover {
+    background: var(--soft-blue);
+    color: var(--blue);
+  }
+
   .project-index-row {
     --motion-x: 0;
     --motion-y: 0;
@@ -1579,6 +1634,17 @@ html[data-mode="dark"] .prose {
   .recommendations-filter button[aria-pressed="true"] {
     border: 3px double ButtonText;
     color: ButtonText;
+  }
+
+  .home-elsewhere-links,
+  .home-elsewhere-links a + a {
+    border-color: CanvasText;
+  }
+
+  .home-elsewhere-links a:hover,
+  .home-elsewhere-links a:active {
+    background: Highlight;
+    color: HighlightText;
   }
 }
 
