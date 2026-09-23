@@ -362,8 +362,9 @@ for (const [index, [label, href, accessibleName]] of expectedElsewhereLinks.entr
   assert.match(link, /class="home-elsewhere-bubble"/i, `${label} must use the stamped bubble treatment`);
   assert.match(link, /<svg\b[^>]*aria-hidden="true"/i, `${label} bubble must expose an inline decorative logo`);
 }
-assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?width: 52px;[\s\S]*?height: 52px;/, 'profile bubbles must retain 44px-plus native targets');
-assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?border-radius: 50%;[\s\S]*?box-shadow: 4px 5px 0 var\(--coral\);/, 'profile bubbles must remain individual physical stamped circles');
+assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?width: 48px;[\s\S]*?height: 48px;[\s\S]*?flex: 0 0 48px;/, 'profile bubbles must retain 44px-plus reduced-scale native targets');
+assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?border-radius: 50%;[\s\S]*?box-shadow: 3px 4px 0 var\(--coral\);/, 'profile bubbles must remain individual reduced physical stamped circles');
+assert.match(globalCss, /\.home-elsewhere-bubble::after\s*\{[\s\S]*?inset: 5px;[\s\S]*?var\(--ink\) 8%, var\(--ground\)/, 'profile bubbles must retain the approved restrained inner ring');
 assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-bubble\s*\{[\s\S]*?border-color: ButtonText;/, 'profile bubbles must remain visible in forced colors');
 assert.doesNotMatch(homeElsewhere, /\bdata-motion-beat\b/i, 'bubbles must not become Publication Story Beats');
 assert.match(homepage, /<section\b[^>]*class="recent-writing"[\s\S]*?<div\b[^>]*class="recent-heading"[^>]*\bdata-motion-beat\b[^>]*>[\s\S]*?<h2[^>]*>Recent writing<\/h2>/i, 'Recent writing heading must be a publication motion beat');

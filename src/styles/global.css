@@ -418,39 +418,45 @@ html[data-mode="dark"] [data-icon-dark] {
 
 .home-elsewhere {
   display: flex;
+  flex: 0 0 100%;
   flex-wrap: wrap;
   justify-content: center;
-  gap: .8rem;
+  gap: .65rem;
+  margin-top: -.05rem;
+  margin-left: .12rem;
   max-width: 100%;
 }
 
 .home-elsewhere-bubble {
   position: relative;
   display: grid;
-  width: 52px;
-  height: 52px;
-  flex: 0 0 52px;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
   place-items: center;
+  background: var(--mount);
   border: 2px solid var(--ink);
   border-radius: 50%;
-  background: var(--mount);
-  box-shadow: 4px 5px 0 var(--coral);
+  box-shadow: 3px 4px 0 var(--coral);
   color: var(--ink);
   text-decoration: none;
-  transition: transform 180ms var(--ease-settle), background-color 180ms ease, border-color 180ms ease, box-shadow 180ms var(--ease-settle), color 180ms ease;
+  transition: transform 160ms var(--ease-settle), box-shadow 160ms var(--ease-settle), background-color 160ms var(--ease-settle), color 160ms var(--ease-settle);
 }
 
 .home-elsewhere-bubble::after {
   position: absolute;
   inset: 5px;
-  border: 1px solid color-mix(in oklch, var(--ink) 25%, transparent);
+  border: 1px solid color-mix(in oklch, var(--ink) 8%, var(--ground));
   border-radius: inherit;
   content: "";
+  pointer-events: none;
 }
 
 .home-elsewhere-bubble svg {
-  width: 21px;
-  height: 21px;
+  position: relative;
+  z-index: 1;
+  width: 19px;
+  height: 19px;
   fill: currentColor;
 }
 
@@ -459,31 +465,19 @@ html[data-mode="dark"] [data-icon-dark] {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2.1;
+  stroke-width: 2;
 }
 
-.home-elsewhere-bubble:nth-child(2) {
-  transform: rotate(3deg);
-}
-
-.home-elsewhere-bubble:hover {
-  background: var(--blue);
-  border-color: var(--blue);
-  box-shadow: 7px 9px 0 var(--coral);
-  color: var(--ground);
-  transform: translate(-2px, -3px) rotate(-5deg);
-}
-
-.home-elsewhere-bubble:nth-child(2):hover {
-  transform: translate(-2px, -3px) rotate(7deg);
+@media (hover: hover) {
+  .home-elsewhere-bubble:hover {
+    background: var(--soft-blue);
+    color: var(--blue);
+    transform: translate(-1px, -2px);
+  }
 }
 
 .home-elsewhere-bubble:active {
-  transform: translateY(2px) scale(.96);
-}
-
-.home-elsewhere-bubble:nth-child(2):active {
-  transform: translateY(2px) scale(.96) rotate(3deg);
+  transform: translate(0, 0);
 }
 
 .home-action {
@@ -1345,6 +1339,10 @@ html[data-mode="dark"] .prose {
   .home-actions {
     justify-content: center;
     justify-self: center;
+  }
+
+  .home-elsewhere {
+    margin-left: 0;
   }
 
   .portrait-mount {
