@@ -249,3 +249,93 @@ test('hero action cluster FLIPs as one target at its 1024px inline threshold and
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
 });
+
+test('production hero keeps mount-ink social marks readable across color modes and accessibility states', async () => {
+  assert.ok(existsSync(dist), 'dist must exist; run the production build first');
+  const { server, origin } = await startStaticServer();
+  try {
+    await withBrowser(origin, async (cdp) => {
+      for (const [mode, widths] of [['light', [1440]], ['dark', [1440, 1024, 995, 390, 320]]]) {
+        await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: mode }] });
+        for (const width of widths) {
+          await setViewport(cdp, width);
+          await navigate(cdp, origin);
+          const result = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
+            document.documentElement.dataset.mode = '${mode}';
+            const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const toRgb = (value) => { context.fillStyle = '#000'; context.fillStyle = value; return context.fillStyle; };
+            const rgb = (value) => {
+              if (value.startsWith('#')) return [1, 3, 5].map((index) => Number.parseInt(value.slice(index, index + 2), 16));
+              const channels = value.match(/[0-9.]+/g)?.map(Number);
+              if (value.startsWith('oklch') && channels?.length === 3) {
+                const [lightness, chroma, hue] = channels;
+                const angle = hue * Math.PI / 180;
+                const a = chroma * Math.cos(angle);
+                const b = chroma * Math.sin(angle);
+                const l = lightness + .3963377774 * a + .2158037573 * b;
+                const m = lightness - .1055613458 * a - .0638541728 * b;
+                const s = lightness - .0894841775 * a - 1.291485548 * b;
+                const [red, green, blue] = [
+                  4.0767416621 * l ** 3 - 3.3077115913 * m ** 3 + .2309699292 * s ** 3,
+                  -1.2684380046 * l ** 3 + 2.6097574011 * m ** 3 - .3413193965 * s ** 3,
+                  -.0041960863 * l ** 3 - .7034186147 * m ** 3 + 1.707614701 * s ** 3,
+                ];
+                const gamma = (channel) => 255 * (channel <= .0031308 ? 12.92 * channel : 1.055 * channel ** (1 / 2.4) - .055);
+                return [gamma(red), gamma(green), gamma(blue)];
+              }
+              if (!channels) throw new Error('Unable to convert color to sRGB');
+              return channels.slice(0, 3);
+            };
+            const luminance = ([red, green, blue]) => [red, green, blue].map((channel) => {
+              const normalized = channel / 255;
+              return normalized <= .04045 ? normalized / 12.92 : ((normalized + .055) / 1.055) ** 2.4;
+            }).reduce((total, channel, index) => total + channel * [.2126, .7152, .0722][index], 0);
+            const contrast = (foreground, background) => {
+              const [lighter, darker] = [luminance(rgb(foreground)), luminance(rgb(background))].sort((a, b) => b - a);
+              return (lighter + .05) / (darker + .05);
+            };
+            return bubbles.map((bubble) => {
+              const mark = getComputedStyle(bubble.querySelector('svg'));
+              const mount = getComputedStyle(bubble);
+              return { mark: mark.color, mount: mount.backgroundColor, contrast: contrast(toRgb(mark.color), toRgb(mount.backgroundColor)) };
+            });
+          })()` });
+          assert.ok(!result.exceptionDetails, `contrast measurement must evaluate: ${result.exceptionDetails?.exception?.description ?? result.exceptionDetails?.text}`);
+          assert.equal(result.result.value.length, 3, `${mode} ${width}px renders three social marks`);
+          for (const mark of result.result.value) {
+            assert.ok(mark.contrast >= 4.5, mode + ' ' + width + 'px social mark must clear 4.5:1: ' + JSON.stringify(mark));
+          }
+          const measurement = await layout(cdp);
+          if (width >= inlineActionsViewport) assertDesktopInline(measurement, width);
+          else assertBubblesBelow(measurement, width);
+          assert.ok(measurement.scrollWidth <= measurement.innerWidth, `${mode} ${width}px hero must not introduce horizontal overflow`);
+        }
+      }
+
+      await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'forced-colors', value: 'active' }] });
+      await setViewport(cdp, 390);
+      await navigate(cdp, origin);
+      await cdp.send('Runtime.evaluate', { expression: 'document.activeElement?.blur()' });
+      let bubbleFocused = false;
+      for (let index = 0; index < 16 && !bubbleFocused; index += 1) {
+        await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+        await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+        const active = await cdp.send('Runtime.evaluate', { expression: "document.activeElement?.matches('.home-elsewhere-bubble')", returnByValue: true });
+        bubbleFocused = active.result.value;
+      }
+      assert.equal(bubbleFocused, true, 'keyboard Tab navigation reaches a social bubble');
+      const forcedColors = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `(() => {
+        const bubble = document.activeElement;
+        const style = getComputedStyle(bubble);
+        return { borderColor: style.borderTopColor, outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
+      })()` });
+      assert.notEqual(forcedColors.result.value.borderColor, 'rgba(0, 0, 0, 0)', 'forced colors retains a visible social-bubble border');
+      assert.notEqual(forcedColors.result.value.outlineStyle, 'none', 'keyboard focus remains visible in forced colors');
+      assert.notEqual(forcedColors.result.value.outlineWidth, '0px', 'keyboard focus retains a non-zero outline width in forced colors');
+    });
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});

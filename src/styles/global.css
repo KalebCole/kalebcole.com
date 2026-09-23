@@ -474,6 +474,7 @@ html[data-mode="dark"] [data-icon-dark] {
   z-index: 1;
   width: 19px;
   height: 19px;
+  color: var(--mount-ink);
   fill: currentColor;
 }
 

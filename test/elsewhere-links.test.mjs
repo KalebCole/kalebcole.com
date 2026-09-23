@@ -64,7 +64,17 @@ test('homepage and footer consume the shared Elsewhere source', () => {
   );
   assert.match(
     globalCss,
-    /\.home-elsewhere-bubble svg\s*\{[\s\S]*?width: 19px;[\s\S]*?height: 19px;/,
-    'hero bubble marks must remain proportionate to the reduced stamps',
+    /\.home-elsewhere-bubble svg\s*\{[\s\S]*?width: 19px;[\s\S]*?height: 19px;[\s\S]*?color: var\(--mount-ink\);[\s\S]*?fill: currentColor;/,
+    'hero bubble marks must remain proportionate and use readable mount ink',
+  );
+  assert.match(
+    globalCss,
+    /\.home-elsewhere-bubble \.home-elsewhere-mail\s*\{[\s\S]*?fill: none;[\s\S]*?stroke: currentColor;/,
+    'email mark must inherit the same mount-ink color as the filled marks',
+  );
+  assert.doesNotMatch(
+    globalCss.match(/\.home-elsewhere-bubble svg\s*\{[\s\S]*?\n\}/)?.[0] ?? '',
+    /(?:white|#fff|#ffffff)/i,
+    'hero bubble marks must not hardcode white against the pale mount',
   );
 });
