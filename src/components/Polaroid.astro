@@ -14,8 +14,8 @@ const {
   <picture>
     <source
       type="image/webp"
-      srcset="/me-300.webp 300w, /me-600.webp 600w"
-      sizes="(max-width: 343px) calc(100vw - 52px), (max-width: 849px) 292px, 300px"
+      srcset="/me-300.webp 300w, /me-600.webp 600w, /me-1200.webp 1200w, /me-1600.webp 1600w"
+      sizes="(max-width: 343px) calc(100vw - 52px), (max-width: 849px) 292px, (min-width: 1100px) 340px, 300px"
     />
     <img src={src} alt={alt} width="600" height="600" fetchpriority="high" />
   </picture>

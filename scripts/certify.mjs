@@ -510,8 +510,13 @@ assert.match(
 assert.doesNotMatch(desktopHeroCss, /"elsewhere portrait"/, 'desktop hero must not retain an empty profile-bubble grid row');
 assert.match(
   polaroidSource,
-  /sizes="\(max-width: 343px\) calc\(100vw - 52px\), \(max-width: 849px\) 292px, 300px"/,
-  'homepage portrait sizes hint must match the approved mobile width',
+  /srcset="\/me-300\.webp 300w, \/me-600\.webp 600w, \/me-1200\.webp 1200w, \/me-1600\.webp 1600w"/,
+  'homepage portrait must expose high-density WebP candidates through 1600px',
+);
+assert.match(
+  polaroidSource,
+  /sizes="\(max-width: 343px\) calc\(100vw - 52px\), \(max-width: 849px\) 292px, \(min-width: 1100px\) 340px, 300px"/,
+  'homepage portrait sizes hint must match approved mobile and desktop widths',
 );
 assert.ok(existsSync(join(dist, 'projects', 'uprint-website.webp')), 'production build must emit the uprint website preview');
 assert.ok(
@@ -604,7 +609,8 @@ for (const path of cssFiles) {
 const fontFiles = walk(join(dist, 'fonts')).filter((path) => extname(path) === '.woff2');
 const compressedFonts = fontFiles.reduce((total, path) => total + gzipSize(path), 0);
 assert.ok(compressedFonts <= budgets.fonts, 'compressed font payload exceeds budget');
-assert.ok(statSync(join(dist, 'me-600.webp')).size <= budgets.lcpImage, 'largest portrait candidate exceeds LCP image budget');
+assert.ok(existsSync(join(dist, 'me-1600.webp')), 'highest-density portrait candidate must be emitted');
+assert.ok(statSync(join(dist, 'me-1600.webp')).size <= budgets.lcpImage, 'highest-density portrait candidate exceeds LCP image budget');
 
 for (const [route, path] of routes) {
   const html = text(path);
