@@ -70,7 +70,9 @@ const WIDTH_TOLERANCE = 8;
 
 /** Raster variants served from `public`, matching the polaroid's srcset candidates. */
 const VARIANTS = [
-  { file: 'me.jpg', size: 600, encode: (pipeline) => pipeline.jpeg({ quality: 88, mozjpeg: true }) },
+  { file: 'me.jpg', size: 1600, encode: (pipeline) => pipeline.jpeg({ quality: 90, mozjpeg: true }) },
+  { file: 'me-1600.webp', size: 1600, encode: (pipeline) => pipeline.webp({ quality: 85 }) },
+  { file: 'me-1200.webp', size: 1200, encode: (pipeline) => pipeline.webp({ quality: 85 }) },
   { file: 'me-600.webp', size: 600, encode: (pipeline) => pipeline.webp({ quality: 82 }) },
   { file: 'me-300.webp', size: 300, encode: (pipeline) => pipeline.webp({ quality: 80 }) },
 ];
