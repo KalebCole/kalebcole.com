@@ -1,0 +1,9 @@
+{
+  "title": "Fictional example for contract validation",
+  "url": "https://example.com/fictional-item",
+  "date": "2026-01-01",
+  "medium": "read",
+  "source": "Example",
+  "tags": ["example"],
+  "draft": true
+}
