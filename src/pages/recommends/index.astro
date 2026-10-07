@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import RecommendCard from '../../components/RecommendCard.astro';
+import PodcastShelf from '../../components/PodcastShelf.astro';
 import { getPublishedRecommends } from '../../lib/recommends';
 
 const items = await getPublishedRecommends();
@@ -16,6 +17,7 @@ const items = await getPublishedRecommends();
       <div>
         <h1>Recommends</h1>
         <p>Things I thought were interesting.</p>
+        <a class="podcast-source" href="#podcasts">Favorite podcasts and listening history</a>
       </div>
       <a class="recommendations-feed" href="/recommends/rss.xml">
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -58,6 +60,7 @@ const items = await getPublishedRecommends();
           <h2>Nothing here yet.</h2>
         </div>
       )}
+      <PodcastShelf />
     </div>
   </main>
   <script is:inline>

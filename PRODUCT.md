@@ -133,7 +133,11 @@ The redesign specification governs:
 - **Recommends:** one newest-first list, optional My thoughts annotations,
   medium filters, real source artwork when available, plain empty states, and
   its own RSS feed. Topic tags may remain in metadata and feed categories but
-  are not visible in recommendation rows.
+  are not visible in recommendation rows. A separate podcast shelf follows
+  the chronology, with Tech, Entrepreneurship, and Self Improvement categories.
+  It uses Kaleb's supplied picks, optional personal favorites, and reviewed
+  public listening records. Unknown listening counts are not presented as zero.
+  This shelf does not change the recommendation chronology or RSS feed.
 - **Projects:** a publishing mode and navigation destination with a capped
   two-project homepage preview and a link to the full index. The dedicated
   Projects index holds the full set; richer project storytelling remains a
