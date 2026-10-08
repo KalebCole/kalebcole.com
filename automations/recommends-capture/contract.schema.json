@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Public-safe recommendation capture request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "url", "date", "medium", "draft"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The public title deliberately supplied for this candidate."
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?$",
+      "x-publicCanonicalUrl": true,
+      "description": "Canonical public HTTP(S) URL only: no credentials, query parameters, or fragments. Query-bearing URLs are rejected because their parameters are not safely classifiable as public."
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "The intended public date in ISO 8601 calendar form."
+    },
+    "medium": {
+      "type": "string",
+      "enum": ["read", "watch", "listen"]
+    },
+    "author": { "type": "string", "minLength": 1 },
+    "source": { "type": "string", "minLength": 1 },
+    "image": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?$",
+      "x-publicCanonicalUrl": true,
+      "description": "Optional canonical public image URL with the same no-credentials, no-query, no-fragment policy as the destination URL."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "default": []
+    },
+    "take": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional, exact first-person wording supplied by Kaleb. Never generated or transformed by the system."
+    },
+    "draft": {
+      "const": true,
+      "description": "Capture requests are drafts and require normal editorial review before publication."
+    }
+  }
+}
