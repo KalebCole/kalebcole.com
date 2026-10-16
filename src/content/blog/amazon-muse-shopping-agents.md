@@ -36,6 +36,8 @@ He followed with:
   <figcaption><a href="https://x.com/paulg/status/2108011311229747525">Paul Graham’s follow-up posts on X.</a></figcaption>
 </figure>
 
+When a company does not adapt to a platform shift, it creates a competitive advantage for the companies that do. If people want agents to shop for them, openness to agents becomes part of why customers choose one marketplace over another.
+
 ## Some merchants are choosing a different model
 
 The major ecommerce platform, Shopify, has a very different viewpoint on this. They have a direct integration with Muse through the Muse Connector Store
