@@ -73,6 +73,13 @@ You can find an example here: https://www.linkedin.com/posts/jefftitterton_at-st
 
 Link can generate a one-time-use card so a person's real card details stay hidden, and a person approves the purchase in Muse.
 
+<figure>
+  <video controls playsinline preload="metadata" width="720" height="720" style="width: 100%; height: auto;" src="/blog/muse-amazon-agents/jeff-titterton-link-wallet-muse-demo.mp4">
+    Your browser does not support embedded video. You can <a href="/blog/muse-amazon-agents/jeff-titterton-link-wallet-muse-demo.mp4">download the video instead</a>.
+  </video>
+  <figcaption>Video by Jeff Titterton for Stripe, originally published on <a href="https://www.linkedin.com/posts/jefftitterton_at-stripe-sessions-we-launched-links-wallet-ugcPost-7503179400813629441-AG7H/">LinkedIn</a>. The video has no audible speech.</figcaption>
+</figure>
+
 
 ## What Amazon says about itself
 
