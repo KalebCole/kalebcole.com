@@ -152,7 +152,7 @@ I see Amazon blocking a customer-chosen agent from shopping as anti-consumer. It
 
 A blanket block is not the only choice. The Personal Agent Protocol shows one possible way through the conflict. Maybe Amazon is waiting for a more formal specification. I hope so.
 
-Maybe Amazon is right that agent shopping needs clearer rules. But if the result is that customers cannot choose a better way to shop, that is a weak long-term position. Companies do not always lose when they protect a gate, but they should be careful not to confuse the gate with the customer.
+Agentic commerce will become the default way to shop. Companies that force customers back into their own interface repeat the mistake of the search portals Google outcompeted: treating control of the interface as more valuable than helping people get where they want to go. That creates a competitive advantage for the companies that adapt.
 ## Sources
 
 - [GeekWire: Amazon blocks Meta's Muse AI assistant](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/)
