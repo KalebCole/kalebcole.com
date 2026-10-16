@@ -6,17 +6,17 @@ tags: ["agents", "commerce", "amazon", "muse"]
 draft: false
 ---
 
-Meta recently released their personal AI agent, Muse, at Meta Connect 2026. On [David Senra's podcast](https://www.davidsenra.com/episode/alexandr-wang), Meta chief AI officer and Scale AI co-founder Alexandr Wang said reposted third-party charts "would imply" that Muse is the fastest-growing consumer AI app, of all time.
+Meta recently released their personal AI agent, Muse, at Meta Connect 2026. On [David Senra's podcast](https://www.davidsenra.com/episode/alexandr-wang), Meta chief AI officer and Scale AI co-founder Alexandr Wang said reposted third-party charts "would imply" that Muse is the fastest-growing consumer AI app of all time.
 
 Then Amazon blocked Muse from shopping on Amazon.com for customers. [GeekWire reported](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/) that Amazon said Meta had not told it Muse would access the store, that the agent did not identify itself while browsing, and that this could create privacy and security risks. Amazon also asked Meta to remove Amazon from Muse.
 
 Amazon’s position is that a business should know when an agent is acting for a customer, and customers should not have to trade away security or privacy just to use an agent. The problem is that a customer who chooses Muse is still a customer making a choice about how they want to shop.
 
-Is Amazon is protecting customers here, or protecting the part of its business that has the most to lose if agents become the new front door?
+Is Amazon protecting customers here, or protecting the part of its business that has the most to lose when agents become the new front door?
 
 ## The case for letting customers choose
 
-Paul Graham's, founder of Y Combinator had this take
+Paul Graham, founder of Y Combinator, had this take:
 
 <figure>
   <picture>
@@ -40,7 +40,7 @@ When a company does not adapt to a platform shift, it creates a competitive adva
 
 ## Some merchants are choosing a different model
 
-The major ecommerce platform, Shopify, has a very different viewpoint on this. They have a direct integration with Muse through the Muse Connector Store
+The major ecommerce platform, Shopify, has a very different viewpoint on this. They have a direct integration with Muse through the Muse Connector Store.
 
 <figure>
   <picture>
@@ -50,14 +50,14 @@ The major ecommerce platform, Shopify, has a very different viewpoint on this. T
   <figcaption>Muse’s Shopify connector, as shown in the settings interface.</figcaption>
 </figure>
 
-Shopify documents a channel in which eligible merchants on their platform can offer direct checkout on Muse. Merchants also have the option to deactivate Shopify Catalog access or direct checkout; if they turn off direct checkout, people can still discover products and are redirected to the merchant's own store to complete the purchase (which Muse can then use the browser and Stripe's Link Wallet, which I am about to discuss, to purchase). [Shopify Help: Selling on Meta](https://help.shopify.com/en/manual/online-sales-channels/agentic-storefronts/meta)
+Shopify documents a channel in which eligible merchants on their platform can offer direct checkout on Muse. Merchants also have the option to deactivate Shopify Catalog access or direct checkout; if they turn off direct checkout, people can still discover products and are redirected to the merchant's own store to complete the purchase. Muse can then use the browser and Stripe's Link Wallet to purchase. [Shopify Help: Selling on Meta](https://help.shopify.com/en/manual/online-sales-channels/agentic-storefronts/meta)
 
 > “You remain the merchant of record, and you continue to manage fulfillment, returns, and customer service for these orders.”
 
 
-Meta said at Meta Connect 2026 that it was adding shopping connectors for other retailors like Walmart, Best Buy, American Eagle Outfitters, DICK’S Sporting Goods, Fanatics, Gap, Michael Kors, Sephora, Ulta, Wayfair, and Instacart, with Shop Pay and PayPal payment connectors and Expedia for travel. [Meta Connect roundup](https://about.fb.com/news/2026/09/the-biggest-news-from-connect-2026)
+Meta said at Meta Connect 2026 that it was adding shopping connectors for other retailers like Walmart, Best Buy, American Eagle Outfitters, DICK’S Sporting Goods, Fanatics, Gap, Michael Kors, Sephora, Ulta, Wayfair, and Instacart, with Shop Pay and PayPal payment connectors and Expedia for travel. [Meta Connect roundup](https://about.fb.com/news/2026/09/the-biggest-news-from-connect-2026)
 
-Stripe, the payment processor company, [announced](https://stripe.com/newsroom/news/stripe-helps-meta-muse-shop-with-link) that Muse integrated the Link's wallet for agents. Link can generate a one-time-use card, so a person's real card details stay hidden by the time the person still approves the purchase in Muse.
+Stripe, the payment processor company, [announced](https://stripe.com/newsroom/news/stripe-helps-meta-muse-shop-with-link) that Muse integrated Link's wallet for agents. Link can generate a one-time-use card, so a person's real card details stay hidden while the person still approves the purchase in Muse.
 
 <figure>
   <video controls playsinline preload="metadata" width="720" height="720" style="width: 100%; height: auto;" src="/blog/muse-amazon-agents/jeff-titterton-link-wallet-muse-demo.mp4">
@@ -69,7 +69,7 @@ Stripe, the payment processor company, [announced](https://stripe.com/newsroom/n
 
 ## What Amazon says about itself
 
-In Amazon's 2025 10-K, they state first and foremost that they are customer-centric:
+In Amazon's 2025 10-K, it states first and foremost that it is customer-centric:
 
 > “We seek to be Earth’s most customer-centric company. We are guided by four principles: customer obsession rather than competitor focus, passion for invention, commitment to operational excellence, and long-term thinking. In each of our segments, we serve our primary customer sets, consisting of consumers, sellers, developers, enterprises, content creators, advertisers, and employees.”
 
@@ -101,7 +101,7 @@ These parts of their business model help explain why Muse could threaten Amazon'
 
 ## This has happened before
 
-I have been listening to [Acquired's episode on Google's origins](https://www.acquired.fm/episodes/google), and I see some patterns with Amazon's decision: should a company keep people inside the current interface, or help them reach what they came for as quickly as possible?
+I have been listening to [Acquired's episode on Google's origins](https://www.acquired.fm/episodes/google), and I see a pattern in Amazon's decision: should a company keep people inside the current interface, or help them reach what they came for as quickly as possible?
 
 In 1997, Larry Page and Sergey Brin were trying to license BackRub, the search technology that became Google, to existing search engines and portals. They came close to a roughly $1 million licensing deal with Excite. The plan was for Excite to use BackRub’s ranking technology, with Larry and Sergey working there over the summer to implement it.
 
