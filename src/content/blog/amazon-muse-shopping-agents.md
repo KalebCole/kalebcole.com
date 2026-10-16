@@ -83,7 +83,13 @@ Amazon also says its own shopping assistant drives valuable behavior:
 
 > “Alexa continues to drive meaningful momentum for the business, including in the U.S., where customers who use Alexa for Shopping spend an average of over 40% more per order than those who don’t, and customers who have tried Alexa+ are signing up for Prime at a nearly 25% higher rate.”
 
-The release reported $19.809 billion in Q2 advertising-services revenue, up 26% year over year, and defines the category as sales through sponsored ads, display, and video advertising. It reported $46.780 billion in third-party seller-services revenue, which it defines as commissions and related fulfillment and shipping fees, and $70.432 billion in online-stores revenue. Third-party sellers accounted for 61% of worldwide paid units. Amazon also emphasized its delivery advantage: more than 40% more items delivered same-day or overnight for Prime members in the first half of the year, while Amazon Now expanded 30-minute delivery.
+The release reported:
+
+- $19.809 billion in Q2 advertising-services revenue, up 26% year over year. Amazon defines this category as sales through sponsored ads, display, and video advertising.
+- $46.780 billion in third-party seller-services revenue, which Amazon defines as commissions and related fulfillment and shipping fees.
+- $70.432 billion in online-stores revenue.
+- Third-party sellers accounted for 61% of worldwide paid units.
+- More than 40% more items were delivered same-day or overnight for Prime members in the first half of the year, while Amazon Now expanded 30-minute delivery.
 
 ## My take given this
 
