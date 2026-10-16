@@ -125,16 +125,6 @@ Amazon’s decision to block Meta Muse is one Mark Zuckerberg has a clear opinio
 
 > “But we have way more businesses that are calling us asking to integrate deeply, and very few really who have tried to block it. And my guess is that the ones that try to block it, it will end up not being the right strategic thing for them. But we’ll see. This will kind of play out over time.”
 
-> **Full excerpt: Cheeky Pint, *Muse Wonder: Zuckerberg and Wang's 100B AI***
->
-> Mark Zuckerberg: “We trained into the models very good browser use, right? So that way we want to make it so that no one has to do anything to integrate with Muse. And then … for people who want to work with us, we’ll just get direct API access… It’s more efficient because now you don’t have an agent crawling your website.”
->
-> John Collison: “So Muse using websites is just a moment in time thing.”
->
-> Mark Zuckerberg: “Just to make it easy for everyone. You guys want to have it as a backstop so it’s reliable for people using it. Yes, and easy for businesses to get bootstrapped. But we have way more businesses that are calling us asking to integrate deeply, and very few really who have tried to block it. And my guess is that the ones that try to block it, it will end up not being the right strategic thing for them. But we’ll see. This will kind of play out over time.”
->
-> Alexandr Wang: “In the long arc, you’d clearly expect that demand will shift from current avenues more and more towards agentic demand… I think there’s sort of these questions for businesses in the long run, like, do they want to participate in that slice or that portion of the economy over time?”
-
 [Cheeky Pint: *Muse Wonder: Zuckerberg and Wang's 100B AI*](https://open.spotify.com/podcast-chapter/0qLTNDAQgZBOdrmyC7BkpA?utm_source=native-share-menu)
 
 
