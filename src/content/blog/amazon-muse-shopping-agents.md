@@ -73,9 +73,7 @@ In Amazon's 2025 10-K, they state first and foremost that they are customer-cent
 
 [Amazon 2025 Form 10-K](https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/amzn-20251231.htm)
 
-Amazon has many customer segments and real reasons to care about consent, security, and reliability. **But a customer who selects Muse is also a customer making a choice about how they want to shop.**
-
-## Going through Amazon Earning Reports and Wondering Why They Would Oppose Muse
+## Their business model
 
 Its [Q2 2026 earnings release](https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Second-Quarter-Results) describes Amazon bringing together Rufus and Alexa+ as Alexa for Shopping:
 
@@ -86,6 +84,10 @@ Amazon also says its own shopping assistant drives valuable behavior:
 > “Alexa continues to drive meaningful momentum for the business, including in the U.S., where customers who use Alexa for Shopping spend an average of over 40% more per order than those who don’t, and customers who have tried Alexa+ are signing up for Prime at a nearly 25% higher rate.”
 
 The release reported $19.809 billion in Q2 advertising-services revenue, up 26% year over year, and defines the category as sales through sponsored ads, display, and video advertising. It reported $46.780 billion in third-party seller-services revenue, which it defines as commissions and related fulfillment and shipping fees, and $70.432 billion in online-stores revenue. Third-party sellers accounted for 61% of worldwide paid units. Amazon also emphasized its delivery advantage: more than 40% more items delivered same-day or overnight for Prime members in the first half of the year, while Amazon Now expanded 30-minute delivery.
+
+## My take given this
+
+Amazon has many customer segments and real reasons to care about consent, security, and reliability. **But a customer who selects Muse is also a customer making a choice about how they want to shop.**
 
 These parts of their business model help explain why Muse could threaten Amazon's existing economics: discovery and recommendations, sponsored-product advertising, checkout initiation, third-party seller commissions and services, fulfillment and shipping revenue, first-party retail, Prime and Alexa engagement, and Amazon's position as the shopping front door. An outside agent can compare Amazon's delivery network with other merchants instead of treating Amazon as the default place to begin.
 
