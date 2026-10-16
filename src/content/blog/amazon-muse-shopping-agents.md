@@ -6,7 +6,7 @@ tags: ["agents", "commerce", "amazon", "muse"]
 draft: false
 ---
 
-Meta recently released their personal AI agent, Muse, at the Meta Connect 2026. On David Senra's podcast, Meta chief AI officer and Scale AI co-founder Alexandr Wang said reposted third-party charts "would imply" that Muse is the fastest-growing consumer AI app, of all time.
+Meta recently released their personal AI agent, Muse, at Meta Connect 2026. On [David Senra's podcast](https://www.davidsenra.com/episode/alexandr-wang), Meta chief AI officer and Scale AI co-founder Alexandr Wang said reposted third-party charts "would imply" that Muse is the fastest-growing consumer AI app, of all time.
 
 Then Amazon blocked Muse from shopping on Amazon.com for customers. [GeekWire reported](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/) that Amazon said Meta had not told it Muse would access the store, that the agent did not identify itself while browsing, and that this could create privacy and security risks. Amazon also asked Meta to remove Amazon from Muse.
 
@@ -33,6 +33,7 @@ He followed with:
     <source type="image/webp" srcset="/blog/muse-amazon-agents/paul-graham-agent-restrictions.webp">
     <img src="/blog/muse-amazon-agents/paul-graham-agent-restrictions.png" width="1266" height="1038" loading="lazy" decoding="async" alt="Paul Graham's follow-up posts on X about companies that ban agents.">
   </picture>
+  <figcaption><a href="https://x.com/paulg/status/2108011311229747525">Paul Graham’s follow-up posts on X.</a></figcaption>
 </figure>
 
 ## Some merchants are choosing a different model
@@ -44,6 +45,7 @@ The major ecommerce platform, Shopify, has a very different viewpoint on this. T
     <source type="image/webp" srcset="/blog/muse-amazon-agents/muse-shopify-connector.webp">
     <img src="/blog/muse-amazon-agents/muse-shopify-connector.png" width="1604" height="1198" loading="lazy" decoding="async" alt="Muse settings showing Shopify in the Connectors section with a Connect button.">
   </picture>
+  <figcaption>Muse’s Shopify connector, as shown in the settings interface.</figcaption>
 </figure>
 
 Shopify documents a channel in which eligible merchants on their platform can offer direct checkout on Muse. Merchants also have the option to deactivate Shopify Catalog access or direct checkout; if they turn off direct checkout, people can still discover products and are redirected to the merchant's own store to complete the purchase (which Muse can then use the browser and Stripe's Link Wallet, which I am about to discuss, to purchase). [Shopify Help: Selling on Meta](https://help.shopify.com/en/manual/online-sales-channels/agentic-storefronts/meta)
