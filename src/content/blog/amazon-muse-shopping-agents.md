@@ -119,11 +119,11 @@ At a final side-by-side demonstration, BackRub’s results were dramatically mor
 >
 > **Ben Gilbert:** “They’re going to dramatically reduce the number of page views and allocate them to other properties on the web so they can leave your property.”
 
-What I took from Acquired is that better customer experiences do not always preserve incumbent business models. An agent that saves people time and helps them choose could also take away the attention and control Amazon monetizes.
+The Google story shows what happens when a company values preserving its existing business model over the customer experience. Consumers are choosing agents because they save time. An agent that helps people save time and decide what to buy threatens the attention and control Amazon monetizes.
 
-Mark Zuckerberg seems to see the same risk. On the Cheeky Pint podcast, he said:
+Amazon’s decision to block Meta Muse is one Mark Zuckerberg has a clear opinion on. On the Cheeky Pint podcast, he said:
 
-> "...And my guess is that the ones that try to block it, it will end up not being the right strategic thing for them. But we’ll see. This will kind of play out over time.”
+> “But we have way more businesses that are calling us asking to integrate deeply, and very few really who have tried to block it. And my guess is that the ones that try to block it, it will end up not being the right strategic thing for them. But we’ll see. This will kind of play out over time.”
 
 > **Full excerpt: Cheeky Pint, *Muse Wonder: Zuckerberg and Wang's 100B AI***
 >
