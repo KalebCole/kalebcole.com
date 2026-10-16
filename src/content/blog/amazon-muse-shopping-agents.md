@@ -12,7 +12,7 @@ Then Amazon blocked Muse from shopping on Amazon.com for customers. [GeekWire r
 
 Amazon’s position is that a business should know when an agent is acting for a customer, and customers should not have to trade away security or privacy just to use an agent. The problem is that a customer who chooses Muse is still a customer making a choice about how they want to shop.
 
-The uncomfortable question is whether Amazon is protecting customers here, or protecting the part of its business that has the most to lose if agents become the new front door.
+Is Amazon is protecting customers here, or protecting the part of its business that has the most to lose if agents become the new front door?
 
 ## The case for letting customers choose
 
