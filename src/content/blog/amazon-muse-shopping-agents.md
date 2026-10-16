@@ -6,24 +6,25 @@ tags: ["agents", "commerce", "amazon", "muse"]
 draft: false
 ---
 
+Meta recently released their personal AI agent, Muse, at the Meta Connect 2026. On David Senra's podcast, Meta chief AI officer and Scale AI co-founder Alexandr Wang said reposted third-party charts "would imply" that Muse is the fastest-growing consumer AI app, of all time.
+
 Then Amazon blocked Muse from shopping on Amazon.com for customers. [GeekWire reported](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/) that Amazon said Meta had not told it Muse would access the store, that the agent did not identify itself while browsing, and that this could create privacy and security risks. Amazon also asked Meta to remove Amazon from Muse.
 
 Amazon’s position is that a business should know when an agent is acting for a customer, and customers should not have to trade away security or privacy just to use an agent. The problem is that a customer who chooses Muse is still a customer making a choice about how they want to shop.
 
 The uncomfortable question is whether Amazon is protecting customers here, or protecting the part of its business that has the most to lose if agents become the new front door.
 
-## Some Notable Opinions
+## The case for letting customers choose
 
-Paul Graham's, founder of Y Combinator had this take on
+Paul Graham's, founder of Y Combinator had this take
 
 <figure>
   <picture>
     <source type="image/webp" srcset="/blog/muse-amazon-agents/paul-graham-amazon-agents.webp">
     <img src="/blog/muse-amazon-agents/paul-graham-amazon-agents.png" width="1256" height="436" loading="lazy" decoding="async" alt="Paul Graham's post on X about Amazon banning agents and the opportunity for a startup competitor.">
   </picture>
+  <figcaption><a href="https://x.com/paulg/status/2108011311229747525">Paul Graham on X</a></figcaption>
 </figure>
-
-[Paul Graham on X](https://x.com/paulg/status/2108011311229747525)
 
 He followed with:
 
@@ -34,7 +35,7 @@ He followed with:
   </picture>
 </figure>
 
-## Other Companies Adopting
+## Some merchants are choosing a different model
 
 The major ecommerce platform, Shopify, has a very different viewpoint on this. They have a direct integration with Muse through the Muse Connector Store
 
@@ -62,7 +63,7 @@ Stripe, the payment processor company, [announced](https://stripe.com/newsroom/n
 </figure>
 
 
-## What Amazon says about itself
+## Why Amazon might resist
 
 In Amazon's 2025 10-K, they state first and formost that they are customer-centric:
 
@@ -71,8 +72,6 @@ In Amazon's 2025 10-K, they state first and formost that they are customer-centr
 [Amazon 2025 Form 10-K](https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/amzn-20251231.htm)
 
 Amazon has many customer segments and real reasons to care about consent, security, and reliability. **But a customer who selects Muse is also a customer making a choice about how they want to shop.**
-
-## Going through Amazon Earning Reports and Wondering Why They Would Oppose Muse
 
 Its [Q2 2026 earnings release](https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Second-Quarter-Results) describes Amazon bringing together Rufus and Alexa+ as Alexa for Shopping:
 
@@ -125,7 +124,7 @@ Mark Zuckerberg seems to see the same risk. On the Cheeky Pint podcast, he said:
 [Cheeky Pint: *Muse Wonder: Zuckerberg and Wang's 100B AI*](https://open.spotify.com/podcast-chapter/0qLTNDAQgZBOdrmyC7BkpA?utm_source=native-share-menu)
 
 
-## Personal Agent Protocol: A Possible Path Forward
+## A path through the conflict
 
 Sierra has announced the [Personal Agent Protocol](https://sierra.ai/blog/introducing-personal-agent-protocol), an open protocol effort it is developing with Meta and industry partners including Genesys, Instinct, Rocket, Shopify, Stripe, and Walmart. The goal is straightforward: give a customer’s personal agent a recognized way to interact with a business without forcing that agent to impersonate a human clicking through a website.
 
