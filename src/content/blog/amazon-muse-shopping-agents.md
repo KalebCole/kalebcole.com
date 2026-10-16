@@ -65,15 +65,17 @@ Stripe, the payment processor company, [announced](https://stripe.com/newsroom/n
 </figure>
 
 
-## Why Amazon might resist
+## What Amazon says about itself
 
-In Amazon's 2025 10-K, they state first and formost that they are customer-centric:
+In Amazon's 2025 10-K, they state first and foremost that they are customer-centric:
 
 > “We seek to be Earth’s most customer-centric company. We are guided by four principles: customer obsession rather than competitor focus, passion for invention, commitment to operational excellence, and long-term thinking. In each of our segments, we serve our primary customer sets, consisting of consumers, sellers, developers, enterprises, content creators, advertisers, and employees.”
 
 [Amazon 2025 Form 10-K](https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/amzn-20251231.htm)
 
 Amazon has many customer segments and real reasons to care about consent, security, and reliability. **But a customer who selects Muse is also a customer making a choice about how they want to shop.**
+
+## Going through Amazon Earning Reports and Wondering Why They Would Oppose Muse
 
 Its [Q2 2026 earnings release](https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Second-Quarter-Results) describes Amazon bringing together Rufus and Alexa+ as Alexa for Shopping:
 
@@ -85,7 +87,7 @@ Amazon also says its own shopping assistant drives valuable behavior:
 
 The release reported $19.809 billion in Q2 advertising-services revenue, up 26% year over year, and defines the category as sales through sponsored ads, display, and video advertising. It reported $46.780 billion in third-party seller-services revenue, which it defines as commissions and related fulfillment and shipping fees, and $70.432 billion in online-stores revenue. Third-party sellers accounted for 61% of worldwide paid units. Amazon also emphasized its delivery advantage: more than 40% more items delivered same-day or overnight for Prime members in the first half of the year, while Amazon Now expanded 30-minute delivery.
 
-Amazon has said that Muse did not identify itself and that undisclosed agent browsing could create privacy and security risks. That is the stated reason for blocking it. My read is that the deeper issue is economic: if an agent becomes the place where people decide what to buy, Amazon has less control over discovery, advertising, and the customer relationship.
+These parts of their business model help explain why Muse could threaten Amazon's existing economics: discovery and recommendations, sponsored-product advertising, checkout initiation, third-party seller commissions and services, fulfillment and shipping revenue, first-party retail, Prime and Alexa engagement, and Amazon's position as the shopping front door. An outside agent can compare Amazon's delivery network with other merchants instead of treating Amazon as the default place to begin.
 
 ## This has happened before
 
