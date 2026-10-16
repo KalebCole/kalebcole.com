@@ -6,26 +6,11 @@ tags: ["agents", "commerce", "amazon", "muse"]
 draft: false
 ---
 
-Meta recently released their personal AI agent, Muse, at the Meta Connect 2026. Meta has publicly said it has millions of users. On David Senra's podcast, Meta chief AI officer and Scale AI co-founder Alexandr Wang said reposted third-party charts "would imply" that Muse is the fastest-growing consumer AI app, of all time.
-
-> **Full excerpt: David Senra, interview with Alexandr Wang**
->
-> David Senra: “Do you talk about how many people are using Muse? Are you guys talking about this publicly or no?”
->
-> Alexandr Wang: “We have said millions and then I have retweeted other people who have shown graphs where we would imply that Muse is the fastest growing consumer app of all time. Consumer AI app of all time.”
->
-> David Senra: “So you won’t say a number though.”
->
-> Alexandr Wang: “We’ve said millions.”
-
-[David Senra, interview with Alexandr Wang](https://www.davidsenra.com/episode/alexandr-wang)
-
-
 Then Amazon blocked Muse from shopping on Amazon.com for customers. [GeekWire reported](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/) that Amazon said Meta had not told it Muse would access the store, that the agent did not identify itself while browsing, and that this could create privacy and security risks. Amazon also asked Meta to remove Amazon from Muse.
 
-Amazon’s position is reasonable in one important sense. A business should know when an agent is acting for a customer, and customers should not have to trade away security or privacy just to use an agent. The problem is that a customer who chooses Muse is still a customer making a choice about how they want to shop.
+Amazon’s position is that a business should know when an agent is acting for a customer, and customers should not have to trade away security or privacy just to use an agent. The problem is that a customer who chooses Muse is still a customer making a choice about how they want to shop.
 
-Muse may have strong consumer adoption, but Amazon is pushing back against the idea that a customer’s personal agent can use its store on the customer’s behalf.
+The uncomfortable question is whether Amazon is protecting customers here, or protecting the part of its business that has the most to lose if agents become the new front door.
 
 ## Some Notable Opinions
 
@@ -67,11 +52,7 @@ Shopify documents a channel in which eligible merchants on their platform can of
 
 Meta said at Meta Connect 2026 that it was adding shopping connectors for other retailors like Walmart, Best Buy, American Eagle Outfitters, DICK’S Sporting Goods, Fanatics, Gap, Michael Kors, Sephora, Ulta, Wayfair, and Instacart, with Shop Pay and PayPal payment connectors and Expedia for travel. [Meta Connect roundup](https://about.fb.com/news/2026/09/the-biggest-news-from-connect-2026)
 
-Stripe is a payment processor company [announced](https://stripe.com/newsroom/news/stripe-helps-meta-muse-shop-with-link) that Meta integrated Link's wallet for agents into Muse.
-
-You can find an example here: https://www.linkedin.com/posts/jefftitterton_at-stripe-sessions-we-launched-links-wallet-ugcPost-7503179400813629441-AG7H/
-
-Link can generate a one-time-use card so a person's real card details stay hidden, and a person approves the purchase in Muse.
+Stripe, the payment processor company, [announced](https://stripe.com/newsroom/news/stripe-helps-meta-muse-shop-with-link) that Muse integrated the Link's wallet for agents. Link can generate a one-time-use card, so a person's real card details stay hidden by the time the person still approves the purchase in Muse.
 
 <figure>
   <video controls playsinline preload="metadata" width="720" height="720" style="width: 100%; height: auto;" src="/blog/muse-amazon-agents/jeff-titterton-link-wallet-muse-demo.mp4">
@@ -103,7 +84,7 @@ Amazon also says its own shopping assistant drives valuable behavior:
 
 The release reported $19.809 billion in Q2 advertising-services revenue, up 26% year over year, and defines the category as sales through sponsored ads, display, and video advertising. It reported $46.780 billion in third-party seller-services revenue, which it defines as commissions and related fulfillment and shipping fees, and $70.432 billion in online-stores revenue. Third-party sellers accounted for 61% of worldwide paid units. Amazon also emphasized its delivery advantage: more than 40% more items delivered same-day or overnight for Prime members in the first half of the year, while Amazon Now expanded 30-minute delivery.
 
-These parts of their business model help explain why Muse could threaten Amazon's existing economics: discovery and recommendations, sponsored-product advertising, checkout initiation, third-party seller commissions and services, fulfillment and shipping revenue, first-party retail, Prime and Alexa engagement, and Amazon's position as the shopping front door. An outside agent can compare Amazon's delivery network with other merchants instead of treating Amazon as the default place to begin.
+Amazon has said that Muse did not identify itself and that undisclosed agent browsing could create privacy and security risks. That is the stated reason for blocking it. My read is that the deeper issue is economic: if an agent becomes the place where people decide what to buy, Amazon has less control over discovery, advertising, and the customer relationship.
 
 ## This has happened before
 
@@ -113,19 +94,19 @@ In 1997, Larry Page and Sergey Brin were trying to license BackRub, the search t
 
 At a final side-by-side demonstration, BackRub’s results were dramatically more relevant. David Rosenthal and Ben Gilbert describe the problem this created for Excite:
 
-> David: “The CEO is like, why on earth would we move to your algorithm? I want people to stay on my site. I make money when people stay on my site. I don’t want them to leave my site. You guys are crazy. Get out of here. I’m killing the whole deal.”
+> **David Rosenthal:** “The CEO is like, why on earth would we move to your algorithm? I want people to stay on my site. I make money when people stay on my site. I don’t want them to leave my site. You guys are crazy. Get out of here. I’m killing the whole deal.”
 >
-> Ben: “It is amazing that as early as 1996–1997 this time period, this very important conflict of interests is teased out. This is basically why Google beat Yahoo.
+> **Ben Gilbert:** “It is amazing that as early as 1996–1997 this time period, this very important conflict of interests is teased out. This is basically why Google beat Yahoo.
 >
 > There’s a lot more to it, **but the portals all had this mentality of we want to build more and more and keep people on our site, in our ecosystem, continue to look at our banner ads.**
 >
 > **Google from this point, basically forever was how quickly can we deliver someone something relevant so they can leave Google and I’ve had a good experience finding what they really wanted?”**
 >
-> David: “Now all this is laughable in hindsight, but made total sense at the time because what was the business paradigm for all these sites? What was the model? It was banner ads, it was CPM, cost per thousand views. You wanted page views and impressions on your site. Here what BackRub is doing is they’re going to kneecap your page views.”
+> **David Rosenthal:** “Now all this is laughable in hindsight, but made total sense at the time because what was the business paradigm for all these sites? What was the model? It was banner ads, it was CPM, cost per thousand views. You wanted page views and impressions on your site. Here what BackRub is doing is they’re going to kneecap your page views.”
 >
-> Ben: “They’re going to dramatically reduce the number of page views and allocate them to other properties on the web so they can leave your property.”
+> **Ben Gilbert:** “They’re going to dramatically reduce the number of page views and allocate them to other properties on the web so they can leave your property.”
 
-In this scenario, a better customer experience, even without a known business model, conflict with the economics of the incumbent that controls the current interface.
+What I took from Acquired is that better customer experiences do not always preserve incumbent business models. An agent that saves people time and helps them choose could also take away the attention and control Amazon monetizes.
 
 Mark Zuckerberg seems to see the same risk. On the Cheeky Pint podcast, he said:
 
@@ -156,11 +137,9 @@ That is not a finished standard yet. Sierra says it plans to publish the v0.1 sp
 
 I see Amazon blocking a customer-chosen agent from shopping as anti-consumer. It puts Amazon's control over discovery, recommendations, interface, advertising inventory, checkout initiation, and the customer relationship ahead of customers' choices. That feels in direct conflict with a company that says it seeks to be Earth’s most customer-centric company.
 
-Amazon products and business model depend, in part, on being the place where shopping decisions happen, but given the popularity of Muse and other agents, that is not customer-centric.
-
 A blanket block is not the only choice. The Personal Agent Protocol shows one possible way through the conflict. Maybe Amazon is waiting for a more formal specification. I hope so.
 
-Right now, though, this looks like a company protecting the place where shopping begins and this feels like history is repeating itself.
+Maybe Amazon is right that agent shopping needs clearer rules. But if the result is that customers cannot choose a better way to shop, that is a weak long-term position. Companies do not always lose when they protect a gate, but they should be careful not to confuse the gate with the customer.
 ## Sources
 
 - [GeekWire: Amazon blocks Meta's Muse AI assistant](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/)
