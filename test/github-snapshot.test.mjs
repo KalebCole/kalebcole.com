@@ -26,7 +26,7 @@ test('a deployed page reveals its stale warning after 30 days without a rebuild'
   let revealed = false;
   const status = {
     dataset: { githubSnapshotVerifiedAt: now.toISOString() },
-    querySelector: () => ({ removeAttribute: (name) => { if (name === 'hidden') revealed = true; } }),
+    removeAttribute: (name) => { if (name === 'hidden') revealed = true; },
   };
   const root = { querySelectorAll: () => [status] };
   showStaleGitHubSnapshotStatus(root, now.getTime() + 29 * 24 * 60 * 60 * 1000);
