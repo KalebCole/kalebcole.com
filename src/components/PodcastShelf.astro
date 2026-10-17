@@ -1,0 +1,102 @@
+---
+import podcasts from '../data/podcasts.json';
+import listening from '../data/podcast-listening.json';
+import { buildPodcastShelf } from '../lib/podcasts.mjs';
+
+const shelf = buildPodcastShelf(podcasts, listening);
+---
+<section class="podcast-shelf" aria-labelledby="podcast-heading" id="podcasts">
+  <header class="podcast-intro">
+    <h2 id="podcast-heading">Favorite podcasts</h2>
+    <p>Tech, building companies, and enjoying the journey.</p>
+    <nav class="podcast-jumps" aria-label="Podcast categories">
+      {shelf.categories.map((category) => <a href={`#podcasts-${category.id}`}>{category.name}</a>)}
+      <a href="#recent-podcasts">Recently listened</a>
+    </nav>
+  </header>
+
+  {shelf.spotlights.length > 0 && (
+    <aside class="podcast-spotlights" aria-labelledby="podcast-spotlight-heading">
+      <h3 id="podcast-spotlight-heading">Start here</h3>
+      {shelf.spotlights.map((podcast) => (
+        <p><a href={`#podcast-${podcast.id}`}>{podcast.name}</a>{podcast.note && <>: {podcast.note}.</>}</p>
+      ))}
+    </aside>
+  )}
+
+  <p class="podcast-history-note">Episode counts cover only listening history I have shared here, not total episodes released. A repeat listen counts once per platform. Counts are unknown until I share history for that podcast.</p>
+  <div class="podcast-categories">
+    {shelf.categories.map((category) => (
+      <section aria-labelledby={`podcasts-${category.id}`}>
+        <h3 id={`podcasts-${category.id}`}>{category.name}</h3>
+        <ul class="podcast-list">
+          {category.podcasts.map((podcast) => (
+            <li class="podcast-card" id={`podcast-${podcast.id}`}>
+              <h4>{podcast.name}</h4>
+              {podcast.spotlight && <p class="podcast-favorite">A personal favorite</p>}
+              <p class="podcast-count">{podcast.episodeCount > 0
+                ? `${podcast.episodeCount} ${podcast.episodeCount === 1 ? 'episode' : 'episodes'} listened to in shared history`
+                : 'Episodes listened to: not shared yet'}</p>
+              {podcast.note && <p class="podcast-note">{podcast.note}</p>}
+              <a class="podcast-source" href={podcast.href}>
+                {podcast.linkLabel}<span aria-hidden="true"> ↗</span><span class="sr-only"> for {podcast.name} (external site)</span>
+              </a>
+              {podcast.spotifyShowId && (
+                <div class="podcast-player" data-spotify-show={podcast.spotifyShowId} data-podcast-name={podcast.name}>
+                  <button type="button" hidden data-load-spotify>Load Spotify player<span class="sr-only"> for {podcast.name}</span></button>
+                  <p class="podcast-player-notice">This is a show link, not a specific episode. Loading a player connects to Spotify. The link works without a player.</p>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+
+  <section class="podcast-recent" aria-labelledby="recent-podcasts">
+    <h3 id="recent-podcasts">Recently listened</h3>
+    {shelf.hasHistory ? (
+      <>
+        <p>Recent podcast episodes from my shared history. No music or unrelated videos.</p>
+        <ol class="podcast-list">
+          {shelf.recent.map((episode) => (
+            <li class="podcast-card">
+              <p class="podcast-count">{episode.podcast.name} · {episode.platform === 'spotify' ? 'Spotify' : 'YouTube'} · <time datetime={episode.listenedAt}>{new Date(episode.listenedAt).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' })}</time></p>
+              <h4><a href={episode.url}>{episode.title}<span aria-hidden="true"> ↗</span><span class="sr-only"> (external site)</span></a></h4>
+            </li>
+          ))}
+        </ol>
+      </>
+    ) : <p>No listening history shared yet. These picks come from my list, not a live Spotify or YouTube account connection.</p>}
+  </section>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-spotify-show]').forEach((container) => {
+    const button = container.querySelector<HTMLButtonElement>('[data-load-spotify]');
+    if (!button) return;
+    button.hidden = false;
+    button.addEventListener('click', () => {
+      const frame = document.createElement('iframe');
+      frame.src = `https://open.spotify.com/embed/show/${container.dataset.spotifyShow}`;
+      frame.title = `Spotify player for ${container.dataset.podcastName}`;
+      frame.allow = 'encrypted-media; fullscreen; picture-in-picture';
+      frame.referrerPolicy = 'no-referrer';
+      frame.height = '152';
+      const unload = document.createElement('button');
+      unload.type = 'button';
+      unload.textContent = 'Remove Spotify player';
+      unload.setAttribute('aria-label', `Remove Spotify player for ${container.dataset.podcastName}`);
+      unload.addEventListener('click', () => {
+        frame.remove();
+        unload.remove();
+        button.hidden = false;
+        button.focus();
+      }, { once: true });
+      button.hidden = true;
+      container.append(frame, unload);
+      unload.focus();
+    });
+  });
+</script>

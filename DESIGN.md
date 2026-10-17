@@ -637,6 +637,16 @@ the no-JavaScript experience.
 
 ### States, motion, and resilience
 
+The separate podcast shelf on Recommends uses three category columns of ruled
+rows, not a fixed nine-item cap. All columns become one column at 760px.
+Category jump links, a personal favorite note, source links, and recent shared
+episodes work without JavaScript. Spotify players load only after an explicit
+button action and can be removed. No third-party player loads on page entry.
+Counts are distinct episodes per platform in reviewed shared history, not
+completion rates or lifetime totals. No shared records means an unknown count,
+not zero. The shelf remains outside the chronological recommendation filters
+and RSS feed.
+
 - Hover, focus, visited, active, selected, disabled, empty, loading, and error
   states use the active palette and a non-color cue.
 - Content exists before animation starts. Never gate visibility on a loaded,
