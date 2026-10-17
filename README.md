@@ -25,6 +25,7 @@ To refresh locally, run `GITHUB_TOKEN="$YOUR_GITHUB_TOKEN" node scripts/refresh-
 The token needs access to GitHub's GraphQL API and must not be committed. If a
 refresh fails, the existing snapshot stays in place. A snapshot older than 30
 days since its last committed verification still renders, with a note that the
-list may be out of date. Successful refreshes renew the verification date at
-most every 21 days when the repositories are unchanged. A missing or
+list may be out of date. The page checks that age when opened, so the warning
+can appear without another build. Successful refreshes renew the verification
+date at most every 21 days when the repositories are unchanged. A missing or
 malformed snapshot leaves the hand-written project visible and links to GitHub.

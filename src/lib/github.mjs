@@ -33,6 +33,7 @@ export function normalizePinnedReposResponse(response) {
     if (
       !repo || typeof repo.name !== 'string' || !repo.name
       || (repo.description !== null && typeof repo.description !== 'string')
+      || repo.description?.includes(String.fromCodePoint(0x2014))
       || typeof repo.url !== 'string' || !REPO_URL.test(repo.url)
       || new URL(repo.url).pathname.replace(/\/$/, '').split('/')[2] !== repo.name
     ) {
@@ -66,6 +67,7 @@ export function parseGitHubSnapshot(value, now = new Date()) {
     return {
       status: now.getTime() - verifiedAt > MAX_AGE_MS ? 'stale' : 'ready',
       repos,
+      verifiedAt: value.verifiedAt,
     };
   } catch {
     return { status: 'invalid', repos: [] };

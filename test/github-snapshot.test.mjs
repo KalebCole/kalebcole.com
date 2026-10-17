@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { getPinnedRepos, parseGitHubSnapshot } from '../src/lib/github.mjs';
+import { showStaleGitHubSnapshotStatus } from '../src/scripts/github-snapshot-age.mjs';
 import { refreshGitHubSnapshot } from '../scripts/refresh-github.mjs';
 
 const now = new Date('2026-10-16T12:00:00.000Z');
@@ -15,10 +16,23 @@ const snapshot = (verifiedAt = now.toISOString()) => ({
 });
 
 test('a valid snapshot serves pinned repositories without GitHub', () => {
-  assert.deepEqual(parseGitHubSnapshot(snapshot(), now), { status: 'ready', repos: [repo] });
+  assert.deepEqual(parseGitHubSnapshot(snapshot(), now), { status: 'ready', repos: [repo], verifiedAt: now.toISOString() });
   assert.deepEqual(parseGitHubSnapshot(snapshot('2026-09-01T12:00:00.000Z'), now), {
-    status: 'stale', repos: [repo],
+    status: 'stale', repos: [repo], verifiedAt: '2026-09-01T12:00:00.000Z',
   });
+});
+
+test('a deployed page reveals its stale warning after 30 days without a rebuild', () => {
+  let revealed = false;
+  const status = {
+    dataset: { githubSnapshotVerifiedAt: now.toISOString() },
+    querySelector: () => ({ removeAttribute: (name) => { if (name === 'hidden') revealed = true; } }),
+  };
+  const root = { querySelectorAll: () => [status] };
+  showStaleGitHubSnapshotStatus(root, now.getTime() + 29 * 24 * 60 * 60 * 1000);
+  assert.equal(revealed, false);
+  showStaleGitHubSnapshotStatus(root, now.getTime() + 31 * 24 * 60 * 60 * 1000);
+  assert.equal(revealed, true);
 });
 
 test('missing and malformed snapshots have explicit states and no repository links', () => {
@@ -58,6 +72,16 @@ test('refresh writes normalized public data only when repositories change', asyn
     await assert.rejects(
       refreshGitHubSnapshot({ token: 'test', path, fetchImpl: async () => ({ ok: false, status: 503 }), now }),
       /HTTP 503/,
+    );
+    assert.equal(readFileSync(path, 'utf8'), reverified);
+    await assert.rejects(
+      refreshGitHubSnapshot({ token: 'test', path, fetchImpl: async () => ({
+        ok: true,
+        json: async () => ({
+          data: { user: { pinnedItems: { nodes: [{ ...repo, description: `Prohibited${String.fromCodePoint(0x2014)}punctuation` }] } } },
+        }),
+      }), now }),
+      /invalid pinned repository/,
     );
     assert.equal(readFileSync(path, 'utf8'), reverified);
     await assert.rejects(
