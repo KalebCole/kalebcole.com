@@ -1096,8 +1096,8 @@ html[data-mode="dark"] .media-dialog::backdrop {
   color: var(--muted);
 }
 
-.project-fallback a {
-  color: var(--blue);
+.projects-page > .all-projects-link {
+  margin-top: 2rem;
 }
 
 .not-found-page {

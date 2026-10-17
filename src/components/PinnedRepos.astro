@@ -82,16 +82,13 @@ const Heading = variant === 'home' ? 'h3' : 'h2';
   ))}
 </ul>
 {(status === 'ready' || status === 'stale') && (
-  <p class="project-fallback" data-github-snapshot-verified-at={verifiedAt}>
-    <span data-github-snapshot-stale hidden={status !== 'stale'}>This GitHub project list may be out of date. </span>
-    Last checked <time datetime={verifiedAt}>{new Date(verifiedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</time>.
-    {' '}<a href="https://github.com/KalebCole">See current projects on GitHub.</a>
+  <p class="project-fallback" data-github-snapshot-verified-at={verifiedAt} hidden={status !== 'stale'}>
+    This GitHub project list may be out of date.
   </p>
 )}
 {(status === 'missing' || status === 'invalid') && (
   <p class="project-fallback">
     The GitHub project list is unavailable right now.
-    {' '}<a href="https://github.com/KalebCole">See current projects on GitHub.</a>
   </p>
 )}
 
