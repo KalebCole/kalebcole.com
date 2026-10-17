@@ -861,9 +861,13 @@ html[data-mode="dark"] .prose {
 }
 
 .prose p:has(> img),
+.prose p:has(> .media-expand-image),
 .prose p:has(> video),
+.prose p:has(> .media-expand-video-wrapper),
 .prose > video,
+.prose > .media-expand-video-wrapper,
 .prose > picture,
+.prose > .media-expand-image,
 .prose > figure {
   width: min(56rem, 100cqw);
   max-width: none;
@@ -873,6 +877,113 @@ html[data-mode="dark"] .prose {
 
 .prose picture > img {
   width: 100%;
+}
+
+.media-expand-image {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.media-expand-image picture,
+.media-expand-image img {
+  display: block;
+}
+
+.prose > .media-expand-image {
+  width: min(56rem, 100cqw);
+}
+
+.media-expand-video-wrapper {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.media-expand-video-wrapper video {
+  display: block;
+}
+
+.media-expand-video-button {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 44px;
+  padding: 1rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font: inherit;
+  cursor: zoom-in;
+}
+
+.media-expand-video-button::after {
+  content: 'Expand video';
+  display: inline-block;
+  padding: .4rem .8rem;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--ground);
+  color: var(--ink);
+  font-size: .85rem;
+}
+
+.media-dialog {
+  position: fixed;
+  width: fit-content;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+}
+
+.media-dialog::backdrop {
+  background: color-mix(in oklch, var(--ink) 35%, transparent);
+}
+
+html[data-mode="dark"] .media-dialog::backdrop {
+  background: color-mix(in oklch, var(--ground) 55%, transparent);
+}
+
+.media-dialog-content {
+  position: relative;
+}
+
+.media-dialog-close {
+  position: absolute;
+  z-index: 1;
+  top: .5rem;
+  right: .5rem;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: var(--ground);
+  color: var(--ink);
+  box-shadow: 0 2px 8px color-mix(in oklch, var(--ink) 16%, transparent);
+  cursor: pointer;
+}
+
+.media-dialog-asset :where(img, video) {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100dvh - 2rem);
+  height: auto;
+  object-fit: contain;
 }
 
 .prose figure {
@@ -1372,9 +1483,13 @@ html[data-mode="dark"] .prose {
 @media (max-width: 760px) {
   .prose pre,
   .prose p:has(> img),
+  .prose p:has(> .media-expand-image),
   .prose p:has(> video),
+  .prose p:has(> .media-expand-video-wrapper),
   .prose > video,
+  .prose > .media-expand-video-wrapper,
   .prose > picture,
+  .prose > .media-expand-image,
   .prose > figure {
     width: 100%;
     margin-inline: 0;
