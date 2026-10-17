@@ -1,0 +1,37 @@
+name: Refresh GitHub snapshot
+
+on:
+  schedule:
+    - cron: '17 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-github-snapshot
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Refresh snapshot
+        run: node scripts/refresh-github.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Commit changed snapshot
+        run: |
+          if git diff --quiet -- src/data/github.json; then
+            echo 'Snapshot unchanged.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/data/github.json
+          git commit -m 'chore: refresh GitHub snapshot'
+          git push

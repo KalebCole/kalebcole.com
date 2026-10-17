@@ -1,5 +1,5 @@
 ---
-import { getPinnedRepos } from '../lib/github';
+import { getPinnedRepos } from '../lib/github.mjs';
 
 interface Props {
   limit?: number;
@@ -8,7 +8,7 @@ interface Props {
 }
 
 const { limit, variant = 'index', layoutMotion = false } = Astro.props;
-const { repos } = await getPinnedRepos();
+const { repos, status } = getPinnedRepos();
 const displayedRepos = typeof limit === 'number' ? repos.slice(0, Math.max(0, limit - 1)) : repos;
 const githubPreviewUrl = (name: string) => `https://opengraph.githubassets.com/1/KalebCole/${name}`;
 const repoOverrides = {
@@ -81,3 +81,11 @@ const Heading = variant === 'home' ? 'h3' : 'h2';
     </li>
   ))}
 </ul>
+{status !== 'ready' && (
+  <p class="project-fallback">
+    {status === 'stale'
+      ? 'This GitHub project list may be out of date.'
+      : 'The GitHub project list is unavailable right now.'}
+    {' '}<a href="https://github.com/KalebCole">See current projects on GitHub.</a>
+  </p>
+)}

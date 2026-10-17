@@ -979,6 +979,16 @@ html[data-mode="dark"] .prose {
   font-variation-settings: "CASL" 1, "CRSV" 1;
 }
 
+.project-fallback {
+  max-width: 58ch;
+  margin-top: 2rem;
+  color: var(--muted);
+}
+
+.project-fallback a {
+  color: var(--blue);
+}
+
 .not-found-page {
   min-height: 55vh;
   padding-block: clamp(4rem, 13vw, 10rem);
