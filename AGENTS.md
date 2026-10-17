@@ -18,7 +18,7 @@ Inspect the current implementation before proposing changes. These documents des
 - Do not publish drafts. Content with `draft: true` must stay out of public pages and feeds.
 - Treat WCAG 2.2 AA, responsive behavior, reduced motion, and lean delivery as release requirements.
 - Use the canonical public origin `https://kalebcole.com`.
-- Never commit credentials or tokens. `GITHUB_TOKEN` is optional locally and required in production for pinned repositories.
+- Never commit credentials or tokens. Site builds read `src/data/github.json`; only the GitHub snapshot refresh requires `GITHUB_TOKEN`.
 - There are no external contributors. Do not add community contribution workflows or policies unless Kaleb asks.
 
 ## Commands
@@ -31,7 +31,7 @@ GITHUB_TOKEN="" npm run certify
 npm run portrait
 ```
 
-A missing local `GITHUB_TOKEN` may leave pinned repositories empty. That warning is expected; build or certification failures are not.
+The Projects page and homepage use the committed GitHub snapshot even when `GITHUB_TOKEN` is empty. Build or certification failures are not expected.
 
 ## Portrait
 

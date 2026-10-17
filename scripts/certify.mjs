@@ -116,8 +116,8 @@ for (const path of trackedFiles) {
   assert.equal(source.includes(emDash), false, `${relative(root, path)} must not contain em dashes`);
 }
 
-const htmlFiles = walk(dist).filter((path) => extname(path) === '.html');
-const xmlFiles = walk(dist).filter((path) => extname(path) === '.xml');
+const htmlFiles = walk(dist).filter((path) => extname(path) === '.html' && !/^google[a-f0-9]+\.html$/.test(relative(dist, path)));
+const xmlFiles = ['rss.xml', 'recommends/rss.xml'].map((path) => join(dist, path));
 const emittedFiles = walk(dist);
 const routes = new Map(htmlFiles.map((path) => [routeForHtml(path), path]));
 const expectedRoutes = ['/', '/blog/', '/blog/github-copilot-canvases/', '/blog/hello-world/', '/recommends/', '/projects/', '/404'];
@@ -133,6 +133,17 @@ assert.ok(existsSync(resumePdf), 'production build must emit /resume.pdf');
 const resumeBytes = readFileSync(resumePdf);
 assert.equal(resumeBytes.subarray(0, 5).toString('ascii'), '%PDF-', '/resume.pdf must be a valid PDF');
 assert.ok(resumeBytes.byteLength > 10_000, '/resume.pdf must not be an empty placeholder');
+
+for (const path of walk(join(root, 'public')).filter((path) => /^google[a-f0-9]+\.html$/.test(relative(join(root, 'public'), path)))) {
+  assert.equal(text(join(dist, relative(join(root, 'public'), path))), text(path), 'Google verification output must match its source');
+}
+const sitemapIndex = text(join(dist, 'sitemap-index.xml'));
+const sitemap = text(join(dist, 'sitemap-0.xml'));
+assert.match(sitemapIndex, /<sitemapindex\b[\s\S]*?<loc>https:\/\/kalebcole\.com\/sitemap-0\.xml<\/loc>/, 'sitemap index must reference the canonical sitemap');
+assert.match(sitemap, /<urlset\b/, 'sitemap must contain a URL set');
+for (const route of expectedRoutes.filter((route) => route !== '/404')) {
+  assert.ok(sitemap.includes(`<loc>${site}${route}</loc>`), `sitemap must include ${route}`);
+}
 
 for (const [route, path] of routes) {
   const html = text(path);
@@ -408,7 +419,7 @@ const homepageWritingUrls = [
 ].filter(Boolean);
 assert.equal(Boolean(homepagePinnedWriting), Boolean(writingIndexPinned), 'homepage must use pinned writing whenever the Writing index does');
 if (homepagePinnedWriting) {
-  assert.match(homepagePinnedWriting, /class="note-mount"[^>]*aria-label="Why this now"/i, 'homepage pinned writing must include Why this now');
+  assert.match(homepagePinnedWriting, /class="note-mount"[^>]*aria-label="Overview"/i, 'homepage pinned writing must include its overview');
   assert.match(homepagePinnedWriting, /<h3[^>]*>\s*<a\b/i, 'homepage pinned writing title must follow its section heading at h3');
   assert.match(writingIndexPinned, /<h2[^>]*>\s*<a\b/i, 'Writing index pinned title must retain its default h2 level');
 }
