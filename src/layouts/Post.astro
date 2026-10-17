@@ -51,4 +51,14 @@ const fmt = (d: Date) =>
       </footer>
     </article>
   </main>
+  <dialog class="media-dialog" aria-label="Expanded article media">
+    <div class="media-dialog-content">
+      <button class="media-dialog-close" type="button" aria-label="Close expanded media">Close ×</button>
+      <div class="media-dialog-asset"></div>
+    </div>
+  </dialog>
 </Layout>
+
+<script>
+  import '../scripts/article-media.mjs';
+</script>
