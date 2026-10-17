@@ -935,38 +935,45 @@ html[data-mode="dark"] .prose {
 
 .media-dialog {
   position: fixed;
-  width: min(96vw, 100rem);
-  max-width: none;
-  max-height: 96vh;
-  max-height: 96dvh;
+  width: fit-content;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
   padding: 0;
-  overflow: auto;
-  border: 2px solid var(--ink);
+  overflow: visible;
+  border: 0;
   border-radius: 4px;
-  background: var(--ground);
+  background: transparent;
   color: var(--ink);
 }
 
 .media-dialog::backdrop {
-  background: color-mix(in oklch, var(--ink) 85%, transparent);
+  background: color-mix(in oklch, var(--ink) 35%, transparent);
+}
+
+html[data-mode="dark"] .media-dialog::backdrop {
+  background: color-mix(in oklch, var(--ground) 55%, transparent);
 }
 
 .media-dialog-content {
-  display: grid;
-  justify-items: center;
-  gap: 1rem;
-  padding: 1rem;
+  position: relative;
 }
 
 .media-dialog-close {
-  justify-self: end;
-  min-height: 44px;
-  padding: .4rem .75rem;
-  border: 1px solid var(--ink);
-  border-radius: 4px;
+  position: absolute;
+  z-index: 1;
+  top: .5rem;
+  right: .5rem;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
   background: var(--ground);
   color: var(--ink);
-  font: inherit;
+  box-shadow: 0 2px 8px color-mix(in oklch, var(--ink) 16%, transparent);
   cursor: pointer;
 }
 
@@ -974,7 +981,7 @@ html[data-mode="dark"] .prose {
   display: block;
   width: auto;
   max-width: 100%;
-  max-height: calc(96dvh - 7rem);
+  max-height: calc(100dvh - 2rem);
   height: auto;
   object-fit: contain;
 }
