@@ -1,6 +1,6 @@
 ---
 title: "Creating Muse: The Fastest-Growing AI Product Since ChatGPT | Alexandr Wang, Meta"
-url: "https://open.spotify.com/episode/5hjExzCXyI72n9uCaC8fyD?si=oSsrvt5HS6qEaS294N-bXQ&utm_source=copy-link"
+url: "https://open.spotify.com/episode/5hjExzCXyI72n9uCaC8fyD"
 date: 2026-10-13
 medium: listen
 author: "David Senra"
