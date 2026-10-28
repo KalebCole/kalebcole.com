@@ -4,6 +4,16 @@
   "type": "object",
   "additionalProperties": false,
   "required": ["title", "url", "date", "medium", "draft"],
+  "x-disallowedQueryParameters": {
+    "description": "Query parameter names, compared case-insensitively, that track the sharer or carry credentials. A URL using any of them must be resubmitted without them.",
+    "prefixes": ["utm_", "mc_", "hsa_", "pk_", "_hs"],
+    "names": [
+      "si", "igsh", "igshid", "fbclid", "gclid", "gclsrc", "dclid", "gbraid", "wbraid", "msclkid",
+      "yclid", "twclid", "ttclid", "li_fat_id", "mkt_tok", "s_cid", "ref", "ref_src", "ref_url",
+      "share", "feature", "pp", "token", "access_token", "id_token", "auth", "key", "api_key",
+      "apikey", "sig", "signature", "session", "sessionid", "sid", "password"
+    ]
+  },
   "properties": {
     "title": {
       "type": "string",
@@ -13,9 +23,9 @@
     "url": {
       "type": "string",
       "format": "uri",
-      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?$",
+      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?(?:\\?[^#]+)?$",
       "x-publicCanonicalUrl": true,
-      "description": "Canonical public HTTP(S) URL only: no credentials, query parameters, or fragments. Query-bearing URLs are rejected because their parameters are not safely classifiable as public."
+      "description": "Canonical public HTTP(S) URL only: no credentials or fragments. Query parameters are allowed when they identify public content, such as YouTube v, but tracking, share, and credential parameters listed in x-disallowedQueryParameters are rejected."
     },
     "date": {
       "type": "string",
@@ -31,9 +41,9 @@
     "image": {
       "type": "string",
       "format": "uri",
-      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?$",
+      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?(?:\\?[^#]+)?$",
       "x-publicCanonicalUrl": true,
-      "description": "Optional canonical public image URL with the same no-credentials, no-query, no-fragment policy as the destination URL."
+      "description": "Optional canonical public image URL with the same credential, fragment, and query parameter policy as the destination URL."
     },
     "tags": {
       "type": "array",

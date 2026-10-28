@@ -10,7 +10,7 @@ A candidate is eligible only when Kaleb deliberately selects it and supplies its
 
 `take` is optional and can contain only Kaleb's exact supplied first-person wording. The validator returns the same request object without generating, expanding, polishing, summarizing, inferring, replacing, or otherwise transforming a public take. Omit `take` when no exact wording is supplied.
 
-Destination URLs must be canonical public `http` or `https` URLs. The contract rejects credentials, query parameters, and fragments. Query parameters are rejected rather than allowlisted because their public safety cannot be determined from a generic capture request.
+Destination URLs must be canonical public `http` or `https` URLs. The contract rejects credentials and fragments. Query parameters are allowed because many public links need them, such as YouTube `watch?v=`, but parameters that track the sharer or carry credentials (`utm_*`, Spotify `si`, `fbclid`, `ref`, `token`, and the rest of `x-disallowedQueryParameters` in the schema) are rejected. Resubmit such a URL without those parameters.
 
 ## Files
 

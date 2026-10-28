@@ -29,17 +29,35 @@ function isValidUri(value) {
   }
 }
 
+const disallowedQueryParameters = schema["x-disallowedQueryParameters"] ?? { prefixes: [], names: [] };
+const disallowedQueryNames = new Set(disallowedQueryParameters.names.map((name) => name.toLowerCase()));
+const disallowedQueryPrefixes = disallowedQueryParameters.prefixes.map((prefix) => prefix.toLowerCase());
+
+export function isDisallowedQueryParameter(name) {
+  const normalized = name.toLowerCase();
+  return disallowedQueryNames.has(normalized)
+    || disallowedQueryPrefixes.some((prefix) => normalized.startsWith(prefix));
+}
+
 function isPublicCanonicalUrl(value) {
   try {
     const parsed = new URL(value);
     return (parsed.protocol === "http:" || parsed.protocol === "https:")
       && parsed.username === ""
       && parsed.password === ""
-      && parsed.search === ""
       && parsed.hash === ""
       && parsed.href === value;
   } catch {
     return false;
+  }
+}
+
+function disallowedQueryParametersIn(value) {
+  try {
+    const parsed = new URL(value);
+    return [...new Set([...parsed.searchParams.keys()].filter(isDisallowedQueryParameter))];
+  } catch {
+    return [];
   }
 }
 
@@ -118,7 +136,14 @@ function validateValue(value, valueSchema, path, errors) {
     }
 
     if (valueSchema["x-publicCanonicalUrl"] && !isPublicCanonicalUrl(value)) {
-      addError(errors, path, "must be a canonical public HTTP(S) URL without credentials, query parameters, or fragments");
+      addError(errors, path, "must be a canonical public HTTP(S) URL without credentials or fragments");
+    }
+
+    if (valueSchema["x-publicCanonicalUrl"]) {
+      const blocked = disallowedQueryParametersIn(value);
+      if (blocked.length > 0) {
+        addError(errors, path, `must not include tracking, share, or credential query parameters: ${blocked.join(", ")}`);
+      }
     }
 
     if (valueSchema.format === "date" && !isValidCalendarDate(value)) {

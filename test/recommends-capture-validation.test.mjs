@@ -54,10 +54,29 @@ test("accepts the public dry-run fixture", () => {
   assert.match(output, /recommends capture request is valid/);
 });
 
-test("rejects public URLs with credentials or query parameters", () => {
+test("rejects public URLs with credentials, fragments, or non-canonical form", () => {
   validationError(validRequest({ url: "https://user:password@example.com/articles/fictional" }));
-  validationError(validRequest({ url: "https://example.com/articles/fictional?ref=private" }));
   validationError(validRequest({ url: "https://EXAMPLE.com/articles/fictional" }));
+  validationError(validRequest({ url: "https://example.com/articles/fictional#section" }));
+  validationError(validRequest({ url: "https://example.com/articles/fictional?" }));
+});
+
+test("accepts content-identifying query parameters", () => {
+  validate(validRequest({ url: "https://www.youtube.com/watch?v=IroPQ150F6c", medium: "watch" }));
+  validate(validRequest({ url: "https://www.youtube.com/watch?v=IroPQ150F6c&t=90", medium: "watch" }));
+  validate(validRequest({ url: "https://open.spotify.com/episode/5hjExzCXyI72n9uCaC8fyD", medium: "listen" }));
+  validate(validRequest({ image: "https://example.com/image.png?w=1200" }));
+});
+
+test("rejects tracking, share, and credential query parameters", () => {
+  validationError(validRequest({ url: "https://example.com/articles/fictional?ref=private" }));
+  validationError(validRequest({ url: "https://example.com/articles/fictional?utm_source=newsletter" }));
+  validationError(validRequest({ url: "https://example.com/articles/fictional?UTM_Campaign=launch" }));
+  validationError(validRequest({ url: "https://www.youtube.com/watch?v=IroPQ150F6c&si=abc123", medium: "watch" }));
+  validationError(validRequest({
+    url: "https://open.spotify.com/episode/5hjExzCXyI72n9uCaC8fyD?si=oSsrvt5HS6qEaS294N-bXQ&utm_source=copy-link",
+    medium: "listen",
+  }));
   validationError(validRequest({ image: "https://example.com/image.png?token=private" }));
 });
 
