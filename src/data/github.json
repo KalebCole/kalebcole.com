@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "verifiedAt": "2026-10-17T01:15:33.851Z",
+  "pinnedRepositories": [
+    {
+      "name": "partiful-cli",
+      "description": "Agentic CLI for creating Partiful events",
+      "url": "https://github.com/KalebCole/partiful-cli"
+    },
+    {
+      "name": "uprint-cli",
+      "description": "Agentic CLI for Microsoft Employees to print hassle-free at the Redmond campus",
+      "url": "https://github.com/KalebCole/uprint-cli"
+    }
+  ]
+}

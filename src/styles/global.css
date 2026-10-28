@@ -402,9 +402,104 @@ html[data-mode="dark"] [data-icon-dark] {
 
 .home-actions {
   display: flex;
+  flex-direction: column;
   grid-area: actions;
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  gap: .75rem;
+}
+
+.home-primary-actions {
+  display: flex;
   flex-wrap: wrap;
   gap: .75rem;
+  max-width: 100%;
+}
+
+.home-elsewhere {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .65rem;
+  max-width: 100%;
+}
+
+/* MacBook Chrome at a 995px inner viewport leaves only 514.65px for this
+ * 522px cluster. Keep the CTAs together with centered bubbles until 1024px. */
+@media (min-width: 1024px) {
+  .home-actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .home-primary-actions {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .home-elsewhere {
+    flex: 0 0 auto;
+  }
+}
+
+.home-elsewhere-bubble {
+  position: relative;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  background: var(--mount);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 3px 4px 0 var(--coral);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 160ms var(--ease-settle), box-shadow 160ms var(--ease-settle), background-color 160ms var(--ease-settle), color 160ms var(--ease-settle);
+}
+
+.home-elsewhere-bubble::after {
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in oklch, var(--ink) 8%, var(--ground));
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+}
+
+.home-elsewhere-bubble svg {
+  position: relative;
+  z-index: 1;
+  width: 19px;
+  height: 19px;
+  color: var(--mount-ink);
+  fill: currentColor;
+}
+
+.home-elsewhere-bubble .home-elsewhere-mail {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+@media (hover: hover) {
+  .home-elsewhere-bubble:hover {
+    background: var(--soft-blue);
+    color: var(--blue);
+    transform: translate(-1px, -2px);
+  }
+
+  .home-elsewhere-bubble:hover svg {
+    color: var(--blue);
+  }
+}
+
+.home-elsewhere-bubble:active {
+  transform: translate(0, 0);
 }
 
 .home-action {
@@ -499,13 +594,11 @@ html[data-mode="dark"] [data-icon-dark] {
   justify-self: start;
 }
 
-.writing-list,
-.home-recommendation-list {
+.writing-list {
   border-top: 1px solid var(--rule);
 }
 
-.writing-row,
-.home-recommendation-row {
+.writing-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: .75rem 1.5rem;
@@ -537,49 +630,6 @@ html[data-mode="dark"] [data-icon-dark] {
   line-height: 1.5;
 }
 
-.home-feed-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .25rem .6rem;
-  margin-top: .65rem;
-  color: var(--muted);
-  font-family: var(--font-meta);
-  font-size: .72rem;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.5;
-}
-
-.home-feed-meta > :not(:first-child)::before {
-  margin-right: .6rem;
-  content: "·";
-}
-
-.home-recommendation-title {
-  font-size: clamp(1.1rem, 2vw, 1.45rem);
-  line-height: 1.15;
-}
-
-.home-recommendation-title a {
-  color: var(--ink);
-}
-
-.home-recommendation-take {
-  max-width: 58ch;
-  margin-top: .4rem;
-  color: var(--muted);
-  font-family: var(--font-note);
-  font-variation-settings: "CASL" 1, "CRSV" 1;
-  line-height: 1.5;
-}
-
-.home-recommendation-take span {
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.home-recommendation-take span::after {
-  content: ": ";
-}
 
 .all-projects-link,
 .all-writing-link,
@@ -620,14 +670,19 @@ html[data-mode="dark"] [data-icon-dark] {
   border-bottom: 1px solid var(--rule);
 }
 
-.pinned-copy h2 {
+/* The homepage section already provides the structural divider. */
+.home-page .recent-writing .pinned-writing {
+  border-top: 0;
+}
+
+.pinned-copy :is(h2, h3) {
   max-width: 14ch;
   margin-top: 1rem;
   font-size: clamp(2rem, 6vw, 4rem);
   line-height: .98;
 }
 
-.pinned-copy h2 a {
+.pinned-copy :is(h2, h3) a {
   color: var(--ink);
 }
 
@@ -806,9 +861,13 @@ html[data-mode="dark"] .prose {
 }
 
 .prose p:has(> img),
+.prose p:has(> .media-expand-image),
 .prose p:has(> video),
+.prose p:has(> .media-expand-video-wrapper),
 .prose > video,
+.prose > .media-expand-video-wrapper,
 .prose > picture,
+.prose > .media-expand-image,
 .prose > figure {
   width: min(56rem, 100cqw);
   max-width: none;
@@ -818,6 +877,113 @@ html[data-mode="dark"] .prose {
 
 .prose picture > img {
   width: 100%;
+}
+
+.media-expand-image {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.media-expand-image picture,
+.media-expand-image img {
+  display: block;
+}
+
+.prose > .media-expand-image {
+  width: min(56rem, 100cqw);
+}
+
+.media-expand-video-wrapper {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.media-expand-video-wrapper video {
+  display: block;
+}
+
+.media-expand-video-button {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 44px;
+  padding: 1rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font: inherit;
+  cursor: zoom-in;
+}
+
+.media-expand-video-button::after {
+  content: 'Expand video';
+  display: inline-block;
+  padding: .4rem .8rem;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--ground);
+  color: var(--ink);
+  font-size: .85rem;
+}
+
+.media-dialog {
+  position: fixed;
+  width: fit-content;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+}
+
+.media-dialog::backdrop {
+  background: color-mix(in oklch, var(--ink) 35%, transparent);
+}
+
+html[data-mode="dark"] .media-dialog::backdrop {
+  background: color-mix(in oklch, var(--ground) 55%, transparent);
+}
+
+.media-dialog-content {
+  position: relative;
+}
+
+.media-dialog-close {
+  position: absolute;
+  z-index: 1;
+  top: .5rem;
+  right: .5rem;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: var(--ground);
+  color: var(--ink);
+  box-shadow: 0 2px 8px color-mix(in oklch, var(--ink) 16%, transparent);
+  cursor: pointer;
+}
+
+.media-dialog-asset :where(img, video) {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100dvh - 2rem);
+  height: auto;
+  object-fit: contain;
 }
 
 .prose figure {
@@ -922,6 +1088,16 @@ html[data-mode="dark"] .prose {
   margin-top: .75rem;
   font-family: var(--font-note);
   font-variation-settings: "CASL" 1, "CRSV" 1;
+}
+
+.project-fallback {
+  max-width: 58ch;
+  margin-top: 2rem;
+  color: var(--muted);
+}
+
+.projects-page > .all-projects-link {
+  margin-top: 2rem;
 }
 
 .not-found-page {
@@ -1305,6 +1481,7 @@ html[data-mode="dark"] .prose {
 
   .home-actions {
     justify-content: center;
+    justify-self: center;
   }
 
   .portrait-mount {
@@ -1316,9 +1493,13 @@ html[data-mode="dark"] .prose {
 @media (max-width: 760px) {
   .prose pre,
   .prose p:has(> img),
+  .prose p:has(> .media-expand-image),
   .prose p:has(> video),
+  .prose p:has(> .media-expand-video-wrapper),
   .prose > video,
+  .prose > .media-expand-video-wrapper,
   .prose > picture,
+  .prose > .media-expand-image,
   .prose > figure {
     width: 100%;
     margin-inline: 0;
@@ -1477,17 +1658,17 @@ html[data-mode="dark"] .prose {
   }
 
   .writing-row,
-  .home-recommendation-row {
+  .home-page .rec {
     transition: color 240ms var(--ease-settle), transform 240ms var(--ease-settle);
   }
 
   .writing-row:has(a:hover),
-  .home-recommendation-row:has(a:hover) {
+  .home-page .rec:has(.rec-title a:hover) {
     transform: translateX(.55rem);
   }
 
   .writing-row:has(a:hover) h3 a,
-  .home-recommendation-row:has(a:hover) h3 a {
+  .home-page .rec:has(.rec-title a:hover) .rec-title a {
     color: var(--blue);
   }
 
@@ -1511,12 +1692,12 @@ html[data-mode="dark"] .prose {
 }
 
 .home-page .writing-row:focus-within,
-.home-page .home-recommendation-row:focus-within {
+.home-page .rec:focus-within {
   transform: translateX(.55rem);
 }
 
 .home-page .writing-row:focus-within h3 a,
-.home-page .home-recommendation-row:focus-within h3 a {
+.home-page .rec:focus-within .rec-title a {
   color: var(--blue);
 }
 
@@ -1592,7 +1773,7 @@ html[data-mode="dark"] .prose {
 
   .portrait-mount,
   .writing-row,
-  .home-recommendation-row,
+  .home-page .rec,
   .rec-visual,
   .project-visual,
   .project-visual img {
@@ -1619,6 +1800,29 @@ html[data-mode="dark"] .prose {
   .recommendations-filter button[aria-pressed="true"] {
     border: 3px double ButtonText;
     color: ButtonText;
+  }
+
+  .home-elsewhere-bubble {
+    forced-color-adjust: auto;
+    border-color: ButtonText;
+    box-shadow: none;
+    color: ButtonText;
+  }
+
+  .home-elsewhere-bubble svg {
+    color: ButtonText;
+  }
+
+  .home-elsewhere-bubble:hover,
+  .home-elsewhere-bubble:active {
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+
+  .home-elsewhere-bubble:hover svg,
+  .home-elsewhere-bubble:active svg {
+    color: HighlightText;
   }
 }
 

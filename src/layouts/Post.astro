@@ -51,4 +51,18 @@ const fmt = (d: Date) =>
       </footer>
     </article>
   </main>
+  <dialog class="media-dialog" aria-label="Expanded article media">
+    <div class="media-dialog-content">
+      <button class="media-dialog-close" type="button" aria-label="Close expanded media">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+          <path d="M5 5l14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+      <div class="media-dialog-asset"></div>
+    </div>
+  </dialog>
 </Layout>
+
+<script>
+  import '../scripts/article-media.mjs';
+</script>

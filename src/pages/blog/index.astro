@@ -1,5 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
+import PinnedWriting from '../../components/PinnedWriting.astro';
+import WritingRow from '../../components/WritingRow.astro';
 import Layout from '../../layouts/Layout.astro';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
@@ -22,21 +24,7 @@ const years = [...groups.keys()];
     </header>
 
     {pinned ? (
-      <article class="pinned-writing">
-        <div class="pinned-copy">
-          <p class="meta-line">
-            <time datetime={pinned.data.date.toISOString()}>
-              {pinned.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
-            </time>
-            {pinned.data.tags.length > 0 && <span>{pinned.data.tags.join(' · ')}</span>}
-          </p>
-          <h2><a href={`/blog/${pinned.id}`}>{pinned.data.title}</a></h2>
-        </div>
-        <aside class="note-mount" aria-label="Why this now">
-          <strong>Why this now</strong>
-          <p>{pinned.data.description}</p>
-        </aside>
-      </article>
+      <PinnedWriting post={pinned} />
     ) : (
       <p class="empty-state">Nothing here yet.</p>
     )}
@@ -47,17 +35,7 @@ const years = [...groups.keys()];
           <section aria-labelledby={`year-${year}`}>
             <h2 id={`year-${year}`} class="year-heading">{year}</h2>
             <div class="writing-list">
-              {groups.get(year)!.map((post) => (
-                <article class="writing-row">
-                  <div>
-                    <h3><a href={`/blog/${post.id}`}>{post.data.title}</a></h3>
-                    <p>{post.data.description}</p>
-                  </div>
-                  <time datetime={post.data.date.toISOString()}>
-                    {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}
-                  </time>
-                </article>
-              ))}
+              {groups.get(year)!.map((post) => <WritingRow post={post} />)}
             </div>
           </section>
         ))}

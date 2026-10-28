@@ -152,8 +152,8 @@ step.
   `clamp(2rem, 7vw, 7rem)` gap, and 64px vertical padding.
 - Recent projects, recent writing, and recent recommendations use the same
   stacked section pattern: a full-width heading above the content row, with a
-  2px top rule. Recent projects is capped at two items and ends with a link to
-  the full Projects index.
+  2px top rule. Recent projects is capped at two items and ends with an `All
+  projects →` link to the full Projects index.
 - Reading measure: 57–70 characters; target 65–70 characters for articles.
 - Article rows: 18px vertical padding, one-pixel rules, and no card container.
 - Detailed media breakout: centered on the prose column and capped near 56rem.
@@ -393,16 +393,20 @@ zero missing icon requests.
 - On phones, place the portrait after the greeting and before the rest of the
   introduction. Center the complete hero and use a 30px vertical rhythm, with
   the portrait shrinking only when required to prevent narrow-screen overflow.
-- Move directly into the three newest published pieces using the approved split
-  composition. End with one `All writing →` link.
-- Follow with a compact, capped recent-recommendations sibling using the same
-  split composition, rules, row rhythm, and responsive collapse. Omit imagery
-  consistently, retain medium, title, source or author, UTC date, and optional
-  My thoughts, then end with `All recommendations →`.
+- Follow the introduction with up to two recent projects and an `All projects
+  →` link to the full Projects index. Then move into up to three newest
+  published pieces using the Writing
+  index presentation: the newest receives pinned-writing treatment with its
+  `Why this now` note, and later entries use the ruled archive row. Do not add
+  year headings. End with one `All writing →` link to the full Writing index.
+- Follow with up to three newest recommendations using the same `RecommendCard`
+  presentation as the full Recommends index, including source artwork when
+  supplied, medium, source, UTC date, author, My thoughts, and the external-link
+  cue. End with `All recommendations →` linking to the full Recommends index.
 - Omit the recommendations sibling when no published recommendations exist.
-- Show up to two projects before Recent writing and end that preview with a
-  link to the full Projects page. Do not add a credential strip, metrics, or
-  conversion-focused copy.
+- Filters, year archive grouping, empty states, and RSS discovery belong only
+  on the full indexes. Do not add a credential strip, metrics, or
+  conversion-focused copy to the homepage.
 
 Homepage entrance choreography, always from an already-visible default:
 
@@ -416,19 +420,54 @@ Homepage entrance choreography, always from an already-visible default:
 Use `cubic-bezier(.16, 1, .3, 1)`. The portrait straightens, lifts 6px, and
 extends its shadow over 300ms.
 
-When a live viewport crosses the 850px homepage breakpoint, settle each hero
-item from its previous screen position into the new composition over 520ms
-with the standard easing. Keep moving items fully opaque. Do not run this motion
-on initial page load. Keep the instant layout change when reduced motion is
-requested or JavaScript is unavailable.
+#### Homepage responsive layout settle
+
+Homepage layout settle uses **viewport anchoring** to preserve the reader’s
+current on-screen placement across a live responsive reflow. It is not an
+entrance or opacity effect. Before an applicable breakpoint change, choose the
+visible homepage layout target nearest the viewport center as the reading
+anchor. After reflow, apply one immediate scroll compensation for that target’s
+measured vertical displacement, then settle the surrounding moved targets. The
+chosen anchor must remain at its pre-reflow viewport position rather than
+visibly drifting away from the reader.
+
+The reading anchor may be any current homepage layout target, including a
+noncrossing Writing or Recommendation target, while animation targets remain
+limited to the group or groups that crossed. At 850px, animation targets are
+hero children. At 760px, Projects targets are only the
+project rows that actually change grid placement; pinned Writing targets are its
+copy and `Why this now` note; and Recommendation visual/body targets settle
+again as their 9rem visual column takes effect. At 540px, Writing targets are
+each ordinary row's copy and date, while Recommendation targets are specifically
+its `.rec-visual` and `.rec-body` elements as the card changes from a stacked
+layout to two columns. Do not animate headings, links, or a generic section
+wrapper merely because nearby content moves. Use the existing 520ms
+`cubic-bezier(.16, 1, .3, 1)` settle with every keyframe fully opaque. Do not
+run it on initial load or for a resize that stays on the same side of its
+relevant breakpoint. Rapid crossings cancel stale work, remeasure the newest
+layout, and never apply queued scroll deltas.
+
+Do not request smooth scrolling or override browser scroll anchoring. At the
+top of the document, do not apply manual scroll compensation: retain scroll
+position zero and let the hero settle in place. If no suitable target is
+visible, scroll cannot move at another document edge or on a non-scrollable
+page, JavaScript fails, or animation is unsupported, retain the immediate
+correct layout and the existing FLIP behavior. Reduced motion may apply the
+same immediate reading-position compensation away from the document top but
+does not animate.
+
+Publication Story Beats remain separate, one-shot below-fold entrance motion.
+They do not replay after a layout resize or fight a live layout settle. This
+contract preserves content, source order, keyboard behavior, and reading
+position.
 
 #### Publication Story Beats
 
 The Homepage uses one-shot Publication Story Beats after the hero, in source
 order: Recent projects heading, each project visual and copy block, All
-projects link, Recent writing heading, each writing row, All writing link,
-Recent recommendations heading, each recommendation row, then All
-recommendations link. The hero does not receive Publication Story Beats.
+projects link, Recent writing heading, pinned writing, each writing row, All
+writing link, Recent recommendations heading, each recommendation row, then
+All recommendations link. The hero does not receive Publication Story Beats.
 
 Projects uses Project Story Beats in source order: page heading, then each
 project visual and copy block.

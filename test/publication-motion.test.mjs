@@ -5,6 +5,12 @@ import {
   initProjectPointerMotion,
   buildPublicationKeyframes,
 } from '../src/scripts/publication-motion.mjs';
+import {
+  HOME_DESKTOP_MEDIA,
+  HOME_PUBLICATION_MEDIA,
+  initHomeBreakpointMotion,
+  isHomeLayoutSettling,
+} from '../src/scripts/home-breakpoint-motion.mjs';
 
 function motionElement(top) {
   const calls = [];
@@ -63,6 +69,67 @@ function motionEnvironment(elements, { narrow = false, reduced = false } = {}) {
     mediaQueries,
     observers,
     root: { querySelectorAll: () => elements },
+  };
+}
+
+function wrapperChildEnvironment() {
+  const observers = [];
+  const publicationMedia = {
+    matches: false,
+    listeners: [],
+    addEventListener(type, listener) { if (type === 'change') this.listeners.push(listener); },
+  };
+  const desktopMedia = { matches: false, addEventListener() {} };
+  const reducedMotion = { matches: false, addEventListener() {} };
+  let finishSettle;
+  const wrapper = {
+    rect: { left: 40, top: 700 },
+    getBoundingClientRect() { return this.rect; },
+    animate() {
+      return { cancel() {}, finished: new Promise((resolve) => { finishSettle = resolve; }) };
+    },
+  };
+  const beat = motionElement(700);
+  beat.parentElement = wrapper;
+  wrapper.contains = (element) => element === beat;
+  const hero = { children: [], getAnimations() { return []; } };
+  const root = {
+    querySelector(selector) { return selector === '.home-hero' ? hero : null; },
+    querySelectorAll(selector) {
+      if (selector === '[data-home-layout-project]') return [wrapper];
+      if (selector === '[data-motion-beat]') return [beat];
+      return [];
+    },
+  };
+  const browserWindow = {
+    innerHeight: 600,
+    matchMedia(query) {
+      if (query === HOME_DESKTOP_MEDIA) return desktopMedia;
+      if (query === HOME_PUBLICATION_MEDIA) return publicationMedia;
+      return reducedMotion;
+    },
+    requestAnimationFrame(callback) { callback(); return 1; },
+    cancelAnimationFrame() {},
+    addEventListener() {},
+    IntersectionObserver: class {
+      constructor(callback) { this.callback = callback; this.observed = []; observers.push(this); }
+      observe(element) { this.observed.push(element); }
+      unobserve() {}
+      disconnect() {}
+    },
+  };
+  return {
+    beat,
+    browserWindow,
+    finishSettle() { finishSettle(); },
+    observers,
+    root,
+    wrapper,
+    startSettle() {
+      wrapper.rect = { left: 200, top: 700 };
+      publicationMedia.matches = true;
+      for (const listener of publicationMedia.listeners) listener();
+    },
   };
 }
 
@@ -208,6 +275,38 @@ test('leaves a target observed and retryable when its animation cannot start', (
 
   assert.equal(attempts, 2);
   assert.deepEqual(observers[0].unobserved, [target]);
+});
+
+test('defers a nested Story Beat until its active layout-settle wrapper finishes', async () => {
+  const environment = wrapperChildEnvironment();
+  initHomeBreakpointMotion(environment.root, environment.browserWindow);
+  await Promise.resolve();
+  await Promise.resolve();
+  initPublicationMotion(environment.root, environment.browserWindow);
+  environment.startSettle();
+  assert.equal(isHomeLayoutSettling(environment.wrapper), true);
+
+  environment.observers[0].callback([{ target: environment.beat, isIntersecting: true }]);
+  assert.deepEqual(environment.beat.calls, []);
+
+  environment.finishSettle();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(environment.beat.calls.length, 1);
+});
+
+test('does not retain a deferred Story Beat after publication motion cleanup', async () => {
+  const environment = wrapperChildEnvironment();
+  initHomeBreakpointMotion(environment.root, environment.browserWindow);
+  await Promise.resolve();
+  await Promise.resolve();
+  const cleanup = initPublicationMotion(environment.root, environment.browserWindow);
+  environment.startSettle();
+  environment.observers[0].callback([{ target: environment.beat, isIntersecting: true }]);
+  cleanup();
+
+  environment.finishSettle();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(environment.beat.calls, []);
 });
 
 test('builds alternating desktop and vertical narrow-screen entrance keyframes', () => {
