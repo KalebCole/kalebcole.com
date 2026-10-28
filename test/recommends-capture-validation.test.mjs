@@ -67,6 +67,7 @@ test("accepts content-identifying query parameters", () => {
   validate(validRequest({ url: "https://open.spotify.com/episode/5hjExzCXyI72n9uCaC8fyD", medium: "listen" }));
   validate(validRequest({ image: "https://example.com/image.png?w=1200" }));
   validate(validRequest({ url: "https://example.com/articles/fictional?key=abc&ref=v1.2&session=keynote-2026&share=1" }));
+  validate(validRequest({ url: "https://example.com/sale?expires=2026-12-01" }));
 });
 
 test("rejects tracking, share, and credential query parameters", () => {

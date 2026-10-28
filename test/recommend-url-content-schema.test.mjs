@@ -25,6 +25,14 @@ const dirtyCases = {
   "bom.md": { place: "bom.md", expect: /parameters: si\b/ },
   "userinfo.md": { place: "userinfo.md", expect: /userinfo/ },
   "draft-dirty-image.md": { place: "draft-dirty-image.md", expect: /image: .*token/ },
+  "tab-in-url.md": { place: "tab-in-url.md", expect: /control characters; .*parameters: si\. Use https:\/\/example\.com\/t/ },
+  "newline-in-url.md": { place: "newline-in-url.md", expect: /control characters; .*parameters: si\. Use https:\/\/example\.com\/t/ },
+  "cr-in-url.md": { place: "cr-in-url.md", expect: /control characters; .*parameters: si\. Use https:\/\/example\.com\/t/ },
+  "leading-space.md": { place: "leading-space.md", expect: /control characters\. Use https:\/\/example\.com\/a/ },
+  "trailing-space.md": { place: "trailing-space.md", expect: /control characters\. Use https:\/\/example\.com\/a/ },
+  "javascript-url.md": { place: "javascript-url.md", expect: /must use http or https, not javascript:/ },
+  "data-image.md": { place: "data-image.md", expect: /image: must use http or https, not data:/ },
+  "secret-token.md": { place: "secret-token.md", expect: /parameters: token\. Use https:\/\/example\.com\/a\?x=1/ },
 };
 
 function frontmatterOf(directory, file) {
@@ -64,12 +72,39 @@ test("schema refine names the cleaned URL and the offending parameters", () => {
   assert.equal(result.success, false);
   assert.match(
     result.error.issues[0].message,
-    /tracking, share, or credential query parameters: si, utm_source\. Use https:\/\/open\.spotify\.com\/episode\/x /,
+    /tracking, share, or credential query parameters: si, utm_source\. Use https:\/\/open\.spotify\.com\/episode\/x$/,
   );
   assert.deepEqual(recommendUrlProblems("https://example.com/a?"), [
     "must not end with an empty query string. Use https://example.com/a",
   ]);
   assert.deepEqual(recommendUrlProblems("https://example.com/a#section"), []);
+  assert.deepEqual(recommendUrlProblems("https://example.com/sale?expires=2026-12-01"), []);
+});
+
+test("schema refine rejects non-canonical, control-character, and non-http URLs", () => {
+  assert.deepEqual(recommendUrlProblems("https://EXAMPLE.com/a"), ["must be in canonical URL form. Use https://example.com/a"]);
+  assert.deepEqual(recommendUrlProblems("https://example.com/t?s\ti=LEAK"), [
+    "must not contain spaces, tabs, line breaks, or other control characters; must not include tracking, share, or credential query parameters: si. Use https://example.com/t",
+  ]);
+  assert.deepEqual(recommendUrlProblems("https://example.com/a\u0000"), [
+    "must not contain spaces, tabs, line breaks, or other control characters. Use https://example.com/a",
+  ]);
+  assert.deepEqual(recommendUrlProblems("javascript:alert(1)"), ["must use http or https, not javascript:"]);
+  assert.deepEqual(recommendUrlProblems("data:image/png;base64,AAAA"), ["must use http or https, not data:"]);
+  assert.deepEqual(recommendUrlProblems("not a url"), ["must be an absolute http or https URL"]);
+});
+
+test("schema refine errors never echo secret values", () => {
+  for (const url of [
+    "https://example.com/a?token=SECRET&x=1",
+    "https://example.com/a?X-Amz-Signature=SECRET&X-Amz-Credential=SECRET",
+    "https://user:SECRET@example.com/a?password=SECRET",
+    "https://example.com/a?s\tig=SECRET",
+  ]) {
+    const result = recommendUrl.safeParse(url);
+    assert.equal(result.success, false, url);
+    assert.doesNotMatch(JSON.stringify(result.error.issues), /SECRET/, url);
+  }
 });
 
 function buildWith(entries) {
@@ -107,5 +142,6 @@ for (const [file, { place, expect }] of Object.entries(dirtyCases)) {
     assert.notEqual(status, 0, output);
     assert.match(output, /InvalidContentEntryDataError/);
     assert.match(output, expect);
+    assert.doesNotMatch(output, /SECRET/);
   });
 }

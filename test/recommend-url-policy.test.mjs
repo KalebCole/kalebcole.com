@@ -63,11 +63,11 @@ test("drops an empty query string", () => {
 
 test("matches decoded names exactly or by listed prefix, so look-alikes are kept", () => {
   // Kept: not an exact listed name and no listed prefix.
-  for (const name of ["utmost", "utm", "sig2", "signal", "sis", "keys", "reference", "v", "t", "key", "ref", "session", "share", "_gla", "x-amz", "xamz-date"]) {
+  for (const name of ["utmost", "utm", "sig2", "signal", "sis", "keys", "reference", "v", "t", "key", "ref", "session", "share", "expires", "Expires", "_gla", "x-amz", "xamz-date"]) {
     assert.equal(isDisallowedQueryParameter(name), false, name);
   }
   // Rejected: exact names, listed prefixes, any case, and percent-encoded spellings.
-  for (const name of ["si", "SI", "sig", "_gl", "_ga", "srsltid", "X-Amz-Signature", "x-amz-credential", "X-Amz-Anything", "AWSAccessKeyId", "Signature", "Expires", "utm_", "utm_anything", "_hsenc", "mc_cid", "utm%5Fsource", "%73i", "%75tm_x%ZZ"]) {
+  for (const name of ["si", "SI", "sig", "_gl", "_ga", "srsltid", "X-Amz-Signature", "x-amz-credential", "X-Amz-Anything", "AWSAccessKeyId", "Signature", "utm_", "utm_anything", "_hsenc", "mc_cid", "utm%5Fsource", "%73i", "%75tm_x%ZZ"]) {
     assert.equal(isDisallowedQueryParameter(name), true, name);
   }
   assert.equal(normalize("https://example.com/a?utmost=1&sig2=2&utm%5Fsource=3"), "https://example.com/a?utmost=1&sig2=2");
@@ -78,6 +78,7 @@ test("keeps content-bearing key, ref, session, and share and strips analytics an
     normalize("https://example.com/a?key=abc&ref=v1.2&session=keynote-2026&share=1"),
     "https://example.com/a?key=abc&ref=v1.2&session=keynote-2026&share=1",
   );
+  assert.equal(normalize("https://example.com/sale?expires=2026-12-01"), "https://example.com/sale?expires=2026-12-01");
   assert.equal(
     normalize("https://example.com/a?_gl=1*abc&p=2&_ga=GA1.2&srsltid=AfmB&X-Amz-Signature=deadbeef"),
     "https://example.com/a?p=2",
@@ -88,7 +89,7 @@ test("keeps content-bearing key, ref, session, and share and strips analytics an
   );
   assert.equal(
     normalize("https://bucket.s3.amazonaws.com/f.png?AWSAccessKeyId=a&Expires=1&Signature=s&v=2"),
-    "https://bucket.s3.amazonaws.com/f.png?v=2",
+    "https://bucket.s3.amazonaws.com/f.png?Expires=1&v=2",
   );
 });
 

@@ -12,7 +12,7 @@ A candidate is eligible only when Kaleb deliberately selects it and supplies its
 
 Destination URLs must be canonical public `http` or `https` URLs. The contract rejects credentials and fragments. Query parameters are allowed because many public links need them, such as YouTube `watch?v=`, but parameters that track the sharer or carry credentials (`utm_*`, Spotify `si`, `fbclid`, `srsltid`, `X-Amz-*`, `token`, and the rest of `x-disallowedQueryParameters` in the schema) are rejected. Resubmit such a URL without those parameters; `node scripts/clean-url.mjs <url>` prints the cleaned form.
 
-Published recommends in `src/content/recommends/` follow the same parameter rule, enforced by the collection schema during `npm run build`, and also reject credentials (`user:password@`). Fragments are allowed in published recommends because browsers never send them to the destination server; only capture requests reject them.
+Published recommends in `src/content/recommends/` follow the same parameter rule, enforced by the collection schema during `npm run build`, and must also be `http` or `https`, already in canonical form (`new URL(url).href === url`), free of spaces and control characters, and free of credentials (`user:password@`). Build errors name only the offending parameters and a cleaned URL, never the original query values. Fragments are allowed in published recommends because browsers never send them to the destination server; only capture requests reject them.
 
 ## Files
 

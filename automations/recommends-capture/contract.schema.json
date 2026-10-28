@@ -12,7 +12,7 @@
       "yclid", "twclid", "ttclid", "li_fat_id", "mkt_tok", "s_cid", "ref_src", "ref_url",
       "_gl", "_ga", "srsltid", "feature", "pp", "token", "access_token", "id_token", "auth",
       "api_key", "apikey", "sig", "signature", "sessionid", "sid", "password",
-      "awsaccesskeyid", "expires"
+      "awsaccesskeyid"
     ]
   },
   "properties": {
