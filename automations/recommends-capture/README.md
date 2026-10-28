@@ -10,7 +10,9 @@ A candidate is eligible only when Kaleb deliberately selects it and supplies its
 
 `take` is optional and can contain only Kaleb's exact supplied first-person wording. The validator returns the same request object without generating, expanding, polishing, summarizing, inferring, replacing, or otherwise transforming a public take. Omit `take` when no exact wording is supplied.
 
-Destination URLs must be canonical public `http` or `https` URLs. The contract rejects credentials and fragments. Query parameters are allowed because many public links need them, such as YouTube `watch?v=`, but parameters that track the sharer or carry credentials (`utm_*`, Spotify `si`, `fbclid`, `ref`, `token`, and the rest of `x-disallowedQueryParameters` in the schema) are rejected. Resubmit such a URL without those parameters.
+Destination URLs must be canonical public `http` or `https` URLs. The contract rejects credentials and fragments. Query parameters are allowed because many public links need them, such as YouTube `watch?v=`, but parameters that track the sharer or carry credentials (`utm_*`, Spotify `si`, `fbclid`, `srsltid`, `X-Amz-*`, `token`, and the rest of `x-disallowedQueryParameters` in the schema) are rejected. Resubmit such a URL without those parameters; `node scripts/clean-url.mjs <url>` prints the cleaned form.
+
+Published recommends in `src/content/recommends/` follow the same parameter rule, enforced by the collection schema during `npm run build`, and also reject credentials (`user:password@`). Fragments are allowed in published recommends because browsers never send them to the destination server; only capture requests reject them.
 
 ## Files
 

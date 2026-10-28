@@ -40,4 +40,6 @@ The automation contract in `automations/recommends-capture/` is a public-safe dr
 
 ## Verification
 
+Before adding a recommend, run `node scripts/clean-url.mjs <url>` on its destination and image URLs and use the printed form.
+
 Before changing a recommendation file, confirm that the candidate satisfies the eligibility rule, uses an absolute `http` or `https` URL, has one supported medium, and stays `draft: true` until the normal editorial review publishes it.
