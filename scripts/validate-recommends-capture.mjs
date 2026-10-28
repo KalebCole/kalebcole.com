@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { disallowedQueryParametersIn } from "./recommend-url-policy.mjs";
 
 const schemaPath = new URL("../automations/recommends-capture/contract.schema.json", import.meta.url);
 const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
@@ -29,16 +30,6 @@ function isValidUri(value) {
   }
 }
 
-const disallowedQueryParameters = schema["x-disallowedQueryParameters"] ?? { prefixes: [], names: [] };
-const disallowedQueryNames = new Set(disallowedQueryParameters.names.map((name) => name.toLowerCase()));
-const disallowedQueryPrefixes = disallowedQueryParameters.prefixes.map((prefix) => prefix.toLowerCase());
-
-export function isDisallowedQueryParameter(name) {
-  const normalized = name.toLowerCase();
-  return disallowedQueryNames.has(normalized)
-    || disallowedQueryPrefixes.some((prefix) => normalized.startsWith(prefix));
-}
-
 function isPublicCanonicalUrl(value) {
   try {
     const parsed = new URL(value);
@@ -49,15 +40,6 @@ function isPublicCanonicalUrl(value) {
       && parsed.href === value;
   } catch {
     return false;
-  }
-}
-
-function disallowedQueryParametersIn(value) {
-  try {
-    const parsed = new URL(value);
-    return [...new Set([...parsed.searchParams.keys()].filter(isDisallowedQueryParameter))];
-  } catch {
-    return [];
   }
 }
 
