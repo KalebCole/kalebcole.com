@@ -6,12 +6,13 @@
   "required": ["title", "url", "date", "medium", "draft"],
   "x-disallowedQueryParameters": {
     "description": "Query parameter names, compared case-insensitively, that track the sharer or carry credentials. A URL using any of them must be resubmitted without them.",
-    "prefixes": ["utm_", "mc_", "hsa_", "pk_", "_hs"],
+    "prefixes": ["utm_", "mc_", "hsa_", "pk_", "_hs", "x-amz-"],
     "names": [
       "si", "igsh", "igshid", "fbclid", "gclid", "gclsrc", "dclid", "gbraid", "wbraid", "msclkid",
-      "yclid", "twclid", "ttclid", "li_fat_id", "mkt_tok", "s_cid", "ref", "ref_src", "ref_url",
-      "share", "feature", "pp", "token", "access_token", "id_token", "auth", "key", "api_key",
-      "apikey", "sig", "signature", "session", "sessionid", "sid", "password"
+      "yclid", "twclid", "ttclid", "li_fat_id", "mkt_tok", "s_cid", "ref_src", "ref_url",
+      "_gl", "_ga", "srsltid", "feature", "pp", "token", "access_token", "id_token", "auth",
+      "api_key", "apikey", "sig", "signature", "sessionid", "sid", "password",
+      "awsaccesskeyid", "expires"
     ]
   },
   "properties": {

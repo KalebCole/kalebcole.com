@@ -66,10 +66,12 @@ test("accepts content-identifying query parameters", () => {
   validate(validRequest({ url: "https://www.youtube.com/watch?v=IroPQ150F6c&t=90", medium: "watch" }));
   validate(validRequest({ url: "https://open.spotify.com/episode/5hjExzCXyI72n9uCaC8fyD", medium: "listen" }));
   validate(validRequest({ image: "https://example.com/image.png?w=1200" }));
+  validate(validRequest({ url: "https://example.com/articles/fictional?key=abc&ref=v1.2&session=keynote-2026&share=1" }));
 });
 
 test("rejects tracking, share, and credential query parameters", () => {
-  validationError(validRequest({ url: "https://example.com/articles/fictional?ref=private" }));
+  validationError(validRequest({ url: "https://example.com/articles/fictional?_ga=GA1.2.3" }));
+  validationError(validRequest({ url: "https://example.com/articles/fictional?X-Amz-Signature=abc" }));
   validationError(validRequest({ url: "https://example.com/articles/fictional?utm_source=newsletter" }));
   validationError(validRequest({ url: "https://example.com/articles/fictional?UTM_Campaign=launch" }));
   validationError(validRequest({ url: "https://www.youtube.com/watch?v=IroPQ150F6c&si=abc123", medium: "watch" }));

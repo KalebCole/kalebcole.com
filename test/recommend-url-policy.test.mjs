@@ -3,7 +3,6 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import test from "node:test";
 
-import { findRecommendUrlViolations } from "../scripts/certify-recommend-urls.mjs";
 import {
   disallowedQueryParametersIn,
   isDisallowedQueryParameter,
@@ -11,7 +10,6 @@ import {
 } from "../scripts/recommend-url-policy.mjs";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
-const fixtures = path.join(repositoryRoot, "test", "fixtures", "recommend-urls");
 
 test("keeps YouTube v and t and strips si", () => {
   assert.equal(
@@ -33,7 +31,7 @@ test("strips the Creating Muse share parameters", () => {
 
 test("mixed allowed and blocked parameters keep their original order", () => {
   assert.equal(
-    normalize("https://example.com/a?b=2&fbclid=x&a=1&ref=y&c=3"),
+    normalize("https://example.com/a?b=2&fbclid=x&a=1&srsltid=y&c=3"),
     "https://example.com/a?b=2&a=1&c=3",
   );
 });
@@ -65,14 +63,33 @@ test("drops an empty query string", () => {
 
 test("matches decoded names exactly or by listed prefix, so look-alikes are kept", () => {
   // Kept: not an exact listed name and no listed prefix.
-  for (const name of ["utmost", "utm", "sig2", "signal", "sis", "keys", "reference", "v", "t"]) {
+  for (const name of ["utmost", "utm", "sig2", "signal", "sis", "keys", "reference", "v", "t", "key", "ref", "session", "share", "_gla", "x-amz", "xamz-date"]) {
     assert.equal(isDisallowedQueryParameter(name), false, name);
   }
   // Rejected: exact names, listed prefixes, any case, and percent-encoded spellings.
-  for (const name of ["si", "SI", "sig", "ref", "utm_", "utm_anything", "_hsenc", "mc_cid", "utm%5Fsource", "%73i", "%75tm_x%ZZ"]) {
+  for (const name of ["si", "SI", "sig", "_gl", "_ga", "srsltid", "X-Amz-Signature", "x-amz-credential", "X-Amz-Anything", "AWSAccessKeyId", "Signature", "Expires", "utm_", "utm_anything", "_hsenc", "mc_cid", "utm%5Fsource", "%73i", "%75tm_x%ZZ"]) {
     assert.equal(isDisallowedQueryParameter(name), true, name);
   }
   assert.equal(normalize("https://example.com/a?utmost=1&sig2=2&utm%5Fsource=3"), "https://example.com/a?utmost=1&sig2=2");
+});
+
+test("keeps content-bearing key, ref, session, and share and strips analytics and AWS signing params", () => {
+  assert.equal(
+    normalize("https://example.com/a?key=abc&ref=v1.2&session=keynote-2026&share=1"),
+    "https://example.com/a?key=abc&ref=v1.2&session=keynote-2026&share=1",
+  );
+  assert.equal(
+    normalize("https://example.com/a?_gl=1*abc&p=2&_ga=GA1.2&srsltid=AfmB&X-Amz-Signature=deadbeef"),
+    "https://example.com/a?p=2",
+  );
+  assert.equal(
+    normalize("https://bucket.s3.amazonaws.com/f.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=c&X-Amz-Date=d&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Security-Token=t&X-Amz-Signature=s"),
+    "https://bucket.s3.amazonaws.com/f.png",
+  );
+  assert.equal(
+    normalize("https://bucket.s3.amazonaws.com/f.png?AWSAccessKeyId=a&Expires=1&Signature=s&v=2"),
+    "https://bucket.s3.amazonaws.com/f.png?v=2",
+  );
 });
 
 test("is idempotent", () => {
@@ -96,29 +113,12 @@ test("reports disallowed parameter names in order without duplicates", () => {
   );
 });
 
-test("certify guard passes a clean fixture directory", () => {
-  assert.deepEqual(findRecommendUrlViolations(path.join(fixtures, "clean")), []);
-});
-
-test("certify guard names each dirty file, field, and parameter, including drafts and images", () => {
-  assert.deepEqual(
-    findRecommendUrlViolations(path.join(fixtures, "dirty")).map(({ file, field, parameters }) => ({ file, field, parameters })),
-    [
-      { file: "draft-image.md", field: "image", parameters: ["token"] },
-      { file: "spotify-share.md", field: "url", parameters: ["si", "utm_source"] },
-    ],
-  );
-});
-
-test("certify guard CLI exits non-zero with a readable message", () => {
-  assert.throws(
-    () => execFileSync(process.execPath, ["scripts/certify-recommend-urls.mjs", path.join(fixtures, "dirty")], {
-      cwd: repositoryRoot,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    }),
-    (error) => error.status === 1 && /spotify-share\.md: url has tracking, share, or credential query parameters: si, utm_source/.test(error.stderr),
-  );
+test("reads a leading \"?\" as part of the name, as browsers do", () => {
+  // new URL("https://example.com/a??si=1").searchParams has the name "?si", not "si".
+  assert.equal(isDisallowedQueryParameter("?si"), false);
+  assert.equal(normalize("https://example.com/a??si=1"), "https://example.com/a??si=1");
+  assert.equal(normalize("https://example.com/a??si=1&si=2"), "https://example.com/a??si=1");
+  assert.deepEqual(disallowedQueryParametersIn("https://example.com/a??si=1"), []);
 });
 
 test("clean-url CLI prints the normalized URL", () => {

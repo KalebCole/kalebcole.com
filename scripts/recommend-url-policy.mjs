@@ -1,16 +1,18 @@
-import { readFileSync } from "node:fs";
-
 // Single source of truth: the contract schema's x-disallowedQueryParameters list.
-const schemaPath = new URL("../automations/recommends-capture/contract.schema.json", import.meta.url);
-const policy = JSON.parse(readFileSync(schemaPath, "utf8"))["x-disallowedQueryParameters"];
+// A static JSON import works in plain Node and in Astro's Vite build, with no runtime file reads.
+import contractSchema from "../automations/recommends-capture/contract.schema.json" with { type: "json" };
+
+const policy = contractSchema["x-disallowedQueryParameters"];
 
 const disallowedNames = new Set(policy.names.map((name) => name.toLowerCase()));
 const disallowedPrefixes = policy.prefixes.map((prefix) => prefix.toLowerCase());
 
 // Decode a raw query parameter name exactly as URLSearchParams does, for comparison only.
-// rawName never contains "&", "=", or "#", so it parses as a single name.
+// rawName never contains "&", "=", or "#". The leading "&" stops URLSearchParams from
+// stripping a leading "?" from the name, so "??si=1" is read as the name "?si", as browsers do.
 function decodeParameterName(rawName) {
-  return new URLSearchParams(`${rawName}=`).keys().next().value ?? "";
+  const names = [...new URLSearchParams(`&${rawName}=`).keys()];
+  return names.length > 0 ? names[names.length - 1] : "";
 }
 
 /**
