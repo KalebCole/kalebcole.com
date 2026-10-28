@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "notes": {
+    "QA generator - exportable.md": {
+      "source": "QA generator - exportable.md",
+      "slug": "generator-manual-qa-exportable",
+      "links": {},
+      "assets": {
+        "attachments/obsidian-qa/image.png": {
+          "hash": "cd1fb1de39b65ea3",
+          "outputs": [
+            "public/blog/generator-manual-qa-exportable/assets/cd1fb1de39b65ea3-640.webp",
+            "public/blog/generator-manual-qa-exportable/assets/cd1fb1de39b65ea3-960.webp",
+            "public/blog/generator-manual-qa-exportable/assets/cd1fb1de39b65ea3.png"
+          ]
+        }
+      },
+      "files": [
+        "public/blog/generator-manual-qa-exportable/assets/cd1fb1de39b65ea3-640.webp",
+        "public/blog/generator-manual-qa-exportable/assets/cd1fb1de39b65ea3-960.webp",
+        "public/blog/generator-manual-qa-exportable/assets/cd1fb1de39b65ea3.png",
+        "src/content/blog/generator-manual-qa-exportable.md"
+      ],
+      "hashes": {
+        "public/blog/generator-manual-qa-exportable/assets/cd1fb1de39b65ea3-640.webp": "67e4766cbb30d7d7b48ec3aed0b7894891aba9f9197dbc00ac7b33a044ba78b4",
+        "public/blog/generator-manual-qa-exportable/assets/cd1fb1de39b65ea3-960.webp": "72a06912d5f502cb4f9a1bbbc7789afa0d982a06564b4956737aae7e1349e5bc",
+        "public/blog/generator-manual-qa-exportable/assets/cd1fb1de39b65ea3.png": "cb22e30e6e98dbcb5b57eb5c6acbf5a25780a57f740a086c058469ac7bbc80d2",
+        "src/content/blog/generator-manual-qa-exportable.md": "2dc96440df684c03c2e6811008bda9ace65305f6afc191dae6363ec113cdc8cc"
+      }
+    }
+  }
+}

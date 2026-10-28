@@ -33,6 +33,8 @@ npm run portrait
 
 A missing local `GITHUB_TOKEN` may leave pinned repositories empty. That warning is expected; build or certification failures are not.
 
+For one-note Obsidian export, use `npm run blog:generate` and read [the authoring contract](docs/obsidian-blog.md). Keep its ownership manifest with the generated Markdown and assets. The command validates locally; it does not deploy.
+
 ## Portrait
 
 `assets/portrait.jpg` is the single source of truth for Kaleb's photo. To change it, replace that file and run a normal build. The `prebuild` hook automatically regenerates the homepage polaroid candidates (`public/me.jpg`, `public/me-600.webp`, `public/me-300.webp`) and the link-preview card used by Open Graph and Twitter metadata. The card filename includes the final rendered PNG's content hash, so portrait, layout, font, and renderer changes all give social platforms a new URL automatically. Commit the regenerated assets and `src/lib/portrait-social-image.generated.mjs` alongside the new master.

@@ -99,6 +99,7 @@ async function withBrowser(origin, callback) {
   const cdp = await openCdpSocket(`http://127.0.0.1:${debugPort}`);
   try {
     await cdp.send('Page.enable');
+    await cdp.send('Emulation.setFocusEmulationEnabled', { enabled: true });
     await callback(cdp, origin);
   } finally {
     cdp.close();
@@ -124,12 +125,60 @@ async function navigate(cdp, url) {
   const expectedUrl = certifiedNavigationUrl(url);
   await cdp.send('Page.navigate', { url: expectedUrl });
   await eventually(async () => {
-    const state = await cdp.send('Runtime.evaluate', { expression: '({ readyState: document.readyState, href: location.href })', returnByValue: true });
+    const state = await cdp.send('Runtime.evaluate', { awaitPromise: true, expression: `(async () => {
+      await document.fonts?.ready;
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+      return {
+        readyState: document.readyState,
+        href: location.href,
+        fontStatus: document.fonts?.status,
+        runningAnimations: document.getAnimations({ subtree: true }).filter((animation) => animation.playState === 'pending' || animation.playState === 'running').length,
+      };
+    })()`, returnByValue: true });
     assert.ok(state.result && Object.hasOwn(state.result, 'value'), 'navigation readiness evaluation must return document state');
     assert.equal(state.result.value.href, expectedUrl, 'navigation readiness must observe the exact unique requested page, not the previous document');
     assert.equal(state.result.value.readyState, 'complete');
+    assert.equal(state.result.value.fontStatus, 'loaded', 'navigation readiness must wait for web fonts');
+    assert.equal(state.result.value.runningAnimations, 0, 'navigation readiness must wait for entrance motion to settle');
   });
-  await new Promise((resolve) => setTimeout(resolve, 2_300));
+}
+
+async function waitForActionClusterSettled(cdp, expectedFlipCount) {
+  return eventually(async () => {
+    const state = await cdp.send('Runtime.evaluate', { awaitPromise: true, returnByValue: true, expression: `(async () => {
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+      const actions = document.querySelector('.home-actions');
+      return {
+        flipCount: window.__homeActionFlips || 0,
+        runningAnimations: actions?.getAnimations().filter((animation) => animation.playState === 'pending' || animation.playState === 'running').length,
+      };
+    })()` });
+    assert.equal(state.result.value.flipCount, expectedFlipCount, `breakpoint crossing must animate .home-actions exactly ${expectedFlipCount} time(s)`);
+    assert.equal(state.result.value.runningAnimations, 0, 'action-cluster layout motion must settle before measurement');
+    return state.result.value;
+  });
+}
+
+async function waitForHoveredSocialMark(cdp) {
+  return eventually(async () => {
+    const state = await cdp.send('Runtime.evaluate', { awaitPromise: true, returnByValue: true, expression: `(async () => {
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+      const bubble = [...document.querySelectorAll('.home-elsewhere-bubble')].find((candidate) => candidate.matches(':hover'));
+      return {
+        hovered: Boolean(bubble),
+        runningAnimations: bubble?.getAnimations().filter((animation) => animation.playState === 'pending' || animation.playState === 'running').length ?? 0,
+      };
+    })()` });
+    assert.equal(state.result.value.hovered, true, 'social bubble must retain the dispatched hover state');
+    assert.equal(state.result.value.runningAnimations, 0, 'social hover color transition must settle before contrast measurement');
+    const hover = (await socialMarkContrasts(cdp)).find((mark) => mark.hovered);
+    assert.ok(hover, 'social bubble must report its hovered mark after settling');
+    assert.ok(hover.contrast >= 3, 'hovered social mark must clear 3:1: ' + JSON.stringify(hover));
+    return hover;
+  });
 }
 
 function layoutValue(evaluation) {
@@ -298,12 +347,12 @@ test('hero action cluster FLIPs as one target at its 1024px inline threshold and
       await setViewport(cdp, inlineActionsViewport - 1);
       await navigate(cdp, origin);
       await setViewport(cdp, inlineActionsViewport);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await waitForActionClusterSettled(cdp, 1);
       assertDesktopInline(await layout(cdp), inlineActionsViewport);
       const flipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
       assert.equal(flipCount.result.value, 1, '1023 to 1024 must animate the single .home-actions target');
       await setViewport(cdp, inlineActionsViewport - 1);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await waitForActionClusterSettled(cdp, 2);
       assertBubblesBelow(await layout(cdp), inlineActionsViewport - 1);
       const returnFlipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
       assert.equal(returnFlipCount.result.value, 2, '1024 to 1023 must animate the same combined target back');
@@ -312,7 +361,7 @@ test('hero action cluster FLIPs as one target at its 1024px inline threshold and
       await setViewport(cdp, inlineActionsViewport - 1);
       await navigate(cdp, origin);
       await setViewport(cdp, inlineActionsViewport);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await waitForActionClusterSettled(cdp, 0);
       const reduced = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
       assert.equal(reduced.result.value, 0, 'reduced motion must reflow without FLIP animation');
     });
@@ -342,8 +391,7 @@ test('production hero keeps mount-ink social marks readable across color modes a
             const bubbleRects = await cdp.send('Runtime.evaluate', { returnByValue: true, expression: `([...document.querySelectorAll('.home-elsewhere-bubble')].map((bubble) => { const rect = bubble.getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }))` });
             for (const [index, point] of bubbleRects.result.value.entries()) {
               await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: point.x, y: point.y });
-              await new Promise((resolve) => setTimeout(resolve, 200));
-              const hover = (await socialMarkContrasts(cdp)).find((mark) => mark.hovered);
+              const hover = await waitForHoveredSocialMark(cdp);
               assert.ok(hover, `${mode} ${width}px social bubble ${index} receives an actual hover state`);
               assert.ok(hover.contrast >= 3, mode + ' ' + width + 'px hovered social mark must clear 3:1: ' + JSON.stringify(hover));
             }
