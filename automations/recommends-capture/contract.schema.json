@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Public-safe recommendation capture request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "url", "date", "medium", "draft"],
+  "x-disallowedQueryParameters": {
+    "description": "Query parameter names, compared case-insensitively, that track the sharer or carry credentials. A URL using any of them must be resubmitted without them.",
+    "prefixes": ["utm_", "mc_", "hsa_", "pk_", "_hs", "x-amz-"],
+    "names": [
+      "si", "igsh", "igshid", "fbclid", "gclid", "gclsrc", "dclid", "gbraid", "wbraid", "msclkid",
+      "yclid", "twclid", "ttclid", "li_fat_id", "mkt_tok", "s_cid", "ref_src", "ref_url",
+      "_gl", "_ga", "srsltid", "feature", "pp", "token", "access_token", "id_token", "auth",
+      "api_key", "apikey", "sig", "signature", "sessionid", "sid", "password",
+      "awsaccesskeyid"
+    ]
+  },
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The public title deliberately supplied for this candidate."
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?(?:\\?[^#]+)?$",
+      "x-publicCanonicalUrl": true,
+      "description": "Canonical public HTTP(S) URL only: no credentials or fragments. Query parameters are allowed when they identify public content, such as YouTube v, but tracking, share, and credential parameters listed in x-disallowedQueryParameters are rejected."
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "The intended public date in ISO 8601 calendar form."
+    },
+    "medium": {
+      "type": "string",
+      "enum": ["read", "watch", "listen"]
+    },
+    "author": { "type": "string", "minLength": 1 },
+    "source": { "type": "string", "minLength": 1 },
+    "image": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://[^/?#@]+(?:/[^?#]*)?(?:\\?[^#]+)?$",
+      "x-publicCanonicalUrl": true,
+      "description": "Optional canonical public image URL with the same credential, fragment, and query parameter policy as the destination URL."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "default": []
+    },
+    "take": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional, exact first-person wording supplied by Kaleb. Never generated or transformed by the system."
+    },
+    "draft": {
+      "const": true,
+      "description": "Capture requests are drafts and require normal editorial review before publication."
+    }
+  }
+}
