@@ -128,6 +128,33 @@ for (const route of expectedRoutes) {
 for (const feed of ['/rss.xml', '/recommends/rss.xml']) {
   assert.ok(existsSync(localAsset(feed)), `production build must emit ${feed}`);
 }
+const llmsTxtPath = localAsset('/llms.txt');
+assert.ok(existsSync(llmsTxtPath), 'production build must emit /llms.txt');
+const llmsTxt = text(llmsTxtPath);
+assert.ok(llmsTxt.startsWith('# '), '/llms.txt must open with an H1 name');
+assert.match(llmsTxt, /^# .+\n\n> .+$/m, '/llms.txt must follow the H1 with a blockquote summary');
+assert.doesNotMatch(llmsTxt, /[\u2013\u2014]/, '/llms.txt must not contain em or en dashes');
+const blogSource = join(root, 'src', 'content', 'blog');
+for (const name of readdirSync(blogSource).filter((file) => file.endsWith('.md'))) {
+  if (/^draft:\s*true\s*$/m.test(text(join(blogSource, name)))) {
+    assert.ok(!llmsTxt.includes(`/blog/${name.replace(/\.md$/, '')}`), `/llms.txt must not include draft writing ${name}`);
+  }
+}
+const llmsProfileUrls = ['https://github.com/KalebCole', 'https://www.linkedin.com/in/kaleb-cole', 'https://x.com/Kalebicole'];
+const llmsUrls = matches(llmsTxt, /https?:\/\/[^\s)]+/g).map((match) => match[0]);
+assert.ok(llmsUrls.length > 0, '/llms.txt must contain links');
+for (const url of llmsUrls) {
+  if (url.startsWith(`${site}/`)) {
+    const pathname = new URL(url).pathname;
+    if (pathname === '/') continue;
+    assert.ok(existsSync(localAsset(pathname)) || existsSync(outputForPath(pathname)), `/llms.txt links to missing ${pathname}`);
+  } else {
+    assert.ok(
+      llmsProfileUrls.includes(url) || url.startsWith('https://github.com/KalebCole/'),
+      `/llms.txt must only link to ${site} or Kaleb's listed profiles, found ${url}`,
+    );
+  }
+}
 const resumePdf = localAsset('/resume.pdf');
 assert.ok(existsSync(resumePdf), 'production build must emit /resume.pdf');
 const resumeBytes = readFileSync(resumePdf);
