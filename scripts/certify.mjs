@@ -141,6 +141,16 @@ const sitemapIndex = text(join(dist, 'sitemap-index.xml'));
 const sitemap = text(join(dist, 'sitemap-0.xml'));
 assert.match(sitemapIndex, /<sitemapindex\b[\s\S]*?<loc>https:\/\/kalebcole\.com\/sitemap-0\.xml<\/loc>/, 'sitemap index must reference the canonical sitemap');
 assert.match(sitemap, /<urlset\b/, 'sitemap must contain a URL set');
+assert.ok(!sitemap.includes(`<loc>${site}/404`), 'sitemap must not include the 404 page');
+for (const name of readdirSync(join(root, 'src', 'content', 'blog')).filter((file) => file.endsWith('.md'))) {
+  if (/^draft:\s*true\s*$/m.test(text(join(root, 'src', 'content', 'blog', name)))) {
+    assert.ok(!sitemap.includes(`/blog/${name.replace(/\.md$/, '')}/`), `sitemap must not include draft writing ${name}`);
+  }
+}
+const robots = text(join(dist, 'robots.txt'));
+assert.match(robots, /^User-agent: \*$/m, 'robots.txt must address all crawlers');
+assert.doesNotMatch(robots, /^Disallow: \S/m, 'robots.txt must not block any path');
+assert.match(robots, new RegExp(`^Sitemap: ${site}/sitemap-index\\.xml$`, 'm'), 'robots.txt must point to the sitemap index');
 for (const route of expectedRoutes.filter((route) => route !== '/404')) {
   assert.ok(sitemap.includes(`<loc>${site}${route}</loc>`), `sitemap must include ${route}`);
 }
@@ -164,9 +174,25 @@ for (const [route, path] of routes) {
   const canonical = attribute(html.match(/<link\b[^>]*rel="canonical"[^>]*>/i)?.[0] ?? '', 'href');
   const ogUrl = attribute(html.match(/<meta\b[^>]*property="og:url"[^>]*>/i)?.[0] ?? '', 'content');
   const twitterUrl = metaContent(html, 'name', 'twitter:url');
-  assert.ok(canonical?.startsWith(`${site}/`), `${route} canonical must be absolute`);
-  assert.equal(ogUrl, canonical, `${route} Open Graph URL must match canonical`);
-  assert.equal(twitterUrl, canonical, `${route} Twitter URL must match canonical`);
+  if (route === '/404') {
+    assert.equal(metaContent(html, 'name', 'robots'), 'noindex', '/404 must ask search engines not to index it');
+    assert.equal(canonical, undefined, '/404 must not declare a canonical URL');
+    assert.equal(ogUrl, undefined, '/404 must not declare an Open Graph URL');
+    assert.equal(twitterUrl, undefined, '/404 must not declare a Twitter URL');
+  } else {
+    assert.equal(metaContent(html, 'name', 'robots'), undefined, `${route} must stay indexable`);
+    assert.ok(canonical?.startsWith(`${site}/`), `${route} canonical must be absolute`);
+    assert.equal(ogUrl, canonical, `${route} Open Graph URL must match canonical`);
+    assert.equal(twitterUrl, canonical, `${route} Twitter URL must match canonical`);
+  }
+  for (const match of matches(html, /<footer\b[\s\S]*?<\/footer>/gi)) {
+    for (const link of matches(match[0], /<a\b[^>]*>/gi).map((anchor) => anchor[0])) {
+      const href = attribute(link, 'href');
+      if (/^https:\/\/(?:github\.com|www\.linkedin\.com)\//.test(href ?? '')) {
+        assert.equal(attribute(link, 'rel'), 'me', `${route} footer profile link ${href} must use rel="me"`);
+      }
+    }
+  }
   for (const property of ['og:title', 'og:description', 'og:type']) {
     assert.match(html, new RegExp(`<meta\\b[^>]*property="${property}"[^>]*content="[^"]+"`, 'i'), `${route} must include ${property}`);
   }

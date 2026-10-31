@@ -17,6 +17,8 @@ interface Props {
   imageType?: `image/${string}`;
   type?: 'website' | 'article';
   personSchema?: boolean;
+  /** Keep the page out of search indexes, with no canonical URL. Used by the 404 page. */
+  noindex?: boolean;
 }
 const {
   title,
@@ -30,6 +32,7 @@ const {
   imageType,
   type = 'website',
   personSchema = false,
+  noindex = false,
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const socialImage = image ? new URL(image, resolveSocialImageOrigin(process.env)) : undefined;
@@ -42,11 +45,12 @@ const socialImage = image ? new URL(image, resolveSocialImageOrigin(process.env)
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f7f8fa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111625" media="(prefers-color-scheme: dark)" />
-    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={type} />
-    <meta property="og:url" content={canonical} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     {socialImage && <meta property="og:image" content={socialImage} />}
     {socialImage && <meta property="og:image:secure_url" content={socialImage} />}
     {socialImage && imageType && <meta property="og:image:type" content={imageType} />}
@@ -56,7 +60,7 @@ const socialImage = image ? new URL(image, resolveSocialImageOrigin(process.env)
     <meta name="twitter:card" content={socialImage ? 'summary_large_image' : 'summary'} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:url" content={canonical} />
+    {!noindex && <meta name="twitter:url" content={canonical} />}
     {socialImage && <meta name="twitter:image" content={socialImage} />}
     {socialImage && imageWidth && <meta name="twitter:image:width" content={imageWidth} />}
     {socialImage && imageHeight && <meta name="twitter:image:height" content={imageHeight} />}
