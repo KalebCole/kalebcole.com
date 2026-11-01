@@ -131,8 +131,25 @@ for (const feed of ['/rss.xml', '/recommends/rss.xml']) {
 const llmsTxtPath = localAsset('/llms.txt');
 assert.ok(existsSync(llmsTxtPath), 'production build must emit /llms.txt');
 const llmsTxt = text(llmsTxtPath);
-assert.ok(llmsTxt.startsWith('# '), '/llms.txt must open with an H1 name');
-assert.match(llmsTxt, /^# .+\n\n> .+$/m, '/llms.txt must follow the H1 with a blockquote summary');
+assert.equal(llmsTxt.split('\n')[0], '# Kaleb Cole', '/llms.txt must open with # Kaleb Cole');
+const llmsPerson = JSON.parse(text(routes.get('/')).match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+const llmsFields = {
+  name: llmsPerson.name,
+  job_title: llmsPerson.jobTitle,
+  works_for: llmsPerson.worksFor.name,
+  location: llmsPerson.homeLocation.name,
+  website: site,
+  github: 'https://github.com/KalebCole',
+  linkedin: 'https://www.linkedin.com/in/kaleb-cole',
+  x: 'https://x.com/Kalebicole',
+  resume: `${site}/resume.pdf`,
+};
+for (const [key, value] of Object.entries(llmsFields)) {
+  assert.ok(llmsTxt.includes(`\n${key}: ${value}\n`), `/llms.txt must include header field ${key}: ${value}`);
+}
+for (const field of ['description:', 'primary_topics:', '## Posts', '## Projects']) {
+  assert.match(llmsTxt, new RegExp(`^${field}$`, 'm'), `/llms.txt must include ${field}`);
+}
 assert.doesNotMatch(llmsTxt, /[\u2013\u2014]/, '/llms.txt must not contain em or en dashes');
 const blogSource = join(root, 'src', 'content', 'blog');
 for (const name of readdirSync(blogSource).filter((file) => file.endsWith('.md'))) {
@@ -144,6 +161,7 @@ const llmsProfileUrls = ['https://github.com/KalebCole', 'https://www.linkedin.c
 const llmsUrls = matches(llmsTxt, /https?:\/\/[^\s)]+/g).map((match) => match[0]);
 assert.ok(llmsUrls.length > 0, '/llms.txt must contain links');
 for (const url of llmsUrls) {
+  if (url === site) continue;
   if (url.startsWith(`${site}/`)) {
     const pathname = new URL(url).pathname;
     if (pathname === '/') continue;

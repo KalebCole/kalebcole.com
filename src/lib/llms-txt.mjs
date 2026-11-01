@@ -3,31 +3,42 @@ import { PERSON_SCHEMA } from './person-schema.mjs';
 import { PRODUCTION_ORIGIN } from './site-origin.mjs';
 
 /**
- * Builds /llms.txt (https://llmstxt.org) from text that already exists on the
- * site: the default site description in Layout.astro, the Person JSON-LD, page
- * intros and meta descriptions, feed titles, and each piece's own frontmatter.
- * Keep it that way. Do not write new copy in Kaleb's voice here.
+ * Builds /llms.txt: a key/value header followed by the published posts and
+ * pinned projects. Identity fields come from the Person JSON-LD and the
+ * shared profile links so they never drift from the structured data.
  */
 
-export const SITE_DESCRIPTION = 'Kaleb Cole’s public workshop for ideas, experiences, interests, and projects.';
+/**
+ * Kaleb approved this wording verbatim on 2026-11-01. It is protected: do not
+ * edit, reflow, or rephrase it without his explicit ok.
+ */
+export const APPROVED_LLMS_TXT_COPY = Object.freeze({
+  purpose: 'help language models describe Kaleb Cole (the software engineer in Seattle) accurately.',
+  description: "Kaleb Cole is a software engineer at Microsoft in Seattle. He builds Azure's support ticket platform, where customers open tickets on their Azure resources and engineers triage and fix them, with a focus on scaling it and keeping it consistent across Azure's sovereign clouds. On his site he writes about AI agents and the things he builds with them.",
+  primaryTopics: Object.freeze([
+    'AI agents and agent interfaces',
+    'Building software with agents',
+    'Developer tools (GitHub Copilot, CLIs)',
+  ]),
+});
 
-const absolute = (path) => new URL(path, PRODUCTION_ORIGIN).href;
+const profile = (id) => ELSEWHERE_LINKS.find((entry) => entry.id === id).href;
+const xProfile = PERSON_SCHEMA.sameAs.find((href) => href.startsWith('https://x.com/'));
+
+export const LLMS_TXT_FIELDS = Object.freeze([
+  ['name', PERSON_SCHEMA.name],
+  ['job_title', PERSON_SCHEMA.jobTitle],
+  ['works_for', PERSON_SCHEMA.worksFor.name],
+  ['location', PERSON_SCHEMA.homeLocation.name],
+  ['website', PRODUCTION_ORIGIN],
+  ['github', profile('github')],
+  ['linkedin', profile('linkedin')],
+  ['x', xProfile],
+  ['resume', `${PRODUCTION_ORIGIN}/resume.pdf`],
+]);
 
 function link(title, url, description) {
   return description ? `- [${title}](${url}): ${description}` : `- [${title}](${url})`;
-}
-
-function profileLinks() {
-  const profiles = ELSEWHERE_LINKS
-    .filter((entry) => entry.href.startsWith('https://'))
-    .sort((first, second) => first.footerOrder - second.footerOrder)
-    .map((entry) => link(entry.label, entry.href, entry.accessibleName.replace(/, external link$/, '')));
-  const listed = new Set(ELSEWHERE_LINKS.map((entry) => entry.href));
-  for (const href of PERSON_SCHEMA.sameAs) {
-    if (listed.has(href)) continue;
-    if (href.startsWith('https://x.com/')) profiles.push(link('X', href, 'Kaleb Cole on X'));
-  }
-  return profiles;
 }
 
 /**
@@ -41,42 +52,25 @@ export function buildLlmsTxt({ posts, repos }) {
     .filter((post) => !post.data.draft)
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-  const lines = [
+  return [
     `# ${PERSON_SCHEMA.name}`,
+    `# Purpose: ${APPROVED_LLMS_TXT_COPY.purpose}`,
     '',
-    `> ${SITE_DESCRIPTION}`,
+    ...LLMS_TXT_FIELDS.map(([key, value]) => `${key}: ${value}`),
     '',
-    `- Name: ${PERSON_SCHEMA.name}`,
-    `- Job title: ${PERSON_SCHEMA.jobTitle}`,
-    `- Works for: ${PERSON_SCHEMA.worksFor.name}`,
-    `- Home location: ${PERSON_SCHEMA.homeLocation.name}`,
-    `- Website: ${PERSON_SCHEMA.url}`,
+    'description:',
+    APPROVED_LLMS_TXT_COPY.description,
     '',
-    '## Writing',
+    'primary_topics:',
+    ...APPROVED_LLMS_TXT_COPY.primaryTopics.map((topic) => `- ${topic}`),
     '',
-    link('Writing', absolute('/blog/'), 'Notes, essays, and half-finished thoughts.'),
-    link('Kaleb Cole | Writing feed', absolute('/rss.xml'), 'Writing by Kaleb Cole.'),
-    ...published.map((post) => link(post.data.title, absolute(`/blog/${post.id}/`), post.data.description)),
+    '## Posts',
     '',
-    '## Recommends',
-    '',
-    link('Recommends', absolute('/recommends/'), 'Things worth your time: articles, talks, and audio, with Kaleb Cole\'s note on why.'),
-    link('Kaleb Cole recommends', absolute('/recommends/rss.xml'), 'Things I thought were interesting.'),
+    ...published.map((post) => link(post.data.title, `${PRODUCTION_ORIGIN}/blog/${post.id}/`, post.data.description)),
     '',
     '## Projects',
     '',
-    link('Projects', absolute('/projects/'), 'Things Kaleb Cole has made or is exploring.'),
     ...repos.map((repo) => link(repo.name, repo.url, repo.description ?? undefined)),
     '',
-    '## Résumé',
-    '',
-    link('Résumé', absolute('/resume.pdf')),
-    '',
-    '## Profiles',
-    '',
-    ...profileLinks(),
-    '',
-  ];
-
-  return lines.join('\n');
+  ].join('\n');
 }
