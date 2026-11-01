@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { APPROVED_LLMS_TXT_COPY, buildLlmsTxt } from '../src/lib/llms-txt.mjs';
+import { APPROVED_LLMS_TXT_COPY, buildLlmsTxt, LLMS_EXTRA_PROJECTS } from '../src/lib/llms-txt.mjs';
 import { PERSON_SCHEMA } from '../src/lib/person-schema.mjs';
 
 const post = (id, date, draft = false) => ({
@@ -37,9 +37,8 @@ test('llms.txt header matches the approved format and the Person JSON-LD', () =>
     '',
     '## Projects',
     '',
-    '',
   ].join('\n');
-  assert.equal(output, expectedHeader);
+  assert.ok(output.startsWith(expectedHeader));
   assert.deepEqual(
     [PERSON_SCHEMA.name, PERSON_SCHEMA.jobTitle, PERSON_SCHEMA.worksFor.name, PERSON_SCHEMA.homeLocation.name],
     ['Kaleb Cole', 'Software Engineer', 'Microsoft', 'Seattle, WA'],
@@ -57,15 +56,24 @@ test('llms.txt lists published posts newest first and never lists drafts', () =>
   assert.match(output, /^- \[Title newer\]\(https:\/\/kalebcole\.com\/blog\/newer\/\): Description newer\.$/m);
 });
 
-test('llms.txt lists pinned projects under Projects', () => {
+test('llms.txt lists the series, then pins, then curated projects without duplicates', () => {
   const output = buildLlmsTxt({
     posts: [],
     repos: [
-      { name: 'demo', description: 'A demo.', url: 'https://github.com/KalebCole/demo' },
+      { name: 'partiful-cli', description: 'Pinned.', url: 'https://github.com/KalebCole/partiful-cli' },
+      { name: 'luma-cli', description: 'Pinned luma.', url: 'https://github.com/KalebCole/luma-cli' },
       { name: 'bare', description: null, url: 'https://github.com/KalebCole/bare' },
     ],
   });
-  const projects = output.split('## Projects\n')[1];
-  assert.match(projects, /^- \[demo\]\(https:\/\/github\.com\/KalebCole\/demo\): A demo\.$/m);
-  assert.match(projects, /^- \[bare\]\(https:\/\/github\.com\/KalebCole\/bare\)$/m);
+  const names = [...output.split('## Projects\n')[1].matchAll(/^- \[([^\]]+)\]/gm)].map((match) => match[1]);
+  assert.deepEqual(names, [
+    'Build Your Personal Brand with Copilot',
+    'partiful-cli',
+    'luma-cli',
+    'bare',
+    ...LLMS_EXTRA_PROJECTS.map((project) => project.name).filter((name) => name !== 'luma-cli'),
+  ]);
+  assert.match(output, /^- \[luma-cli\]\(https:\/\/github\.com\/KalebCole\/luma-cli\): Pinned luma\.$/m);
+  assert.match(output, /^- \[bare\]\(https:\/\/github\.com\/KalebCole\/bare\)$/m);
+  assert.doesNotMatch(output, /[\u2013\u2014]/);
 });

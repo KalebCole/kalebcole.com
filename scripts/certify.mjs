@@ -168,10 +168,18 @@ for (const url of llmsUrls) {
     assert.ok(existsSync(localAsset(pathname)) || existsSync(outputForPath(pathname)), `/llms.txt links to missing ${pathname}`);
   } else {
     assert.ok(
-      llmsProfileUrls.includes(url) || url.startsWith('https://github.com/KalebCole/'),
+      llmsProfileUrls.includes(url) || url.startsWith('https://github.com/KalebCole/') || url === 'https://microsoft.github.io/student-learning-series/',
       `/llms.txt must only link to ${site} or Kaleb's listed profiles, found ${url}`,
     );
   }
+}
+const pinnedReposComponent = text(join(root, 'src', 'components', 'PinnedRepos.astro'));
+for (const phrase of [
+  'Build Your Personal Brand with Copilot',
+  'A YouTube series for the Microsoft Developer channel that guides college students and beginners through turning an existing PDF resume into a portfolio website with GitHub Copilot.',
+]) {
+  assert.ok(pinnedReposComponent.includes(phrase), `/llms.txt series entry must match the Projects page: ${phrase}`);
+  assert.ok(llmsTxt.includes(phrase), `/llms.txt must include the series entry: ${phrase}`);
 }
 const resumePdf = localAsset('/resume.pdf');
 assert.ok(existsSync(resumePdf), 'production build must emit /resume.pdf');
