@@ -425,9 +425,10 @@ html[data-mode="dark"] [data-icon-dark] {
   max-width: 100%;
 }
 
-/* MacBook Chrome at a 995px inner viewport leaves only 514.65px for this
- * 522px cluster. Keep the CTAs together with centered bubbles until 1024px. */
-@media (min-width: 1024px) {
+/* The inline cluster (two CTAs plus four bubbles) is about 581px wide and the
+ * hero text column only reaches that near 1110px. Keep the CTAs together with
+ * centered bubbles below them until 1200px. */
+@media (min-width: 1200px) {
   .home-actions {
     flex-direction: row;
     align-items: center;

@@ -26,5 +26,5 @@ export const PERSON_SCHEMA = {
     '@type': 'Place',
     name: 'Seattle, WA',
   },
-  sameAs: [...profileUrls, 'https://x.com/Kalebicole'],
+  sameAs: profileUrls,
 };

@@ -35,7 +35,6 @@ export const LLMS_SERIES_PROJECT = Object.freeze({
 });
 
 const profile = (id) => ELSEWHERE_LINKS.find((entry) => entry.id === id).href;
-const xProfile = PERSON_SCHEMA.sameAs.find((href) => href.startsWith('https://x.com/'));
 
 export const LLMS_TXT_FIELDS = Object.freeze([
   ['name', PERSON_SCHEMA.name],
@@ -45,7 +44,7 @@ export const LLMS_TXT_FIELDS = Object.freeze([
   ['website', PRODUCTION_ORIGIN],
   ['github', profile('github')],
   ['linkedin', profile('linkedin')],
-  ['x', xProfile],
+  ['x', profile('x')],
   ['resume', `${PRODUCTION_ORIGIN}/resume.pdf`],
 ]);
 

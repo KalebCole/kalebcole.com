@@ -14,7 +14,7 @@ const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
     ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
     : null);
-const inlineActionsViewport = 1024;
+const inlineActionsViewport = 1200;
 
 function contentType(path) {
   return ({
@@ -168,7 +168,7 @@ async function layout(cdp) {
       const primary = document.querySelector('.home-primary-actions');
       const elsewhere = document.querySelector('.home-elsewhere');
       const bubbles = [...document.querySelectorAll('.home-elsewhere-bubble')];
-      if (!actions || !primary || !elsewhere || bubbles.length !== 3) throw new Error('Expected action cluster, CTA pair, and three bubbles');
+      if (!actions || !primary || !elsewhere || bubbles.length !== 4) throw new Error('Expected action cluster, CTA pair, and four bubbles');
       const ctas = [...primary.querySelectorAll('.home-action')];
       return {
         actions: rect(actions), primary: rect(primary), elsewhere: rect(elsewhere), ctas: ctas.map(rect), bubbles: bubbles.map(rect),
@@ -249,7 +249,7 @@ test('production hero uses the approved inline-desktop and below-mobile action c
         assertDesktopInline(measurement, width);
         assert.ok(measurement.scrollWidth <= measurement.innerWidth, `${width}px desktop hero must not introduce horizontal overflow`);
       }
-      for (const width of [inlineActionsViewport - 1, 995, 900, 850, 390, 320]) {
+      for (const width of [inlineActionsViewport - 1, 1110, 1024, 995, 900, 850, 390, 320]) {
         await setViewport(cdp, width);
         await navigate(cdp, origin);
         const measurement = await layout(cdp);
@@ -271,10 +271,11 @@ test('production hero preserves bubble targets, exact destinations, and same-tab
       await setViewport(cdp, 850);
       await navigate(cdp, origin);
       const measurement = await layout(cdp);
-      assert.deepEqual(measurement.bubbleSizes, Array.from({ length: 3 }, () => ({ width: '48px', height: '48px' })));
+      assert.deepEqual(measurement.bubbleSizes, Array.from({ length: 4 }, () => ({ width: '48px', height: '48px' })));
       assert.deepEqual(measurement.links, [
         { href: 'https://www.linkedin.com/in/kaleb-cole', label: 'Kaleb Cole on LinkedIn, external link', target: null },
         { href: 'https://github.com/KalebCole', label: 'Kaleb Cole on GitHub, external link', target: null },
+        { href: 'https://x.com/Kalebicole', label: 'Kaleb Cole on X, external link', target: null },
         { href: 'mailto:kalebcole2021@gmail.com', label: 'Email Kaleb Cole, opens email client', target: null },
       ]);
     });
@@ -283,7 +284,7 @@ test('production hero preserves bubble targets, exact destinations, and same-tab
   }
 });
 
-test('hero action cluster FLIPs as one target at its 1024px inline threshold and respects reduced motion', async () => {
+test('hero action cluster FLIPs as one target at its 1200px inline threshold and respects reduced motion', async () => {
   assert.ok(existsSync(dist), 'dist must exist; run the production build first');
   const { server, origin } = await startStaticServer();
   try {
@@ -301,12 +302,12 @@ test('hero action cluster FLIPs as one target at its 1024px inline threshold and
       await new Promise((resolve) => setTimeout(resolve, 100));
       assertDesktopInline(await layout(cdp), inlineActionsViewport);
       const flipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
-      assert.equal(flipCount.result.value, 1, '1023 to 1024 must animate the single .home-actions target');
+      assert.equal(flipCount.result.value, 1, '1199 to 1200 must animate the single .home-actions target');
       await setViewport(cdp, inlineActionsViewport - 1);
       await new Promise((resolve) => setTimeout(resolve, 100));
       assertBubblesBelow(await layout(cdp), inlineActionsViewport - 1);
       const returnFlipCount = await cdp.send('Runtime.evaluate', { expression: 'window.__homeActionFlips || 0', returnByValue: true });
-      assert.equal(returnFlipCount.result.value, 2, '1024 to 1023 must animate the same combined target back');
+      assert.equal(returnFlipCount.result.value, 2, '1200 to 1199 must animate the same combined target back');
 
       await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
       await setViewport(cdp, inlineActionsViewport - 1);
@@ -334,7 +335,7 @@ test('production hero keeps mount-ink social marks readable across color modes a
           await cdp.send('Runtime.evaluate', { expression: `document.documentElement.dataset.mode = '${mode}'` });
           await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0 });
           const normal = await socialMarkContrasts(cdp);
-          assert.equal(normal.length, 3, `${mode} ${width}px renders three social marks`);
+          assert.equal(normal.length, 4, `${mode} ${width}px renders four social marks`);
           for (const mark of normal) {
             assert.ok(mark.contrast >= 4.5, mode + ' ' + width + 'px social mark must clear 4.5:1: ' + JSON.stringify(mark));
           }

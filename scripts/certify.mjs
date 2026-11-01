@@ -133,6 +133,8 @@ assert.ok(existsSync(llmsTxtPath), 'production build must emit /llms.txt');
 const llmsTxt = text(llmsTxtPath);
 assert.equal(llmsTxt.split('\n')[0], '# Kaleb Cole', '/llms.txt must open with # Kaleb Cole');
 const llmsPerson = JSON.parse(text(routes.get('/')).match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+assert.equal(new Set(llmsPerson.sameAs).size, llmsPerson.sameAs.length, 'Person JSON-LD sameAs must not repeat a profile');
+assert.deepEqual([...llmsPerson.sameAs].sort(), ['https://github.com/KalebCole', 'https://www.linkedin.com/in/kaleb-cole', 'https://x.com/Kalebicole'].sort(), 'Person JSON-LD sameAs must list GitHub, LinkedIn, and X');
 const llmsFields = {
   name: llmsPerson.name,
   job_title: llmsPerson.jobTitle,
@@ -238,14 +240,18 @@ for (const [route, path] of routes) {
     assert.equal(ogUrl, canonical, `${route} Open Graph URL must match canonical`);
     assert.equal(twitterUrl, canonical, `${route} Twitter URL must match canonical`);
   }
+  const footerProfiles = new Set(['https://github.com/KalebCole', 'https://www.linkedin.com/in/kaleb-cole', 'https://x.com/Kalebicole']);
+  const footerProfilesSeen = new Set();
   for (const match of matches(html, /<footer\b[\s\S]*?<\/footer>/gi)) {
     for (const link of matches(match[0], /<a\b[^>]*>/gi).map((anchor) => anchor[0])) {
       const href = attribute(link, 'href');
-      if (/^https:\/\/(?:github\.com|www\.linkedin\.com)\//.test(href ?? '')) {
+      if (/^https:\/\/(?:github\.com|www\.linkedin\.com|x\.com)\//.test(href ?? '')) {
         assert.equal(attribute(link, 'rel'), 'me', `${route} footer profile link ${href} must use rel="me"`);
+        footerProfilesSeen.add(href);
       }
     }
   }
+  assert.deepEqual([...footerProfilesSeen].sort(), [...footerProfiles].sort(), `${route} footer must link GitHub, LinkedIn, and X`);
   for (const property of ['og:title', 'og:description', 'og:type']) {
     assert.match(html, new RegExp(`<meta\\b[^>]*property="${property}"[^>]*content="[^"]+"`, 'i'), `${route} must include ${property}`);
   }
@@ -438,10 +444,11 @@ assert.doesNotMatch(homeElsewhere, /\bdata-home-layout-hero\b/i, 'bubbles must m
 assert.doesNotMatch(homeElsewhere, /<section\b|<nav\b|home-elsewhere-label|>\s*Elsewhere\s*</i, 'bubbles must not add a label or navigation landmark');
 assert.match(homepage, /<footer\b[\s\S]*?<nav\b[^>]*aria-label="Footer profile links"[^>]*>/i, 'footer profile links must retain their visible behavior and named landmark');
 const elsewhereLinks = matches(homeElsewhere, /<a\b[^>]*>[\s\S]*?<\/a>/gi).map((match) => match[0]);
-assert.equal(elsewhereLinks.length, 3, 'profile bubbles must render exactly three links');
+assert.equal(elsewhereLinks.length, 4, 'profile bubbles must render exactly four links');
 const expectedElsewhereLinks = [
   ['LinkedIn', 'https://www.linkedin.com/in/kaleb-cole', 'Kaleb Cole on LinkedIn, external link'],
   ['GitHub', 'https://github.com/KalebCole', 'Kaleb Cole on GitHub, external link'],
+  ['X', 'https://x.com/Kalebicole', 'Kaleb Cole on X, external link'],
   ['Email', 'mailto:kalebcole2021@gmail.com', 'Email Kaleb Cole, opens email client'],
 ];
 for (const [index, [label, href, accessibleName]] of expectedElsewhereLinks.entries()) {
@@ -457,8 +464,8 @@ assert.match(globalCss, /\.home-elsewhere-bubble\s*\{[\s\S]*?border-radius: 50%;
 assert.match(globalCss, /\.home-elsewhere-bubble::after\s*\{[\s\S]*?inset: 5px;[\s\S]*?var\(--ink\) 8%, var\(--ground\)/, 'profile bubbles must retain the approved restrained inner ring');
 assert.match(
   globalCss,
-  /\.home-actions\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?@media \(min-width: 1024px\) \{[\s\S]*?\.home-actions\s*\{[\s\S]*?flex-direction: row;[\s\S]*?gap: 1\.5rem;[\s\S]*?\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 auto;/,
-  'profile bubbles must remain below the CTAs through 1023px and inline from 1024px',
+  /\.home-actions\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?@media \(min-width: 1200px\) \{[\s\S]*?\.home-actions\s*\{[\s\S]*?flex-direction: row;[\s\S]*?gap: 1\.5rem;[\s\S]*?\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 auto;/,
+  'profile bubbles must remain below the CTAs through 1199px and inline from 1200px',
 );
 assert.doesNotMatch(globalCss, /\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 100%/, 'profile bubbles must not retain the former always-below full-width rule');
 assert.match(globalCss, /@media \(forced-colors: active\)[\s\S]*?\.home-elsewhere-bubble\s*\{[\s\S]*?border-color: ButtonText;/, 'profile bubbles must remain visible in forced colors');

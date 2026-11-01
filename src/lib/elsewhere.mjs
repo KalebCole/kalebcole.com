@@ -1,7 +1,7 @@
 /**
  * @typedef {Object} ElsewhereLink
- * @property {'linkedin' | 'github' | 'email'} id
- * @property {'LinkedIn' | 'GitHub' | 'Email'} label
+ * @property {'linkedin' | 'github' | 'x' | 'email'} id
+ * @property {'LinkedIn' | 'GitHub' | 'X' | 'Email'} label
  * @property {string} href
  * @property {string} accessibleName
  * @property {number} footerOrder
@@ -24,10 +24,17 @@ export const ELSEWHERE_LINKS = [
     footerOrder: 1,
   },
   {
+    id: 'x',
+    label: 'X',
+    href: 'https://x.com/Kalebicole',
+    accessibleName: 'Kaleb Cole on X, external link',
+    footerOrder: 3,
+  },
+  {
     id: 'email',
     label: 'Email',
     href: 'mailto:kalebcole2021@gmail.com',
     accessibleName: 'Email Kaleb Cole, opens email client',
-    footerOrder: 3,
+    footerOrder: 4,
   },
 ];
