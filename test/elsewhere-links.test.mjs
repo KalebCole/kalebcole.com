@@ -23,6 +23,12 @@ test('Elsewhere source defines the approved hero destinations and accessible nam
         accessibleName: 'Kaleb Cole on GitHub, external link',
       },
       {
+        id: 'x',
+        label: 'X',
+        href: 'https://x.com/Kalebicole',
+        accessibleName: 'Kaleb Cole on X, external link',
+      },
+      {
         id: 'email',
         label: 'Email',
         href: 'mailto:kalebcole2021@gmail.com',
@@ -47,8 +53,8 @@ test('homepage and footer consume the shared Elsewhere source', () => {
   assert.match(footer, /<nav\b[^>]*aria-label="Footer profile links"/);
   assert.match(
     globalCss,
-    /\.home-actions\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?@media \(min-width: 1024px\) \{[\s\S]*?\.home-actions\s*\{[\s\S]*?flex-direction: row;[\s\S]*?gap: 1\.5rem;[\s\S]*?\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 auto;/,
-    'the combined action cluster must keep bubbles below the CTAs through 1023px and inline from 1024px',
+    /\.home-actions\s*\{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?@media \(min-width: 1200px\) \{[\s\S]*?\.home-actions\s*\{[\s\S]*?flex-direction: row;[\s\S]*?gap: 1\.5rem;[\s\S]*?\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 auto;/,
+    'the combined action cluster must keep bubbles below the CTAs through 1199px and inline from 1200px',
   );
   assert.doesNotMatch(globalCss, /\.home-elsewhere\s*\{[\s\S]*?flex: 0 0 100%/, 'bubbles must not retain the former always-below full-width rule');
 

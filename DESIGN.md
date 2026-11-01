@@ -520,7 +520,7 @@ width. The LCP image is eager and high priority. Below-fold media is lazy.
 
 - The footer is shared page chrome outside each route's `main`; it does not
   count as another homepage content section.
-- It contains plain GitHub, LinkedIn, and Email links plus a concise copyright
+- It contains plain GitHub, LinkedIn, X, and Email links plus a concise copyright
   line. Keep links in one wrapping row and expose specific accessible names.
 - Keep canonical Writing URLs at `/blog` and `/blog/[slug]`; preserve existing
   permalinks. Keep the Writing feed at `/rss.xml`.
