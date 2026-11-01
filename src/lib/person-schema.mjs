@@ -10,10 +10,17 @@ const profileUrls = ELSEWHERE_LINKS.map((link) => link.href).filter((href) =>
   href.startsWith('https://'),
 );
 
+/**
+ * Stable node id for the site owner. The homepage Person carries it, and every
+ * BlogPosting author repeats it so search engines join them into one entity.
+ */
+export const PERSON_ID = 'https://kalebcole.com/#person';
+
 /** @type {Record<string, unknown>} */
 export const PERSON_SCHEMA = {
   '@context': 'https://schema.org',
   '@type': 'Person',
+  '@id': PERSON_ID,
   name: 'Kaleb Cole',
   url: 'https://kalebcole.com/',
   image: 'https://kalebcole.com/me.jpg',
@@ -26,5 +33,17 @@ export const PERSON_SCHEMA = {
     '@type': 'Place',
     name: 'Seattle, WA',
   },
+  sameAs: profileUrls,
+};
+
+/**
+ * The compact Person used as the author of each piece of writing. It reuses
+ * the homepage entity's id, name, url, and sameAs instead of keeping a copy.
+ */
+export const PERSON_AUTHOR = {
+  '@type': 'Person',
+  '@id': PERSON_ID,
+  name: PERSON_SCHEMA.name,
+  url: PERSON_SCHEMA.url,
   sameAs: profileUrls,
 };

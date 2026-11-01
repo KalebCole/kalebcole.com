@@ -1,6 +1,7 @@
 ---
 import Layout from './Layout.astro';
 import { HOMEPAGE_SOCIAL_IMAGE } from '../lib/social-image.mjs';
+import { blogPostingSchema } from '../lib/json-ld.mjs';
 
 interface Props {
   title: string;
@@ -12,6 +13,13 @@ interface Props {
   nextPost?: { href: string; title: string };
 }
 const { title, description, date, updated, tags, readingMinutes, nextPost } = Astro.props;
+const jsonLd = blogPostingSchema({
+  title,
+  description,
+  url: new URL(Astro.url.pathname, Astro.site),
+  date,
+  updated,
+});
 const fmt = (d: Date) =>
   d.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -20,7 +28,7 @@ const fmt = (d: Date) =>
     timeZone: 'UTC',
   });
 ---
-<Layout title={`${title} | Kaleb Cole`} description={description} type="article" {...HOMEPAGE_SOCIAL_IMAGE}>
+<Layout title={`${title} | Kaleb Cole`} description={description} type="article" jsonLd={jsonLd} {...HOMEPAGE_SOCIAL_IMAGE}>
   <main id="main-content" class="site-shell article-page">
     <article>
       <header class="article-header">

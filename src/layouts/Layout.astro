@@ -4,6 +4,7 @@ import SiteNav from '../components/SiteNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { resolveSocialImageOrigin } from '../lib/site-origin.mjs';
 import { PERSON_SCHEMA } from '../lib/person-schema.mjs';
+import { serializeJsonLd } from '../lib/json-ld.mjs';
 
 interface Props {
   title: string;
@@ -17,6 +18,8 @@ interface Props {
   imageType?: `image/${string}`;
   type?: 'website' | 'article';
   personSchema?: boolean;
+  /** Page-specific JSON-LD, such as an article's BlogPosting. */
+  jsonLd?: Record<string, unknown>;
   /** Keep the page out of search indexes, with no canonical URL. Used by the 404 page. */
   noindex?: boolean;
 }
@@ -32,6 +35,7 @@ const {
   imageType,
   type = 'website',
   personSchema = false,
+  jsonLd,
   noindex = false,
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -74,7 +78,8 @@ const socialImage = image ? new URL(image, resolveSocialImageOrigin(process.env)
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="preload" href="/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
-    {personSchema && <script type="application/ld+json" set:html={JSON.stringify(PERSON_SCHEMA)} />}
+    {personSchema && <script type="application/ld+json" set:html={serializeJsonLd(PERSON_SCHEMA)} />}
+    {jsonLd && <script type="application/ld+json" set:html={serializeJsonLd(jsonLd)} />}
 
     <script is:inline>
       (function () {
