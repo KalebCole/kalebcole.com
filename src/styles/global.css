@@ -1747,8 +1747,11 @@ html[data-mode="dark"] .media-dialog::backdrop {
     to { transform: translateY(0); }
   }
 
+  /* Vertical travel only: a horizontal start offset pushed the rotated
+     portrait past the right edge of narrow viewports, and mobile browsers
+     kept that overflow as sideways scroll after the entrance finished. */
   @keyframes portrait-settle {
-    from { transform: translate(30px, 25px) rotate(8deg); }
+    from { transform: translateY(25px) rotate(8deg); }
     to { transform: translate(0) rotate(2deg); }
   }
 }

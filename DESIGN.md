@@ -414,7 +414,7 @@ Homepage entrance choreography, always from an already-visible default:
 | --- | --- |
 | Navigation | Settle down over 1100ms |
 | Hero copy | Settle up over 1400ms after 180ms |
-| Portrait | Enter from 30px by 25px and 8-degree rotation over 1550ms after 350ms; rest at 2 degrees |
+| Portrait | Enter from 25px below with an 8-degree rotation over 1550ms after 350ms; rest at 2 degrees. No horizontal travel, so the rotated print never crosses the viewport edge |
 | Recent writing | Settle up over 1250ms after 700ms |
 
 Use `cubic-bezier(.16, 1, .3, 1)`. The portrait straightens, lifts 6px, and
