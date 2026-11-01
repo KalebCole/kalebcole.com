@@ -306,8 +306,12 @@ assert.throws(
   'preview deployment origins must reject URLs and paths',
 );
 assert.equal(metaContent(homepage, 'name', 'description'), homepageDescription, 'homepage description must stay first-person');
-assert.equal(metaContent(homepage, 'property', 'og:title'), 'Kaleb Cole', 'homepage Open Graph title');
-assert.equal(metaContent(homepage, 'name', 'twitter:title'), 'Kaleb Cole', 'homepage Twitter title');
+// Approved by Kaleb on #156. Keep it under 50 characters so Google does not truncate it.
+const homepageTitle = 'Kaleb Cole | Software engineer in Seattle';
+assert.ok(homepageTitle.length < 50, 'homepage title must stay under 50 characters');
+assert.equal(matches(homepage, /<title>([^<]*)<\/title>/gi).map((match) => match[1]).join('\n'), homepageTitle, 'homepage document title');
+assert.equal(metaContent(homepage, 'property', 'og:title'), homepageTitle, 'homepage Open Graph title');
+assert.equal(metaContent(homepage, 'name', 'twitter:title'), homepageTitle, 'homepage Twitter title');
 assert.equal(metaContent(homepage, 'property', 'og:description'), homepageDescription, 'homepage Open Graph description');
 assert.equal(metaContent(homepage, 'name', 'twitter:description'), homepageDescription, 'homepage Twitter description');
 assert.equal(new URL(homepageImageUrl).origin, socialImageOrigin, 'homepage Open Graph image origin');
