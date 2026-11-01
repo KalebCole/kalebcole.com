@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { APPROVED_LLMS_TXT_COPY, buildLlmsTxt, LLMS_EXTRA_PROJECTS } from '../src/lib/llms-txt.mjs';
+import { APPROVED_LLMS_TXT_COPY, buildLlmsTxt } from '../src/lib/llms-txt.mjs';
 import { PERSON_SCHEMA } from '../src/lib/person-schema.mjs';
 
 const post = (id, date, draft = false) => ({
@@ -56,24 +56,16 @@ test('llms.txt lists published posts newest first and never lists drafts', () =>
   assert.match(output, /^- \[Title newer\]\(https:\/\/kalebcole\.com\/blog\/newer\/\): Description newer\.$/m);
 });
 
-test('llms.txt lists the series, then pins, then curated projects without duplicates', () => {
+test('llms.txt lists the series first, then the pinned repos only', () => {
   const output = buildLlmsTxt({
     posts: [],
     repos: [
       { name: 'partiful-cli', description: 'Pinned.', url: 'https://github.com/KalebCole/partiful-cli' },
-      { name: 'luma-cli', description: 'Pinned luma.', url: 'https://github.com/KalebCole/luma-cli' },
       { name: 'bare', description: null, url: 'https://github.com/KalebCole/bare' },
     ],
   });
   const names = [...output.split('## Projects\n')[1].matchAll(/^- \[([^\]]+)\]/gm)].map((match) => match[1]);
-  assert.deepEqual(names, [
-    'Build Your Personal Brand with Copilot',
-    'partiful-cli',
-    'luma-cli',
-    'bare',
-    ...LLMS_EXTRA_PROJECTS.map((project) => project.name).filter((name) => name !== 'luma-cli'),
-  ]);
-  assert.match(output, /^- \[luma-cli\]\(https:\/\/github\.com\/KalebCole\/luma-cli\): Pinned luma\.$/m);
+  assert.deepEqual(names, ['Build Your Personal Brand with Copilot', 'partiful-cli', 'bare']);
   assert.match(output, /^- \[bare\]\(https:\/\/github\.com\/KalebCole\/bare\)$/m);
   assert.doesNotMatch(output, /[\u2013\u2014]/);
 });

@@ -34,24 +34,6 @@ export const LLMS_SERIES_PROJECT = Object.freeze({
   description: 'A YouTube series for the Microsoft Developer channel that guides college students and beginners through turning an existing PDF resume into a portfolio website with GitHub Copilot. Kaleb helped create the series with a team and built its website.',
 });
 
-/**
- * Curated projects listed after the GitHub pins. Kaleb approved this list and
- * its descriptions verbatim on 2026-11-01. Protected wording: do not edit
- * without his ok.
- */
-export const LLMS_EXTRA_PROJECTS = Object.freeze([
-  ['luma-cli', 'Agentic CLI for Luma: list your invitations and RSVP from the terminal'],
-  ['gflightscli', 'Agent-friendly Google Flights CLI, JSON-first, structured exit codes, SKILL.md included'],
-  ['kaleb-marketplace', 'Dotfiles for agents: a curated marketplace of plugins, skills, hooks, CLIs, MCPs, etc'],
-  ['otp-grabber', 'Private, tailnet-only verification codes from Gmail and Messages to your Mac clipboard.'],
-  ['copilot-prompt', 'Copilot CLI extension: /prompt rewrites rough input into a polished prompt in a context-isolated side conversation.'],
-  ['cli-toolkit-skills', 'Copilot CLI skills for architecting, auditing, and scaffolding agent-friendly CLIs'],
-  ['agent-browser', 'Browser automation skill for AI coding agents (Copilot CLI, Claude Code, Agency)'],
-  ['matt-pocock-skills-for-github-copilot-app', 'Adaptation of Matt Pocock Skills for the GitHub Copilot app runtime'],
-  ['nelko-p21-cli', 'A macOS-first CLI for Nelko P21 Bluetooth label printers.'],
-  ['new-grad-builders', 'A community for new grads who want to build with AI agents, hands-on sessions, setup scripts, and automation.'],
-].map(([name, description]) => Object.freeze({ name, url: `https://github.com/KalebCole/${name}`, description })));
-
 const profile = (id) => ELSEWHERE_LINKS.find((entry) => entry.id === id).href;
 const xProfile = PERSON_SCHEMA.sameAs.find((href) => href.startsWith('https://x.com/'));
 
@@ -72,8 +54,7 @@ function link(title, url, description) {
 }
 
 function projects(repos) {
-  const pinned = new Set(repos.map((repo) => repo.name));
-  return [LLMS_SERIES_PROJECT, ...repos, ...LLMS_EXTRA_PROJECTS.filter((project) => !pinned.has(project.name))];
+  return [LLMS_SERIES_PROJECT, ...repos];
 }
 
 /**
