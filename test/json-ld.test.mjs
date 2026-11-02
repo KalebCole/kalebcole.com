@@ -9,6 +9,7 @@ const post = {
   description: 'A description.',
   url: new URL('https://kalebcole.com/blog/a-title/'),
   date: new Date('2026-07-16T00:00:00Z'),
+  image: { url: new URL('https://kalebcole.com/social/homepage-0123456789ab.png'), width: 1200, height: 630 },
 };
 
 test('BlogPosting names the site Person as its author by shared @id', () => {
@@ -17,7 +18,7 @@ test('BlogPosting names the site Person as its author by shared @id', () => {
   assert.equal(posting.headline, 'A title');
   assert.equal(posting.url, 'https://kalebcole.com/blog/a-title/');
   assert.equal(posting.datePublished, '2026-07-16');
-  assert.equal('dateModified' in posting, false, 'dateModified is omitted without an updated date');
+  assert.equal(posting.dateModified, '2026-07-16', 'dateModified falls back to the publication date without an updated date');
   assert.equal(posting.author, PERSON_AUTHOR);
   assert.equal(PERSON_SCHEMA['@id'], PERSON_ID);
   assert.deepEqual(posting.author, {
@@ -26,6 +27,15 @@ test('BlogPosting names the site Person as its author by shared @id', () => {
     name: 'Kaleb Cole',
     url: 'https://kalebcole.com/',
     sameAs: ELSEWHERE_LINKS.map((link) => link.href).filter((href) => href.startsWith('https://')),
+  });
+});
+
+test('BlogPosting carries the share image as an ImageObject', () => {
+  assert.deepEqual(blogPostingSchema(post).image, {
+    '@type': 'ImageObject',
+    url: 'https://kalebcole.com/social/homepage-0123456789ab.png',
+    width: 1200,
+    height: 630,
   });
 });
 
