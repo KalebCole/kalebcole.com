@@ -22,6 +22,48 @@
   font-display: swap;
 }
 
+/*
+  Metric-matched local fallbacks for Azeret Mono. While it loads
+  (font-display: swap), metadata renders in a local monospace font scaled to
+  Azeret's 0.65em advance and vertical metrics, so the swap does not rewrap
+  dates and tags or shift layout (the /blog/ CLS in #161).
+  size-adjust = 0.65 / local advance.
+  ascent-override = 0.937 / size-adjust; descent-override = 0.23 / size-adjust.
+  Each local family gets its own face because their advances differ.
+*/
+@font-face {
+  /* Consolas: 0.5498em advance */
+  font-family: "Azeret Mono Fallback Consolas";
+  src: local("Consolas");
+  font-weight: 400 600;
+  size-adjust: 118.22%;
+  ascent-override: 79.26%;
+  descent-override: 19.46%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  /* Menlo, DejaVu Sans Mono: 0.6021em advance */
+  font-family: "Azeret Mono Fallback Menlo";
+  src: local("Menlo"), local("Menlo-Regular"), local("DejaVu Sans Mono"), local("DejaVuSansMono");
+  font-weight: 400 600;
+  size-adjust: 107.96%;
+  ascent-override: 86.79%;
+  descent-override: 21.3%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  /* Courier New, Liberation Mono, Cousine: 0.6001em advance */
+  font-family: "Azeret Mono Fallback Courier";
+  src: local("Courier New"), local("CourierNewPSMT"), local("Liberation Mono"), local("LiberationMono"), local("Cousine");
+  font-weight: 400 600;
+  size-adjust: 108.32%;
+  ascent-override: 86.5%;
+  descent-override: 21.23%;
+  line-gap-override: 0%;
+}
+
 :root {
   --ground: oklch(0.975 0.004 260);
   --ink: oklch(0.18 0.01 270);
@@ -38,7 +80,7 @@
   --code-ink: oklch(0.94 0.01 260);
   --font-primary: "Bricolage Grotesque", system-ui, sans-serif;
   --font-note: "Recursive", system-ui, sans-serif;
-  --font-meta: "Azeret Mono", ui-monospace, monospace;
+  --font-meta: "Azeret Mono", "Azeret Mono Fallback Consolas", "Azeret Mono Fallback Menlo", "Azeret Mono Fallback Courier", ui-monospace, monospace;
   --shell: min(1280px, calc(100% - clamp(2rem, 6vw, 6rem)));
   --measure: 68ch;
   --ease-settle: cubic-bezier(.16, 1, .3, 1);

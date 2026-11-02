@@ -278,7 +278,10 @@ publishing metadata, filters when needed, and code-adjacent material.
 Fallbacks are `system-ui, sans-serif` for Bricolage and Recursive and
 `ui-monospace, monospace` for Azeret. Self-host WOFF2 subsets for only the
 approved axes and weights. Use `font-display: swap`; text must remain readable
-and structurally stable if fonts fail.
+and structurally stable if fonts fail. Azeret's stack also puts metric-matched
+local faces (`size-adjust`, `ascent-override`, `descent-override`) before
+`ui-monospace`, so metadata does not rewrap or shift layout when the web font
+swaps in.
 
 ### Hierarchy
 
