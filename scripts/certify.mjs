@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { extname, join, relative, resolve } from 'node:path';
@@ -433,7 +433,11 @@ const pinnedWritingSource = text(join(root, 'src', 'components', 'PinnedWriting.
 const recommendCardSource = text(join(root, 'src', 'components', 'RecommendCard.astro'));
 const breakpointMotionSource = text(join(root, 'src', 'scripts', 'home-breakpoint-motion.mjs'));
 const designSource = text(join(root, 'DESIGN.md'));
-assert.equal(packageJson.scripts.prebuild, 'npm run portrait', 'normal builds must regenerate every portrait derivative');
+assert.equal(
+  packageJson.scripts.prebuild,
+  'npm run portrait && npm run recommend-thumbnails',
+  'normal builds must regenerate every portrait derivative and any missing or stale recommend thumbnail',
+);
 assert.match(publicationMotionSource, /initProjectPointerMotion/, 'publication motion must provide project pointer tracking');
 const finePointerEdgeTilt = globalCss.match(/@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\.project-index-row:hover \.project-visual \{[\s\S]*?\n  \}/)?.[0] ?? '';
 assert.doesNotMatch(
@@ -748,7 +752,7 @@ const recommendationCards = matches(recommends, /<article\b[^>]*class="[^"]*\bre
   .map((match) => match[0]);
 // Recommend thumbnails (#158): local WebP copies, and the first card's image is the LCP image.
 const thumbnailManifest = JSON.parse(text(join(root, 'src', 'data', 'recommend-thumbnails.json')));
-const rerunThumbnails = 'run npm run recommend-thumbnails and commit the result';
+const rerunThumbnails = 'the prebuild step (npm run recommend-thumbnails) should have generated it; rerun the build and read its output';
 const expectedThumbnailFiles = new Set();
 for (const { slug, image } of await publishedRecommendImages(join(root, 'src', 'content', 'recommends'))) {
   const entry = thumbnailManifest[slug];
@@ -757,12 +761,22 @@ for (const { slug, image } of await publishedRecommendImages(join(root, 'src', '
   assert.ok(entry.candidates.length > 0, `recommend ${slug} must have at least one thumbnail candidate`);
   for (const candidate of entry.candidates) {
     assert.equal(candidate.src, thumbnailPath(slug, image, candidate.width), `recommend ${slug} thumbnail path must be ${thumbnailPath(slug, image, candidate.width)}`);
-    assert.ok(existsSync(join(root, 'public', ...candidate.src.split('/').filter(Boolean))), `recommend ${slug} thumbnail ${candidate.src} must be committed; ${rerunThumbnails}`);
+    assert.ok(existsSync(join(root, 'public', ...candidate.src.split('/').filter(Boolean))), `recommend ${slug} thumbnail ${candidate.src} must exist; ${rerunThumbnails}`);
     assert.ok(candidate.width <= THUMBNAIL_MAX_RENDERED_WIDTH * 2, `${candidate.src} must be at most twice the largest rendered thumbnail width`);
     expectedThumbnailFiles.add(candidate.src.split('/').pop());
   }
 }
+const publishedThumbnailSlugs = new Set((await publishedRecommendImages(join(root, 'src', 'content', 'recommends'))).map(({ slug }) => slug));
+for (const slug of Object.keys(thumbnailManifest)) {
+  assert.ok(publishedThumbnailSlugs.has(slug), `src/data/recommend-thumbnails.json lists ${slug}, which is not a published recommend with an image; ${rerunThumbnails}`);
+}
 const thumbnailDirectory = join(root, 'public', ...THUMBNAIL_PUBLIC_DIRECTORY.split('/').filter(Boolean));
+// The committed copies are the cache that keeps builds offline. Generated but uncommitted
+// thumbnails are not an error (the recommend itself may not be committed yet), so remind.
+const uncommittedThumbnails = spawnSync('git', ['status', '--porcelain', '--', `public${THUMBNAIL_PUBLIC_DIRECTORY}`, 'src/data/recommend-thumbnails.json'], { cwd: root, encoding: 'utf8' });
+if (uncommittedThumbnails.status === 0 && uncommittedThumbnails.stdout.trim()) {
+  console.warn(`Recommend thumbnails changed; commit them with the recommend:\n${uncommittedThumbnails.stdout.trimEnd()}`);
+}
 for (const file of existsSync(thumbnailDirectory) ? readdirSync(thumbnailDirectory) : []) {
   assert.ok(expectedThumbnailFiles.has(file), `public${THUMBNAIL_PUBLIC_DIRECTORY}/${file} is not used by a published recommend; ${rerunThumbnails}`);
 }
