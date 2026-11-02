@@ -8,7 +8,8 @@
     "build": "astro build",
     "certify": "npm run build && node scripts/certify.mjs && node scripts/certify-theme-toggle.mjs && node --test test/*.test.mjs",
     "portrait": "node scripts/build-portrait.mjs",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "recommend-thumbnails": "node scripts/recommend-thumbnails.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",

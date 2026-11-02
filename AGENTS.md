@@ -29,6 +29,7 @@ npm run dev
 GITHUB_TOKEN="" npm run build
 GITHUB_TOKEN="" npm run certify
 npm run portrait
+npm run recommend-thumbnails
 ```
 
 The Projects page and homepage use the committed GitHub snapshot even when `GITHUB_TOKEN` is empty. Build or certification failures are not expected.
@@ -36,6 +37,10 @@ The Projects page and homepage use the committed GitHub snapshot even when `GITH
 ## Portrait
 
 `assets/portrait.jpg` is the single source of truth for Kaleb's photo. To change it, replace that file and run a normal build. The `prebuild` hook automatically regenerates the homepage polaroid candidates (`public/me.jpg`, `public/me-600.webp`, `public/me-300.webp`) and the link-preview card used by Open Graph and Twitter metadata. The card filename includes the final rendered PNG's content hash, so portrait, layout, font, and renderer changes all give social platforms a new URL automatically. Commit the regenerated assets and `src/lib/portrait-social-image.generated.mjs` alongside the new master.
+
+## Recommend thumbnails
+
+Recommend frontmatter keeps the original `image` URL. Pages serve small local WebP copies from `public/recommends/thumbs/`, listed in `src/data/recommend-thumbnails.json`. After publishing a recommend with an `image`, or changing one, run `npm run recommend-thumbnails` and commit the new WebP files and JSON. Certify fails while they are missing or stale.
 
 ## Before shipping
 

@@ -45,7 +45,7 @@ const items = await getPublishedRecommends();
           </div>
           <p class="recommendations-filter-empty" data-filter-empty hidden></p>
           <div class="recommendations-list">
-            {items.map((item) => <RecommendCard item={item} />)}
+            {items.map((item, index) => <RecommendCard item={item} priority={index === 0 && Boolean(item.data.image)} />)}
           </div>
         </section>
       )}

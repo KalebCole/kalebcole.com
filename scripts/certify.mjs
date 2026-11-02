@@ -9,6 +9,8 @@ import { PRODUCTION_ORIGIN, resolveSocialImageOrigin } from '../src/lib/site-ori
 import { hasCanonicalResumeLinkInPrimaryNavigation } from './certify-primary-navigation.mjs';
 import { ELSEWHERE_LINKS } from '../src/lib/elsewhere.mjs';
 import { PERSON_ID } from '../src/lib/person-schema.mjs';
+import { THUMBNAIL_MAX_RENDERED_WIDTH, THUMBNAIL_PUBLIC_DIRECTORY, thumbnailPath } from '../src/lib/recommend-thumbnails.mjs';
+import { publishedRecommendImages } from './recommend-thumbnails.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dist = join(root, 'dist');
@@ -717,6 +719,51 @@ const homepageRecommendations = matches(homepage, /<article\b[^>]*class="[^"]*\b
   .map((match) => match[0]);
 const recommendationCards = matches(recommends, /<article\b[^>]*class="[^"]*\brec\b[^"]*"[^>]*\bdata-recommendation\b[^>]*>[\s\S]*?<\/article>/gi)
   .map((match) => match[0]);
+// Recommend thumbnails (#158): local WebP copies, and the first card's image is the LCP image.
+const thumbnailManifest = JSON.parse(text(join(root, 'src', 'data', 'recommend-thumbnails.json')));
+const rerunThumbnails = 'run npm run recommend-thumbnails and commit the result';
+const expectedThumbnailFiles = new Set();
+for (const { slug, image } of await publishedRecommendImages(join(root, 'src', 'content', 'recommends'))) {
+  const entry = thumbnailManifest[slug];
+  assert.ok(entry, `recommend ${slug} has an image but no local thumbnail; ${rerunThumbnails}`);
+  assert.equal(entry.source, image, `recommend ${slug} thumbnail was made from a different image URL; ${rerunThumbnails}`);
+  assert.ok(entry.candidates.length > 0, `recommend ${slug} must have at least one thumbnail candidate`);
+  for (const candidate of entry.candidates) {
+    assert.equal(candidate.src, thumbnailPath(slug, image, candidate.width), `recommend ${slug} thumbnail path must be ${thumbnailPath(slug, image, candidate.width)}`);
+    assert.ok(existsSync(join(root, 'public', ...candidate.src.split('/').filter(Boolean))), `recommend ${slug} thumbnail ${candidate.src} must be committed; ${rerunThumbnails}`);
+    assert.ok(candidate.width <= THUMBNAIL_MAX_RENDERED_WIDTH * 2, `${candidate.src} must be at most twice the largest rendered thumbnail width`);
+    expectedThumbnailFiles.add(candidate.src.split('/').pop());
+  }
+}
+const thumbnailDirectory = join(root, 'public', ...THUMBNAIL_PUBLIC_DIRECTORY.split('/').filter(Boolean));
+for (const file of existsSync(thumbnailDirectory) ? readdirSync(thumbnailDirectory) : []) {
+  assert.ok(expectedThumbnailFiles.has(file), `public${THUMBNAIL_PUBLIC_DIRECTORY}/${file} is not used by a published recommend; ${rerunThumbnails}`);
+}
+for (const [route, path] of routes) {
+  for (const tag of matches(text(path), /<img\b[^>]*class="rec-thumb"[^>]*>/gi).map((match) => match[0])) {
+    assert.ok(attribute(tag, 'src').startsWith(`${THUMBNAIL_PUBLIC_DIRECTORY}/`), `${route} recommendation thumbnail must be a local copy, not ${attribute(tag, 'src')}`);
+    const srcset = attribute(tag, 'srcset') ?? '';
+    assert.ok(srcset, `${route} recommendation thumbnail must offer a srcset`);
+    for (const candidate of srcset.split(',').map((value) => value.trim().split(/\s+/)[0])) {
+      assert.ok(candidate.startsWith(`${THUMBNAIL_PUBLIC_DIRECTORY}/`) && existsSync(localAsset(candidate)), `${route} thumbnail candidate ${candidate} must be emitted`);
+    }
+    assert.ok(attribute(tag, 'sizes'), `${route} recommendation thumbnail must declare sizes`);
+    assert.equal(attribute(tag, 'alt'), '', `${route} recommendation thumbnail alt text must stay empty (the title names the item)`);
+  }
+}
+const recommendsThumbs = recommendationCards.map((card) => card.match(/<img\b[^>]*class="rec-thumb"[^>]*>/i)?.[0]);
+if (recommendsThumbs[0]) {
+  assert.doesNotMatch(recommendsThumbs[0], /\bloading="lazy"/i, 'the first Recommends thumbnail is the LCP image and must not be lazy');
+  assert.match(recommendsThumbs[0], /\bfetchpriority="high"/i, 'the first Recommends thumbnail is the LCP image and must have fetchpriority="high"');
+}
+for (const tag of recommendsThumbs.slice(1).filter(Boolean)) {
+  assert.match(tag, /\bloading="lazy"/i, 'Recommends thumbnails after the first must stay lazy');
+  assert.doesNotMatch(tag, /\bfetchpriority=/i, 'only the first Recommends thumbnail may have a priority hint');
+}
+for (const tag of homepageRecommendations.map((card) => card.match(/<img\b[^>]*class="rec-thumb"[^>]*>/i)?.[0]).filter(Boolean)) {
+  assert.match(tag, /\bloading="lazy"/i, 'homepage recommendation thumbnails are below the fold and must stay lazy');
+  assert.doesNotMatch(tag, /\bfetchpriority=/i, 'homepage recommendation thumbnails must not take priority from the portrait');
+}
 const publishedRecommendationUrls = matches(recommends, /class="rec-title"[\s\S]*?<a\b[^>]*href="([^"]+)"/gi)
   .map((match) => match[1]);
 const homepageRecommendationUrls = homepageRecommendations
