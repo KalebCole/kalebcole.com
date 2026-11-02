@@ -40,7 +40,7 @@ The Projects page and homepage use the committed GitHub snapshot even when `GITH
 
 ## Recommend thumbnails
 
-Recommend frontmatter keeps the original `image` URL. Pages serve small local WebP copies from `public/recommends/thumbs/`, listed in `src/data/recommend-thumbnails.json`. After publishing a recommend with an `image`, or changing one, run `npm run recommend-thumbnails` and commit the new WebP files and JSON. Certify fails while they are missing or stale.
+Recommend frontmatter keeps the original `image` URL. Pages serve small local WebP copies from `public/recommends/thumbs/`, listed in `src/data/recommend-thumbnails.json`. The `prebuild` hook runs `npm run recommend-thumbnails`, which downloads and converts only images that are new or changed and deletes unused copies, so every build (local and Vercel) has them. Commit the generated WebP files and JSON with the recommend: they are a cache that keeps builds offline and keeps thumbnails working if the source host drops the image. If a download fails, the build stops and names the recommend and URL. Use `npm run recommend-thumbnails -- --force` after changing thumbnail widths or encoder settings.
 
 ## Before shipping
 
