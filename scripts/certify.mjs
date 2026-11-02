@@ -376,7 +376,11 @@ for (const slug of publishedPostSlugs) {
   assert.equal(posting.url, canonical, `${route} BlogPosting url must be canonical`);
   assert.equal(posting.mainEntityOfPage, canonical, `${route} BlogPosting mainEntityOfPage must be canonical`);
   assert.equal(posting.datePublished, published.slice(0, 10), `${route} BlogPosting datePublished must match the visible date`);
-  assert.equal(posting.dateModified, updated?.slice(0, 10), `${route} BlogPosting dateModified must match the visible updated date`);
+  assert.equal(posting.dateModified, (updated ?? published).slice(0, 10), `${route} BlogPosting dateModified must match the visible updated date, or the publication date when there is none`);
+  assert.equal(posting.image?.['@type'], 'ImageObject', `${route} BlogPosting must carry an image`);
+  assert.equal(posting.image.url, metaContent(html, 'property', 'og:image'), `${route} BlogPosting image must be the page's og:image`);
+  assert.equal(String(posting.image.width), metaContent(html, 'property', 'og:image:width'), `${route} BlogPosting image width must match og:image:width`);
+  assert.equal(String(posting.image.height), metaContent(html, 'property', 'og:image:height'), `${route} BlogPosting image height must match og:image:height`);
   assert.deepEqual(posting.author, expectedAuthor, `${route} BlogPosting author must be the site Person`);
 }
 assert.equal(metaContent(homepage, 'name', 'twitter:card'), 'summary_large_image', 'homepage must request a large Twitter card');

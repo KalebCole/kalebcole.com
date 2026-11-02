@@ -2,6 +2,7 @@
 import Layout from './Layout.astro';
 import { HOMEPAGE_SOCIAL_IMAGE } from '../lib/social-image.mjs';
 import { blogPostingSchema } from '../lib/json-ld.mjs';
+import { resolveSocialImageOrigin } from '../lib/site-origin.mjs';
 
 interface Props {
   title: string;
@@ -19,6 +20,12 @@ const jsonLd = blogPostingSchema({
   url: new URL(Astro.url.pathname, Astro.site),
   date,
   updated,
+  // Same absolute URL Layout.astro emits as og:image for this page.
+  image: {
+    url: new URL(HOMEPAGE_SOCIAL_IMAGE.image, resolveSocialImageOrigin(process.env)),
+    width: HOMEPAGE_SOCIAL_IMAGE.imageWidth,
+    height: HOMEPAGE_SOCIAL_IMAGE.imageHeight,
+  },
 });
 const fmt = (d: Date) =>
   d.toLocaleDateString('en-US', {
