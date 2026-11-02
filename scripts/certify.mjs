@@ -264,6 +264,11 @@ for (const [route, path] of routes) {
   assert.match(html, /<link\b[^>]*rel="alternate"[^>]*type="application\/rss\+xml"/i, `${route} must expose a feed`);
   assert.match(html, /<link\b[^>]*rel="apple-touch-icon"[^>]*sizes="180x180"/i, `${route} must expose the touch icon`);
 
+  for (const match of matches(html, /<(div|span|p)\b[^>]*\baria-label(?:ledby)?=[^>]*>/gi)) {
+    // A generic element cannot carry an accessible name, so screen readers ignore the label (ARIA 1.2 naming prohibited).
+    const role = attribute(match[0], 'role');
+    assert.ok(role && !['generic', 'presentation', 'none'].includes(role), `${route} <${match[1]}> with an aria-label needs a role that allows naming: ${match[0]}`);
+  }
   for (const match of matches(html, /<img\b[^>]*>/gi)) {
     const tag = match[0];
     assert.ok(attribute(tag, 'alt') !== undefined, `${route} image must have alt text`);
@@ -501,6 +506,7 @@ assert.match(homepage, /href="\/blog"[^>]*>\s*Read my writing\s*<\/a>/i, 'homepa
 const homepageHero = homepage.match(/<section\b[^>]*class="home-hero"[^>]*>[\s\S]*?<\/section>/i)?.[0] ?? '';
 assert.doesNotMatch(homepageHero, /\bdata-motion-beat\b/i, 'homepage hero and its children must not receive publication motion hooks');
 const homeActions = homepageHero.match(/<div\b[^>]*class="home-actions"[^>]*>[\s\S]*?<\/div>\s*<\/section>/i)?.[0] ?? '';
+assert.match(homeActions, /^<div\b[^>]*\brole="group"[^>]*\baria-label="Explore my work"/i, 'the hero action group must expose its label as a named group');
 const homeElsewhere = homeActions.match(/<div\b[^>]*class="home-elsewhere"[^>]*>[\s\S]*?<\/div>/i)?.[0] ?? '';
 assert.ok(homeElsewhere, 'homepage hero must render the stamped profile bubbles');
 assert.match(homeActions, /<div\b[^>]*class="home-primary-actions"[^>]*>[\s\S]*?<div\b[^>]*class="home-elsewhere"/i, 'profile bubbles must follow the primary CTA pair in the same subordinate action group');
