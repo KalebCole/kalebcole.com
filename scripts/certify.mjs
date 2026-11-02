@@ -269,6 +269,22 @@ for (const [route, path] of routes) {
     assert.ok(attribute(tag, 'alt') !== undefined, `${route} image must have alt text`);
     assert.ok(attribute(tag, 'width') && attribute(tag, 'height'), `${route} image must declare dimensions`);
   }
+  // WCAG 1.2.1: every video has a visible text description next to it, in the same figure.
+  for (const figure of matches(html, /<figure\b[^>]*>[\s\S]*?<\/figure>/gi).map((match) => match[0]).filter((block) => /<video\b/i.test(block))) {
+    for (const video of matches(figure, /<video\b[^>]*>/gi).map((match) => match[0])) {
+      const describedBy = attribute(video, 'aria-describedby');
+      assert.ok(describedBy, `${route} video must reference its description with aria-describedby`);
+      const description = figure.match(new RegExp(`<(figcaption|p)\\b[^>]*\\bid="${describedBy}"[^>]*>([\\s\\S]*?)<\\/\\1>`, 'i'));
+      assert.ok(description, `${route} video description #${describedBy} must be a figcaption or paragraph in the same figure`);
+      assert.doesNotMatch(description[0], /\b(?:hidden|sr-only)\b/i, `${route} video description #${describedBy} must be visible`);
+      assert.ok(description[2].replace(/<[^>]+>/g, '').trim().length >= 80, `${route} video description #${describedBy} must describe what the video shows`);
+    }
+  }
+  assert.equal(
+    matches(html, /<video\b/gi).length,
+    matches(html, /<figure\b[^>]*>[\s\S]*?<\/figure>/gi).reduce((count, match) => count + matches(match[0], /<video\b/gi).length, 0),
+    `${route} every video must sit in a figure with its description`,
+  );
   for (const match of matches(html, /<video\b[^>]*>/gi)) {
     const tag = match[0];
     assert.ok(

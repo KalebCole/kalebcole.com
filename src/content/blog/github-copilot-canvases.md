@@ -10,10 +10,13 @@ I want to talk about a new feature of the [GitHub Copilot app](https://github.co
 
 Here is a demo of how a canvas works:
 
-<video controls playsinline preload="metadata" width="2496" height="1664" src="/blog/copilot-canvases/canvas-demo.mp4">
-  Your browser does not support embedded video. You can
-  <a href="/blog/copilot-canvases/canvas-demo.mp4">download the demo instead</a>.
-</video>
+<figure>
+  <video controls playsinline preload="metadata" width="2496" height="1664" aria-describedby="canvas-demo-description" src="/blog/copilot-canvases/canvas-demo.mp4">
+    Your browser does not support embedded video. You can
+    <a href="/blog/copilot-canvases/canvas-demo.mp4">download the demo instead</a>.
+  </video>
+  <figcaption id="canvas-demo-description" class="media-description">Video description (no audio): The GitHub Copilot app, with a chat on the left and a Repository Issues Kanban canvas on the right. The board shows seven issues across Backlog, Plan, Ready, Implement, and Done columns. Issue #1, “Add a compact project summary card”, is dragged from Backlog to Plan. The canvas then posts a message in the chat asking the agent to plan that issue in a background agent and move it to Ready when planning is done. The agent starts the planning task, and the card shows “Planning implementation”.</figcaption>
+</figure>
 
 GitHub docs give a good explanation of how canvases work (ask your agent to explain), and there's an inbuilt `create-canvas` skill in the app.
 

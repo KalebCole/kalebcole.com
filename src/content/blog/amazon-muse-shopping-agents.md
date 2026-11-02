@@ -60,9 +60,10 @@ Meta said at Meta Connect 2026 that it was adding shopping connectors for other 
 Stripe, the payment processor company, [announced](https://stripe.com/newsroom/news/stripe-helps-meta-muse-shop-with-link) that Muse integrated Link's wallet for agents. Link can generate a one-time-use card, so a person's real card details stay hidden while the person still approves the purchase in Muse.
 
 <figure>
-  <video controls playsinline preload="metadata" width="720" height="720" style="width: 100%; height: auto;" src="/blog/muse-amazon-agents/jeff-titterton-link-wallet-muse-demo.mp4">
+  <video controls playsinline preload="metadata" width="720" height="720" style="width: 100%; height: auto;" aria-describedby="link-wallet-demo-description" src="/blog/muse-amazon-agents/jeff-titterton-link-wallet-muse-demo.mp4">
     Your browser does not support embedded video. You can <a href="/blog/muse-amazon-agents/jeff-titterton-link-wallet-muse-demo.mp4">download the video instead</a>.
   </video>
+  <p id="link-wallet-demo-description" class="media-description">Video description: A phone showing a chat with Muse. The person asks for the cheapest non-stop flight from Boston to Dublin, leaving October 14 and returning October 21. Muse finds a non-stop Shamrock Air flight for $470.00, the person says it sounds great and enters their name, birth date, and passport details, and Muse asks whether to complete the booking. Muse then shows a Link by Stripe approval card: “Muse wants to spend $470.00 at shamrockair.com”, paid with a Chase Sapphire card ending in 4242, with Deny and Allow buttons. After Allow, Muse confirms the booking with a flight number and confirmation code. The video ends on the Link logo.</p>
   <figcaption>Video by Jeff Titterton for Stripe, originally published on <a href="https://www.linkedin.com/posts/jefftitterton_at-stripe-sessions-we-launched-links-wallet-ugcPost-7503179400813629441-AG7H/">LinkedIn</a>. The video has no audible speech.</figcaption>
 </figure>
 
