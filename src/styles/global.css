@@ -1041,6 +1041,18 @@ html[data-mode="dark"] .media-dialog::backdrop {
   font-variation-settings: "CASL" 1, "CRSV" 1;
 }
 
+/* A neutral text alternative for video-only media (WCAG 1.2.1). It is not a
+   personal note, so it uses the primary voice rather than Recursive. */
+.prose .media-description {
+  max-width: none;
+  margin-top: .75rem;
+  color: var(--muted);
+  font-family: var(--font-primary);
+  font-size: .9rem;
+  font-variation-settings: normal;
+  line-height: 1.5;
+}
+
 .article-ending {
   margin-top: clamp(4rem, 10vw, 7rem);
   padding-top: 2rem;
