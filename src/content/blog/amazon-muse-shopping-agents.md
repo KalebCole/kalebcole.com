@@ -35,7 +35,7 @@ He followed with:
     <source type="image/webp" srcset="/blog/muse-amazon-agents/paul-graham-agent-restrictions.webp">
     <img src="/blog/muse-amazon-agents/paul-graham-agent-restrictions.png" width="1266" height="1038" loading="lazy" decoding="async" alt="Paul Graham's follow-up posts on X about companies that ban agents.">
   </picture>
-  <figcaption><a href="https://x.com/paulg/status/2108011311229747525">Paul Graham’s follow-up posts on X.</a></figcaption>
+  <figcaption><a href="https://x.com/paulg/status/2108015238226587794">Paul Graham’s follow-up posts on X.</a></figcaption>
 </figure>
 
 When a company does not adapt to a platform shift, it creates a competitive advantage for the companies that do. If people want agents to shop for them, openness to agents becomes part of why customers choose one marketplace over another.
