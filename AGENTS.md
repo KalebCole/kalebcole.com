@@ -66,6 +66,15 @@ The post text, word for word.
 
 `.astro` pages use `src/components/XPost.astro` with the same fields as props. The block renders a card that looks like an X post, with X's standard `blockquote.twitter-tweet` markup (`data-dnt="true"`) for the text and same-tab links for the time, Reply, and Read replies. The local time and Copy link come from a small first-party script (`src/scripts/x-post.mjs`) that `Post.astro` inlines only on Writing pages with an `x-post` block; without JavaScript the time stays in UTC and Copy link stays hidden. An `.astro` page using `XPost.astro` does not get that script. It never loads `widgets.js` or anything else from X: the release budget allows 0 third-party JavaScript (`DESIGN.md`), and certify fails any route that loads it. Tracking parameters such as `?s=20` are dropped from the link. A missing field, a bad link, a remote avatar, or an em dash in the quoted text stops the build with the reason; an em dash in someone else's words needs Kaleb's call on the replacement. Quoted text is someone else's exact words: copy it, never edit it.
 
+## Where checks live
+
+`npm run certify` builds the site, then runs two kinds of checks:
+
+- Static checks on the built output in `scripts/certify/`. `scripts/certify.mjs` is a thin runner: it loads `dist/` once (`context.mjs`), runs every module listed in `MODULES`, prints every failure with its module name, and exits 1 if any failed. Each topic (meta, JSON-LD, writing, recommends, fonts, icons, budgets, feeds, and so on) is one module that exports `check(context)` and returns its failures. Shared helpers and budgets are in `helpers.mjs`.
+- Browser checks in `test/*.test.mjs`, run with `node --test` in headless Chrome against `dist/` (set `CHROME_BIN`). Measured layout rules from `DESIGN.md`, such as media centering, live in `test/design-layout.test.mjs`.
+
+To add a check: put the assertion in the module for its topic, with a message that names the route and the rule. For a new topic, copy a small module (such as `scripts/certify/icons.mjs`), wrap the assertions in `collect('<name>', async (context) => { ... })`, and add its name to `MODULES`. If a rule needs real layout, add it to a browser test instead and wait for the page to settle (fonts, images, animations) rather than sleeping. Break the rule in `dist/` once to see the check fail before you ship it.
+
 ## Before shipping
 
 1. Review the diff for unrelated changes.
