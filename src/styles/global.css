@@ -1041,13 +1041,15 @@ html[data-mode="dark"] .media-dialog::backdrop {
   font-variation-settings: "CASL" 1, "CRSV" 1;
 }
 
-/* Static X post cards (src/lib/x-post.mjs). A card at reading measure that
-   reads like a post on X, built from site tokens with no widget script. It is
-   source material rather than a personal note, so it uses the primary voice. */
+/* Static X post cards (src/lib/x-post.mjs). A card that reads like a post on
+   X, built from site tokens with no widget script. It is source material
+   rather than a personal note, so it uses the primary voice. Like article
+   images (DESIGN.md: media centered on the prose column), it sits centered in
+   the column, but stays at a readable 36rem instead of breaking out. */
 .prose > figure.x-post {
   width: auto;
   max-width: 36rem;
-  margin-inline: 0;
+  margin-inline: auto;
   transform: none;
 }
 
