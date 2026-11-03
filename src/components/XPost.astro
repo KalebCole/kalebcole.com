@@ -1,0 +1,23 @@
+---
+// The same static X post embed used by ```x-post blocks in Writing, for
+// .astro pages. No script: see src/lib/x-post.mjs.
+import { renderXPost } from '../lib/x-post.mjs';
+
+interface Props {
+  /** Status link, such as https://x.com/name/status/123. */
+  url: string;
+  /** Display name shown on X. */
+  author: string;
+  /** Post date as YYYY-MM-DD. */
+  date: string;
+  /** The post text. Blank lines separate paragraphs. */
+  text: string;
+  /** Defaults to the username in `url`. */
+  handle?: string;
+  /** Language of the post text. Defaults to en. */
+  lang?: string;
+}
+
+const html = renderXPost(Astro.props);
+---
+<Fragment set:html={html} />

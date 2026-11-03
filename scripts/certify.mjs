@@ -959,6 +959,11 @@ for (const [route, path] of routes) {
   assert.ok(routeSize <= budgets.route, `${route} exceeds complete route budget`);
   assert.ok(resources.length + metadataResources.length + 1 <= budgets.requests, `${route} exceeds request budget`);
   assert.equal(thirdPartyScripts.length, 0, `${route} must not load third-party JavaScript`);
+  // X post embeds stay static quotes (src/lib/x-post.mjs): no widget loader, even inline, and do-not-track on every embed.
+  assert.doesNotMatch(html, /platform\.(?:x|twitter)\.com|widgets\.js/i, `${route} must not load the X widget script`);
+  for (const match of matches(html, /<blockquote\b[^>]*class="[^"]*\btwitter-tweet\b[^"]*"[^>]*>/gi)) {
+    assert.match(match[0], /\bdata-dnt="true"/, `${route} X post embeds must set data-dnt="true"`);
+  }
 }
 
 assert.deepEqual(pngDimensions(join(dist, 'favicon-16x16.png')), [16, 16], '16px favicon dimensions');
