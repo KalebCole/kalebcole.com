@@ -42,6 +42,22 @@ The Projects page and homepage use the committed GitHub snapshot even when `GITH
 
 Recommend frontmatter keeps the original `image` URL. Pages serve small local WebP copies from `public/recommends/thumbs/`, listed in `src/data/recommend-thumbnails.json`. The `prebuild` hook runs `npm run recommend-thumbnails`, which downloads and converts only images that are new or changed and deletes unused copies, so every build (local and Vercel) has them. Commit the generated WebP files and JSON with the recommend: they are a cache that keeps builds offline and keeps thumbnails working if the source host drops the image. If a download fails, the build stops and names the recommend and URL. Use `npm run recommend-thumbnails -- --force` after changing thumbnail widths or encoder settings.
 
+## X post embeds in Writing
+
+Writing is plain Markdown, so an X post is a fenced block with the `x-post` language. Fields first, one blank line, then the post text exactly as it appears on X (blank lines make paragraphs):
+
+````markdown
+```x-post
+url: https://x.com/name/status/1234567890
+author: Display Name
+date: 2026-11-01
+
+The post text, word for word.
+```
+````
+
+`handle` (defaults to the username in `url`) and `lang` (defaults to `en`) are optional. `.astro` pages use `src/components/XPost.astro` with the same fields as props. The block renders X's standard `blockquote.twitter-tweet` markup with `data-dnt="true"` inside a figure, plus a visible byline and a same-tab link to the post. It never loads `widgets.js` or anything else from X: the release budget allows 0 third-party JavaScript (`DESIGN.md`), and certify fails any route that loads it. Tracking parameters such as `?s=20` are dropped from the link. A missing field, a bad link, or an em dash in the quoted text stops the build with the reason; an em dash in someone else's words needs Kaleb's call on the replacement. Quoted text is someone else's exact words: copy it, never edit it.
+
 ## Before shipping
 
 1. Review the diff for unrelated changes.

@@ -1041,6 +1041,42 @@ html[data-mode="dark"] .media-dialog::backdrop {
   font-variation-settings: "CASL" 1, "CRSV" 1;
 }
 
+/* Static X post embeds (src/lib/x-post.mjs). A quote at reading measure,
+   not a media breakout, and no widget script. The byline is source
+   attribution rather than a personal note, so it uses the primary voice. */
+.prose > figure.x-post {
+  width: auto;
+  margin-inline: 0;
+  transform: none;
+}
+
+.prose .x-post blockquote {
+  overflow-wrap: anywhere;
+}
+
+.prose .x-post blockquote > p + p {
+  margin-top: 1em;
+}
+
+.prose .x-post-byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .6rem;
+  align-items: baseline;
+  font-family: var(--font-primary);
+  font-variation-settings: normal;
+  line-height: 1.5;
+}
+
+.prose .x-post-author {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prose .x-post-handle {
+  overflow-wrap: anywhere;
+}
+
 /* A neutral text alternative for video-only media (WCAG 1.2.1). It is not a
    personal note, so it uses the primary voice rather than Recursive. */
 .prose .media-description {
