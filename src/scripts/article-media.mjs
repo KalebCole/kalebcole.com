@@ -37,6 +37,8 @@ if (prose && dialog && typeof dialog.showModal === 'function') {
   }
 
   for (const image of prose.querySelectorAll('img')) {
+    // X post card avatars are part of the card, not media to expand.
+    if (image.closest('.x-post')) continue;
     const media = image.parentElement?.tagName === 'PICTURE' ? image.parentElement : image;
     const button = document.createElement('button');
     button.type = 'button';

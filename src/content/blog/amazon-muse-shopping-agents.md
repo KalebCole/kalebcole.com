@@ -18,23 +18,28 @@ Is Amazon protecting customers here, or protecting the part of its business that
 
 Paul Graham, founder of Y Combinator, had this take:
 
-<figure>
-  <picture>
-    <source type="image/webp" srcset="/blog/muse-amazon-agents/paul-graham-amazon-agents.webp">
-    <img src="/blog/muse-amazon-agents/paul-graham-amazon-agents.png" width="1256" height="436" loading="lazy" decoding="async" alt="Paul Graham's post on X about Amazon banning agents and the opportunity for a startup competitor.">
-  </picture>
-  <figcaption><a href="https://x.com/paulg/status/2108011311229747525">Paul Graham on X</a></figcaption>
-</figure>
+```x-post
+url: https://x.com/paulg/status/2108011311229747525
+author: Paul Graham
+date: 2026-10-08T01:47:16Z
+avatar: /x-avatars/paulg.webp
+verified: true
+
+Amazon banning agents is the first opportunity I've seen since Amazon was founded for a startup to create an Amazon competitor. People will want agents to buy stuff for them. It will be one of the main use cases. And they won't want to use some Amazon-supplied agent to do it.
+```
 
 He followed with:
 
-<figure>
-  <picture>
-    <source type="image/webp" srcset="/blog/muse-amazon-agents/paul-graham-agent-restrictions.webp">
-    <img src="/blog/muse-amazon-agents/paul-graham-agent-restrictions.png" width="1266" height="1038" loading="lazy" decoding="async" alt="Paul Graham's follow-up posts on X about companies that ban agents.">
-  </picture>
-  <figcaption><a href="https://x.com/paulg/status/2108011311229747525">Paul Graham’s follow-up posts on X.</a></figcaption>
-</figure>
+```x-post
+url: https://x.com/paulg/status/2108015238226587794
+author: Paul Graham
+date: 2026-10-08T02:02:52Z
+avatar: /x-avatars/paulg.webp
+verified: true
+replyto: paulg
+
+Any business that bans agents represents an opportunity for a startup to create a competitor. If they need to ban agents, it must mean people want to use them, or there would be no point. And that in turn means there's demand for a competitor that allows them.
+```
 
 When a company does not adapt to a platform shift, it creates a competitive advantage for the companies that do. If people want agents to shop for them, openness to agents becomes part of why customers choose one marketplace over another.
 
@@ -144,17 +149,3 @@ I see Amazon blocking a customer-chosen agent from shopping as anti-consumer. It
 A blanket block is not the only choice. The Personal Agent Protocol shows one possible way through the conflict. Maybe Amazon is waiting for a more formal specification. I hope so.
 
 Agentic commerce will become the default way to shop. Companies that force customers back into their own interface repeat the mistake of the search portals Google outcompeted: treating control of the interface as more valuable than helping people get where they want to go. That creates a competitive advantage for the companies that adapt.
-## Sources
-
-- [GeekWire: Amazon blocks Meta's Muse AI assistant](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/)
-- [Meta: Introducing Muse](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent)
-- [Meta: The biggest news from Connect 2026](https://about.fb.com/news/2026/09/the-biggest-news-from-connect-2026)
-- [Shopify Help: Selling on Meta](https://help.shopify.com/en/manual/online-sales-channels/agentic-storefronts/meta)
-- [Stripe: Link in Muse](https://stripe.com/newsroom/news/stripe-helps-meta-muse-shop-with-link)
-- [Amazon 2025 Form 10-K](https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/amzn-20251231.htm)
-- [Amazon Q2 2026 results](https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Second-Quarter-Results)
-- [Paul Graham on X](https://x.com/paulg/status/2108011311229747525)
-- [David Senra: Alexandr Wang](https://www.davidsenra.com/episode/alexandr-wang)
-- [Acquired: Google Part 1, Origins of Search](https://www.acquired.fm/episodes/google)
-- [Cheeky Pint: *Muse Wonder: Zuckerberg and Wang's 100B AI*](https://open.spotify.com/podcast-chapter/0qLTNDAQgZBOdrmyC7BkpA?utm_source=native-share-menu)
-- [Sierra, “Introducing Personal Agent Protocol”](https://sierra.ai/blog/introducing-personal-agent-protocol)

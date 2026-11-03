@@ -1,0 +1,36 @@
+---
+// The same static X post card used by ```x-post blocks in Writing, for
+// .astro pages. No third-party script: see src/lib/x-post.mjs.
+import { renderXPost } from '../lib/x-post.mjs';
+
+interface Props {
+  /** Status link, such as https://x.com/name/status/123. */
+  url: string;
+  /** Display name shown on X. */
+  author: string;
+  /** Post date as YYYY-MM-DD, or its UTC time as YYYY-MM-DDTHH:MMZ. */
+  date: string;
+  /** The post text. Blank lines separate paragraphs. */
+  text: string;
+  /** Defaults to the username in `url`. */
+  handle?: string;
+  /** Language of the post text. Defaults to en. */
+  lang?: string;
+  /** Self-hosted avatar path, such as /x-avatars/name.webp. Without it the card shows an initial. */
+  avatar?: string;
+  /** Shows the verified badge. */
+  verified?: boolean;
+  /** Username this post replies to, shown as "Replying to @name". */
+  replyto?: string;
+  /** Like count snapshot. Off unless given, because it goes stale. */
+  likes?: number;
+  /** Reply count snapshot for "Read N replies". Off unless given. */
+  replies?: number;
+  /** A caption under the card, linked to captionurl or the post. */
+  caption?: string;
+  captionurl?: string;
+}
+
+const html = renderXPost(Astro.props);
+---
+<Fragment set:html={html} />

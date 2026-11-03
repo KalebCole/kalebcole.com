@@ -1041,6 +1041,208 @@ html[data-mode="dark"] .media-dialog::backdrop {
   font-variation-settings: "CASL" 1, "CRSV" 1;
 }
 
+/* Static X post cards (src/lib/x-post.mjs). A card at reading measure that
+   reads like a post on X, built from site tokens with no widget script. It is
+   source material rather than a personal note, so it uses the primary voice. */
+.prose > figure.x-post {
+  width: auto;
+  max-width: 36rem;
+  margin-inline: 0;
+  transform: none;
+}
+
+.prose .x-post-card {
+  padding: 1rem 1.25rem .75rem;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-primary);
+  font-variation-settings: normal;
+  line-height: 1.4;
+}
+
+.prose .x-post-card p {
+  max-width: none;
+  margin: 0;
+}
+
+.prose .x-post-head {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: .75rem;
+  align-items: center;
+}
+
+.prose .x-post-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.prose .x-post-initial {
+  display: grid;
+  place-items: center;
+  background: var(--soft-blue);
+  color: var(--ink);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.prose .x-post-names {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 .3rem;
+  line-height: 1.3;
+}
+
+.prose .x-post-author {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.prose .x-post-badge {
+  flex: none;
+  fill: var(--blue);
+}
+
+.prose .x-post-handle {
+  flex-basis: 100%;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.prose .x-post-logo {
+  align-self: start;
+  width: 26px;
+  height: 26px;
+  fill: var(--ink);
+}
+
+.prose .x-post-card .x-post-reply {
+  margin-top: .75rem;
+  color: var(--muted);
+  font-size: .95rem;
+}
+
+.prose .x-post blockquote {
+  margin: .5rem 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.prose .x-post blockquote > p + p {
+  margin-top: 1em;
+}
+
+.prose .x-post-card .x-post-meta {
+  margin-top: .6rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: .95rem;
+}
+
+.prose .x-post-card a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+/* Hover is a color and underline change only, never motion (article prose
+   keeps no interaction motion), like the site-wide link hover. */
+.x-post-card a:hover,
+.x-post-card .x-post-copy:hover {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
+/* The time is the only text-only link in the card, so it keeps an underline. */
+.prose .x-post-card .x-post-link {
+  text-decoration: underline;
+  text-decoration-thickness: .06em;
+}
+
+.prose .x-post-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem 1.5rem;
+  padding-block: .4rem;
+  color: var(--muted);
+  font-size: .95rem;
+  font-weight: 600;
+}
+
+.prose .x-post-likes,
+.prose .x-post-card .x-post-action {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 44px;
+  color: var(--muted);
+}
+
+.prose .x-post-action[hidden] {
+  display: none;
+}
+
+.prose .x-post-copy {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.prose .x-post-icon {
+  flex: none;
+  fill: currentColor;
+}
+
+.prose .x-post-heart {
+  fill: var(--coral);
+}
+
+.prose .x-post-reply-icon {
+  fill: var(--blue);
+}
+
+.prose .x-post-card .x-post-replies {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: .25rem;
+  margin-bottom: .25rem;
+  padding: .4rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--blue);
+  font-weight: 600;
+  text-align: center;
+}
+
+.prose .x-post-card .x-post-replies:visited {
+  color: var(--blue);
+}
+
+.prose .x-post + .x-post {
+  margin-top: 1rem;
+}
+
+@media (forced-colors: active) {
+  .prose .x-post-badge,
+  .prose .x-post-logo,
+  .prose .x-post-icon {
+    fill: CanvasText;
+  }
+}
+
 /* A neutral text alternative for video-only media (WCAG 1.2.1). It is not a
    personal note, so it uses the primary voice rather than Recursive. */
 .prose .media-description {

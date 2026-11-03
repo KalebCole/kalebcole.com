@@ -3,6 +3,7 @@ import Layout from './Layout.astro';
 import { HOMEPAGE_SOCIAL_IMAGE } from '../lib/social-image.mjs';
 import { blogPostingSchema } from '../lib/json-ld.mjs';
 import { resolveSocialImageOrigin } from '../lib/site-origin.mjs';
+import xPostScript from '../scripts/x-post.mjs?raw';
 
 interface Props {
   title: string;
@@ -12,8 +13,10 @@ interface Props {
   tags: string[];
   readingMinutes: number;
   nextPost?: { href: string; title: string };
+  /** The post has an X post card, so it needs the card script. */
+  hasXPost?: boolean;
 }
-const { title, description, date, updated, tags, readingMinutes, nextPost } = Astro.props;
+const { title, description, date, updated, tags, readingMinutes, nextPost, hasXPost = false } = Astro.props;
 const jsonLd = blogPostingSchema({
   title,
   description,
@@ -81,3 +84,6 @@ const fmt = (d: Date) =>
 <script>
   import '../scripts/article-media.mjs';
 </script>
+
+{/* X post card times and Copy link, only on pages with a card. */}
+{hasXPost && <script is:inline type="module" set:html={xPostScript} />}

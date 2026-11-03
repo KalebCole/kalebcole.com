@@ -27,6 +27,7 @@ const readingMinutes = Math.max(1, Math.ceil(plainText.split(' ').filter(Boolean
   updated={post.data.updated}
   tags={post.data.tags}
   readingMinutes={readingMinutes}
+  hasXPost={/^```x-post\b/m.test(post.body ?? '')}
   nextPost={nextPost ? { href: `/blog/${nextPost.id}`, title: nextPost.data.title } : undefined}
 >
   <Content />
