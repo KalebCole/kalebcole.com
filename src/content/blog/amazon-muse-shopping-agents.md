@@ -24,7 +24,6 @@ author: Paul Graham
 date: 2026-10-08T01:47:16Z
 avatar: /x-avatars/paulg.webp
 verified: true
-caption: Paul Graham on X
 
 Amazon banning agents is the first opportunity I've seen since Amazon was founded for a startup to create an Amazon competitor. People will want agents to buy stuff for them. It will be one of the main use cases. And they won't want to use some Amazon-supplied agent to do it.
 ```
@@ -40,41 +39,6 @@ verified: true
 replyto: paulg
 
 Any business that bans agents represents an opportunity for a startup to create a competitor. If they need to ban agents, it must mean people want to use them, or there would be no point. And that in turn means there's demand for a competitor that allows them.
-```
-
-```x-post
-url: https://x.com/paulg/status/2108015662505529830
-author: Paul Graham
-date: 2026-10-08T02:04:33Z
-avatar: /x-avatars/paulg.webp
-verified: true
-replyto: paulg
-
-Your usage restrictions are my opportunity.
-```
-
-```x-post
-url: https://x.com/TheElliottSmith/status/2108012178314019296
-author: Elliott Michael Smith
-date: 2026-10-08T01:50:42Z
-avatar: /x-avatars/theelliottsmith.webp
-verified: true
-replyto: paulg
-
-Amazon finally found a customer it doesn't want.
-```
-
-```x-post
-url: https://x.com/paulg/status/2108015920493048017
-author: Paul Graham
-date: 2026-10-08T02:05:35Z
-avatar: /x-avatars/paulg.webp
-verified: true
-replyto: TheElliottSmith
-caption: Paul Graham’s follow-up posts on X.
-captionurl: https://x.com/paulg/status/2108015238226587794
-
-The problem is that it's a group that will gradually expand to include most buyers.
 ```
 
 When a company does not adapt to a platform shift, it creates a competitive advantage for the companies that do. If people want agents to shop for them, openness to agents becomes part of why customers choose one marketplace over another.
