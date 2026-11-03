@@ -922,6 +922,15 @@ html[data-mode="dark"] .prose {
   width: 100%;
 }
 
+/* An article image that links to its source, such as a screenshot of a post.
+   Block display keeps the focus ring around the image. */
+.prose .figure-link {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 4px;
+}
+
 .media-expand-image {
   display: block;
   width: fit-content;

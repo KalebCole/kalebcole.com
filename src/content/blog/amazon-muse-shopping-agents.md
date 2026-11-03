@@ -19,10 +19,12 @@ Is Amazon protecting customers here, or protecting the part of its business that
 Paul Graham, founder of Y Combinator, had this take:
 
 <figure>
-  <picture>
-    <source type="image/webp" srcset="/blog/muse-amazon-agents/paul-graham-amazon-agents.webp">
-    <img src="/blog/muse-amazon-agents/paul-graham-amazon-agents.png" width="1256" height="436" loading="lazy" decoding="async" alt="Paul Graham's post on X about Amazon banning agents and the opportunity for a startup competitor.">
-  </picture>
+  <a class="figure-link" href="https://x.com/paulg/status/2108011311229747525">
+    <picture>
+      <source type="image/webp" srcset="/blog/muse-amazon-agents/paul-graham-amazon-agents.webp">
+      <img src="/blog/muse-amazon-agents/paul-graham-amazon-agents.png" width="1256" height="436" loading="lazy" decoding="async" alt="Paul Graham's post on X about Amazon banning agents and the opportunity for a startup competitor.">
+    </picture><span class="sr-only"> (external site)</span>
+  </a>
   <figcaption><a href="https://x.com/paulg/status/2108011311229747525">Paul Graham on X</a></figcaption>
 </figure>
 
