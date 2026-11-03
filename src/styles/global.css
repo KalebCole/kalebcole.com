@@ -942,10 +942,18 @@ html[data-mode="dark"] .prose {
   width: min(56rem, 100cqw);
 }
 
+/* Videos show at their intrinsic size, never upscaled, and sit centered on
+   the prose column like other media (DESIGN.md: media centered on the prose
+   column). A video wider than the breakout still fills it. */
+.prose figure > video {
+  margin-inline: auto;
+}
+
 .media-expand-video-wrapper {
   position: relative;
   width: fit-content;
   max-width: 100%;
+  margin-inline: auto;
 }
 
 .media-expand-video-wrapper video {
