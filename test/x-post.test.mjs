@@ -23,6 +23,7 @@ test('card uses X standard markup with do-not-track and no third-party script', 
   assert.match(html, /^<figure class="x-post"><div class="x-post-card">/);
   assert.match(html, /<blockquote class="twitter-tweet" data-dnt="true" data-conversation="none" cite="https:\/\/x\.com\/Kalebicole\/status\/1850000000000000000" lang="en">/);
   assert.match(html, /<span class="x-post-author">Kaleb Cole<\/span> <span class="x-post-handle">@Kalebicole<\/span>/);
+  assert.doesNotMatch(html, /data-x-post-time/, 'a date without a time is left alone');
   assert.match(html, /<a class="x-post-link" href="https:\/\/x\.com\/Kalebicole\/status\/1850000000000000000"><time datetime="2026-11-01">Nov 1, 2026<\/time><span class="sr-only"> on X \(external site\)<\/span><\/a>/);
   assert.match(html, /href="https:\/\/x\.com\/intent\/post\?in_reply_to=1850000000000000000">[\s\S]*?Reply<span class="sr-only"> on X \(external site\)<\/span><\/a>/);
   assert.match(html, /<button class="x-post-action x-post-copy" type="button" data-x-post-copy="https:\/\/x\.com\/Kalebicole\/status\/1850000000000000000" hidden>/, 'Copy link waits for the first-party script');
@@ -44,7 +45,7 @@ test('optional card fields: avatar, badge, reply context, UTC time, caption', ()
   assert.match(html, /<img class="x-post-avatar" src="\/x-avatars\/kalebicole\.webp" width="48" height="48" loading="lazy" decoding="async" alt="">/);
   assert.match(html, /<svg class="x-post-badge"[^>]*role="img" aria-label="Verified account"/);
   assert.match(html, /<p class="x-post-reply">Replying to <span class="x-post-reply-handle">@paulg<\/span><\/p>/);
-  assert.match(html, /<time datetime="2026-10-08T01:47:16Z">1:47 AM UTC · Oct 8, 2026<\/time>/);
+  assert.match(html, /<time datetime="2026-10-08T01:47:16Z" data-x-post-time>1:47 AM UTC · Oct 8, 2026<\/time>/, 'times render in UTC and are marked for the local-time script');
   assert.match(html, /<figcaption><a href="https:\/\/x\.com\/Kalebicole\/status\/1">Kaleb on X<\/a><\/figcaption><\/figure>$/);
   assert.throws(() => renderXPost({ ...base, avatar: 'https://pbs.twimg.com/a.jpg' }), /self-hosted/);
   assert.throws(() => renderXPost({ ...base, date: '2026-10-08T01:47:16-07:00' }), /"date" must be/);

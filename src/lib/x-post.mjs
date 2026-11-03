@@ -44,8 +44,9 @@ export function canonicalStatusUrl(url) {
   return { url: `https://x.com/${match[1]}/status/${match[2]}`, handle: match[1], id: match[2] };
 }
 
-// A post date is YYYY-MM-DD, or a UTC time as YYYY-MM-DDTHH:MM[:SS]Z. Times
-// show in UTC, the same as recommendation dates (DESIGN.md, Recommends).
+// A post date is YYYY-MM-DD, or a UTC time as YYYY-MM-DDTHH:MM[:SS]Z. The
+// server renders times in UTC; src/scripts/x-post.mjs then shows them in the
+// reader's own time zone.
 function parseDate(value) {
   const raw = String(value ?? '').trim();
   const day = ISO_DATE.exec(raw);
@@ -166,7 +167,7 @@ export function renderXPost(input) {
     '</div>',
     post.replyTo ? `<p class="x-post-reply">Replying to <span class="x-post-reply-handle">@${escapeHtml(post.replyTo)}</span></p>` : '',
     `<blockquote class="twitter-tweet" data-dnt="true" data-conversation="none" cite="${url}" lang="${escapeHtml(post.lang)}">${paragraphs}</blockquote>`,
-    `<p class="x-post-meta"><a class="x-post-link" href="${url}"><time datetime="${datetime}">${escapeHtml(shownTime + shownDate)}</time>${external('on X ')}</a></p>`,
+    `<p class="x-post-meta"><a class="x-post-link" href="${url}"><time datetime="${datetime}"${post.hasTime ? ' data-x-post-time' : ''}>${escapeHtml(shownTime + shownDate)}</time>${external('on X ')}</a></p>`,
     '<div class="x-post-actions">',
     post.likes === undefined ? '' : `<span class="x-post-likes">${icon('heart', 'x-post-icon x-post-heart')}${escapeHtml(compact(post.likes))}<span class="sr-only"> likes</span></span>`,
     `<a class="x-post-action" href="https://x.com/intent/post?in_reply_to=${post.id}">${icon('reply', 'x-post-icon x-post-reply-icon')}Reply${external('on X ')}</a>`,

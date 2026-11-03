@@ -49,10 +49,32 @@ date: 2026-10-08T02:04:33Z
 avatar: /x-avatars/paulg.webp
 verified: true
 replyto: paulg
+
+Your usage restrictions are my opportunity.
+```
+
+```x-post
+url: https://x.com/TheElliottSmith/status/2108012178314019296
+author: Elliott Michael Smith
+date: 2026-10-08T01:50:42Z
+avatar: /x-avatars/theelliottsmith.webp
+verified: true
+replyto: paulg
+
+Amazon finally found a customer it doesn't want.
+```
+
+```x-post
+url: https://x.com/paulg/status/2108015920493048017
+author: Paul Graham
+date: 2026-10-08T02:05:35Z
+avatar: /x-avatars/paulg.webp
+verified: true
+replyto: TheElliottSmith
 caption: Paul Graham’s follow-up posts on X.
 captionurl: https://x.com/paulg/status/2108015238226587794
 
-Your usage restrictions are my opportunity.
+The problem is that it's a group that will gradually expand to include most buyers.
 ```
 
 When a company does not adapt to a platform shift, it creates a competitive advantage for the companies that do. If people want agents to shop for them, openness to agents becomes part of why customers choose one marketplace over another.
@@ -163,17 +185,3 @@ I see Amazon blocking a customer-chosen agent from shopping as anti-consumer. It
 A blanket block is not the only choice. The Personal Agent Protocol shows one possible way through the conflict. Maybe Amazon is waiting for a more formal specification. I hope so.
 
 Agentic commerce will become the default way to shop. Companies that force customers back into their own interface repeat the mistake of the search portals Google outcompeted: treating control of the interface as more valuable than helping people get where they want to go. That creates a competitive advantage for the companies that adapt.
-## Sources
-
-- [GeekWire: Amazon blocks Meta's Muse AI assistant](https://www.geekwire.com/2026/amazon-blocks-metas-muse-ai-assistant-in-new-standoff-over-agentic-shopping/)
-- [Meta: Introducing Muse](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent)
-- [Meta: The biggest news from Connect 2026](https://about.fb.com/news/2026/09/the-biggest-news-from-connect-2026)
-- [Shopify Help: Selling on Meta](https://help.shopify.com/en/manual/online-sales-channels/agentic-storefronts/meta)
-- [Stripe: Link in Muse](https://stripe.com/newsroom/news/stripe-helps-meta-muse-shop-with-link)
-- [Amazon 2025 Form 10-K](https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/amzn-20251231.htm)
-- [Amazon Q2 2026 results](https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Second-Quarter-Results)
-- [Paul Graham on X](https://x.com/paulg/status/2108011311229747525)
-- [David Senra: Alexandr Wang](https://www.davidsenra.com/episode/alexandr-wang)
-- [Acquired: Google Part 1, Origins of Search](https://www.acquired.fm/episodes/google)
-- [Cheeky Pint: *Muse Wonder: Zuckerberg and Wang's 100B AI*](https://open.spotify.com/podcast-chapter/0qLTNDAQgZBOdrmyC7BkpA?utm_source=native-share-menu)
-- [Sierra, “Introducing Personal Agent Protocol”](https://sierra.ai/blog/introducing-personal-agent-protocol)
