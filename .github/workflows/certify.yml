@@ -1,0 +1,41 @@
+name: Certify
+
+# Runs npm run certify (production build, static checks in scripts/certify/,
+# and the headless Chrome tests in test/) on every pull request and on every
+# push to master.
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: certify-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Find Chrome
+        run: |
+          chrome="$(command -v google-chrome || command -v google-chrome-stable)"
+          "$chrome" --version
+          echo "CHROME_BIN=$chrome" >> "$GITHUB_ENV"
+      # The build needs no network: the GitHub snapshot (src/data/github.json) and
+      # recommend thumbnails (public/recommends/thumbs/) are committed caches. The
+      # prebuild step may rewrite public/me.jpg; the checkout is thrown away, so
+      # that does not matter here.
+      - name: Certify
+        run: npm run certify
+        env:
+          GITHUB_TOKEN: ''
