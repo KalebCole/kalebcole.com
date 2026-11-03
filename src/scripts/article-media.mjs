@@ -37,8 +37,8 @@ if (prose && dialog && typeof dialog.showModal === 'function') {
   }
 
   for (const image of prose.querySelectorAll('img')) {
-    // A linked image already has an action; a button inside a link is invalid.
-    if (image.closest('a')) continue;
+    // X post card avatars are part of the card, not media to expand.
+    if (image.closest('.x-post')) continue;
     const media = image.parentElement?.tagName === 'PICTURE' ? image.parentElement : image;
     const button = document.createElement('button');
     button.type = 'button';

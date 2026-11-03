@@ -18,25 +18,42 @@ Is Amazon protecting customers here, or protecting the part of its business that
 
 Paul Graham, founder of Y Combinator, had this take:
 
-<figure>
-  <a class="figure-link" href="https://x.com/paulg/status/2108011311229747525">
-    <picture>
-      <source type="image/webp" srcset="/blog/muse-amazon-agents/paul-graham-amazon-agents.webp">
-      <img src="/blog/muse-amazon-agents/paul-graham-amazon-agents.png" width="1256" height="436" loading="lazy" decoding="async" alt="Paul Graham's post on X about Amazon banning agents and the opportunity for a startup competitor.">
-    </picture><span class="sr-only"> (external site)</span>
-  </a>
-  <figcaption><a href="https://x.com/paulg/status/2108011311229747525">Paul Graham on X</a></figcaption>
-</figure>
+```x-post
+url: https://x.com/paulg/status/2108011311229747525
+author: Paul Graham
+date: 2026-10-08T01:47:16Z
+avatar: /x-avatars/paulg.webp
+verified: true
+caption: Paul Graham on X
+
+Amazon banning agents is the first opportunity I've seen since Amazon was founded for a startup to create an Amazon competitor. People will want agents to buy stuff for them. It will be one of the main use cases. And they won't want to use some Amazon-supplied agent to do it.
+```
 
 He followed with:
 
-<figure>
-  <picture>
-    <source type="image/webp" srcset="/blog/muse-amazon-agents/paul-graham-agent-restrictions.webp">
-    <img src="/blog/muse-amazon-agents/paul-graham-agent-restrictions.png" width="1266" height="1038" loading="lazy" decoding="async" alt="Paul Graham's follow-up posts on X about companies that ban agents.">
-  </picture>
-  <figcaption><a href="https://x.com/paulg/status/2108015238226587794">Paul Graham’s follow-up posts on X.</a></figcaption>
-</figure>
+```x-post
+url: https://x.com/paulg/status/2108015238226587794
+author: Paul Graham
+date: 2026-10-08T02:02:52Z
+avatar: /x-avatars/paulg.webp
+verified: true
+replyto: paulg
+
+Any business that bans agents represents an opportunity for a startup to create a competitor. If they need to ban agents, it must mean people want to use them, or there would be no point. And that in turn means there's demand for a competitor that allows them.
+```
+
+```x-post
+url: https://x.com/paulg/status/2108015662505529830
+author: Paul Graham
+date: 2026-10-08T02:04:33Z
+avatar: /x-avatars/paulg.webp
+verified: true
+replyto: paulg
+caption: Paul Graham’s follow-up posts on X.
+captionurl: https://x.com/paulg/status/2108015238226587794
+
+Your usage restrictions are my opportunity.
+```
 
 When a company does not adapt to a platform shift, it creates a competitive advantage for the companies that do. If people want agents to shop for them, openness to agents becomes part of why customers choose one marketplace over another.
 

@@ -56,7 +56,15 @@ The post text, word for word.
 ```
 ````
 
-`handle` (defaults to the username in `url`) and `lang` (defaults to `en`) are optional. `.astro` pages use `src/components/XPost.astro` with the same fields as props. The block renders X's standard `blockquote.twitter-tweet` markup with `data-dnt="true"` inside a figure, plus a visible byline and a same-tab link to the post. It never loads `widgets.js` or anything else from X: the release budget allows 0 third-party JavaScript (`DESIGN.md`), and certify fails any route that loads it. Tracking parameters such as `?s=20` are dropped from the link. A missing field, a bad link, or an em dash in the quoted text stops the build with the reason; an em dash in someone else's words needs Kaleb's call on the replacement. Quoted text is someone else's exact words: copy it, never edit it.
+`handle` (defaults to the username in `url`) and `lang` (defaults to `en`) are optional. `date` is the post's day, or its UTC time as `2026-11-01T12:34:56Z` to show the time like X does (UTC, the same as recommendation dates). Optional card fields:
+
+- `avatar`: a self-hosted copy of the account's profile photo, such as `/x-avatars/name.webp` (96px square WebP). Never hotlink `pbs.twimg.com`. Without it the card shows the author's initial.
+- `verified: true`: shows the verified badge.
+- `replyto`: the username the post replies to, shown as "Replying to @name".
+- `likes`, `replies`: like and reply counts. They are a snapshot that goes stale, so leave them out unless Kaleb asks; without them the card shows Reply, Copy link, and "Read replies".
+- `caption`, `captionurl`: Kaleb's caption under the card, linked to `captionurl` (or the post).
+
+`.astro` pages use `src/components/XPost.astro` with the same fields as props. The block renders a card that looks like an X post, with X's standard `blockquote.twitter-tweet` markup (`data-dnt="true"`) for the text and same-tab links for the time, Reply, and Read replies. Copy link is a first-party script (`src/scripts/x-post.mjs`) and stays hidden without JavaScript. It never loads `widgets.js` or anything else from X: the release budget allows 0 third-party JavaScript (`DESIGN.md`), and certify fails any route that loads it. Tracking parameters such as `?s=20` are dropped from the link. A missing field, a bad link, a remote avatar, or an em dash in the quoted text stops the build with the reason; an em dash in someone else's words needs Kaleb's call on the replacement. Quoted text is someone else's exact words: copy it, never edit it.
 
 ## Before shipping
 
