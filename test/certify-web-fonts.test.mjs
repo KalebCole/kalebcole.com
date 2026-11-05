@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { webFontFaceProblems } from '../scripts/certify-web-fonts.mjs';
+import { webFontFaceProblems } from '../scripts/certify/fonts.mjs';
 
 test('local-only fallback faces are not web fonts', () => {
   assert.deepEqual(webFontFaceProblems('@font-face{font-family:"Azeret Mono Fallback Menlo";src:local("Menlo");size-adjust:98%}'), []);
