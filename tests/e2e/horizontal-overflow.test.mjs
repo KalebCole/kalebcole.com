@@ -1,21 +1,15 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { mkdtemp, rm } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { tmpdir } from 'node:os';
 import { extname, join, normalize } from 'node:path';
 import test from 'node:test';
+import { eventually, withChrome } from '../support/chrome.mjs';
 import { dist, root } from '../support/root.mjs';
 
 // Small phones must never scroll sideways. Mobile emulation matters: a phone
 // browser widens its layout viewport to fit overflow seen during load (for
 // example a transformed entrance animation), so innerWidth growing past
 // clientWidth is the symptom, not just scrollWidth.
-const chromeExecutable = process.env.CHROME_BIN
-  ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
-    ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-    : null);
 const widths = [320, 375];
 const posts = readdirSync(join(root, 'src', 'content', 'blog'))
   .filter((file) => file.endsWith('.md'))
@@ -37,44 +31,6 @@ async function startStaticServer() {
   return { server, origin: `http://127.0.0.1:${server.address().port}` };
 }
 
-async function eventually(callback, timeoutMs = 10_000) {
-  const deadline = Date.now() + timeoutMs;
-  let lastError;
-  while (Date.now() < deadline) {
-    try { return await callback(); } catch (error) { lastError = error; await new Promise((resolve) => setTimeout(resolve, 100)); }
-  }
-  throw lastError ?? new Error('Timed out waiting for browser');
-}
-
-async function openCdp(debugOrigin) {
-  const target = await eventually(async () => {
-    const page = (await (await fetch(`${debugOrigin}/json/list`)).json()).find((candidate) => candidate.type === 'page');
-    assert.ok(page?.webSocketDebuggerUrl, 'Chrome must expose a page target');
-    return page;
-  });
-  const socket = new WebSocket(target.webSocketDebuggerUrl);
-  const pending = new Map();
-  let nextId = 1;
-  socket.addEventListener('message', (event) => {
-    const message = JSON.parse(event.data);
-    pending.get(message.id)?.(message);
-    pending.delete(message.id);
-  });
-  await new Promise((resolve, reject) => {
-    socket.addEventListener('open', resolve, { once: true });
-    socket.addEventListener('error', reject, { once: true });
-  });
-  return {
-    async send(method, params = {}) {
-      const id = nextId++;
-      const message = await new Promise((resolve) => { pending.set(id, resolve); socket.send(JSON.stringify({ id, method, params })); });
-      if (message.error) throw new Error(`${method}: ${message.error.message}`);
-      return message.result;
-    },
-    close: () => socket.close(),
-  };
-}
-
 const measure = `(async () => {
   const timeout = new Promise((resolve) => setTimeout(resolve, 5000));
   await Promise.race([Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {}))), timeout]);
@@ -85,40 +41,30 @@ const measure = `(async () => {
 
 test('main routes do not scroll sideways on small phones', async () => {
   assert.ok(existsSync(dist), 'dist must exist; run the production build first');
-  assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for the e2e browser checks');
   const { server, origin } = await startStaticServer();
-  const profile = await mkdtemp(join(tmpdir(), 'kalebcole-overflow-'));
-  const debugPort = 9833 + (process.pid % 500);
-  const chrome = spawn(chromeExecutable, [
-    '--headless=new', `--remote-debugging-port=${debugPort}`, `--user-data-dir=${profile}`,
-    '--no-first-run', '--no-default-browser-check', '--disable-gpu', 'about:blank',
-  ], { stdio: 'ignore' });
-  const cdp = await openCdp(`http://127.0.0.1:${debugPort}`);
   const failures = [];
   try {
-    await cdp.send('Page.enable');
-    for (const width of widths) {
-      await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 740, deviceScaleFactor: 2, mobile: true });
-      for (const route of routes) {
-        const url = `${origin}${route}?overflow=${width}`;
-        await cdp.send('Page.navigate', { url });
-        const result = await eventually(async () => {
-          const evaluation = await cdp.send('Runtime.evaluate', { expression: measure, awaitPromise: true, returnByValue: true });
-          const value = evaluation.result?.value;
-          assert.equal(value?.href, url, 'measurement must observe the requested page');
-          assert.equal(value.readyState, 'complete');
-          return value;
-        }, 15_000);
-        if (result.scrollWidth > result.clientWidth || result.innerWidth > width) {
-          failures.push(`${width}px ${route}: scrollWidth ${result.scrollWidth}, innerWidth ${result.innerWidth}, clientWidth ${result.clientWidth}`);
+    await withChrome(async (cdp) => {
+      for (const width of widths) {
+        await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 740, deviceScaleFactor: 2, mobile: true });
+        for (const route of routes) {
+          const url = `${origin}${route}?overflow=${width}`;
+          await cdp.send('Page.navigate', { url });
+          const result = await eventually(async () => {
+            const evaluation = await cdp.send('Runtime.evaluate', { expression: measure, awaitPromise: true, returnByValue: true });
+            const value = evaluation.result?.value;
+            assert.equal(value?.href, url, 'measurement must observe the requested page');
+            assert.equal(value.readyState, 'complete');
+            return value;
+          }, 15_000);
+          if (result.scrollWidth > result.clientWidth || result.innerWidth > width) {
+            failures.push(`${width}px ${route}: scrollWidth ${result.scrollWidth}, innerWidth ${result.innerWidth}, clientWidth ${result.clientWidth}`);
+          }
         }
       }
-    }
+    }, { label: 'horizontal overflow browser session' });
   } finally {
-    cdp.close();
-    chrome.kill();
-    await new Promise((resolve) => chrome.once('exit', resolve));
-    await rm(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    server.closeAllConnections();
     await new Promise((resolve) => server.close(resolve));
   }
   assert.deepEqual(failures, [], `pages overflow horizontally:\n${failures.join('\n')}`);

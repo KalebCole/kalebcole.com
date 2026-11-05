@@ -78,6 +78,7 @@ Tests live in `tests/`, grouped by how they run:
 - `tests/e2e/`: real-browser checks in headless Chrome over the DevTools protocol, against `dist/` (set `CHROME_BIN`). `npm run test:e2e` builds the site, then runs them; `npm run test:e2e:run` runs them on an existing build. Measured layout rules from `DESIGN.md`, such as media centering, live in `tests/e2e/design-layout.test.mjs`.
 - `tests/fixtures/`: test pages and sample data.
 - `tests/support/run-tests.mjs <folder> <minimum>`: runs every `*.test.mjs` file in a folder with `node --test`, and fails if it finds fewer files than the minimum in `package.json`, so a moved or empty folder cannot pass with zero tests. No shell globs, so it works on any OS. If you remove a test file on purpose, lower that minimum in the same change.
+- `tests/support/chrome.mjs`: the shared headless Chrome helper for `tests/e2e/` (`withChrome`). Chrome picks a free debugging port, every CDP call times out after 30 seconds, and a browser session fails after 5 minutes with its label, so a stuck page fails fast instead of hanging CI.
 - `tests/support/root.mjs`: the repository root, `dist/`, and `tests/fixtures/` for any test. Use it instead of a relative path like `new URL('..', import.meta.url)`.
 
 `scripts/` holds only build tools (portrait, recommend thumbnails, the GitHub snapshot, and their helpers). A check that needs one of their helpers imports it from `scripts/`.

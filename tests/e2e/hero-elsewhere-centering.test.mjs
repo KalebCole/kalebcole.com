@@ -1,17 +1,11 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { mkdtemp, rm } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { extname, join, normalize } from 'node:path';
+import { eventually, withChrome } from '../support/chrome.mjs';
 import { dist, root } from '../support/root.mjs';
 import test from 'node:test';
 
-const chromeExecutable = process.env.CHROME_BIN
-  ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
-    ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-    : null);
 const inlineActionsViewport = 1200;
 
 function contentType(path) {
@@ -41,69 +35,8 @@ async function startStaticServer() {
   return { server, origin: `http://127.0.0.1:${server.address().port}` };
 }
 
-async function eventually(callback, timeoutMs = 10_000) {
-  const deadline = Date.now() + timeoutMs;
-  let lastError;
-  while (Date.now() < deadline) {
-    try { return await callback(); } catch (error) {
-      lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  }
-  throw lastError ?? new Error('Timed out waiting for browser');
-}
-
-async function openCdpSocket(debugOrigin) {
-  const target = await eventually(async () => {
-    const response = await fetch(`${debugOrigin}/json/list`);
-    assert.ok(response.ok, 'Chrome remote-debugging endpoint must respond');
-    const page = (await response.json()).find((candidate) => candidate.type === 'page');
-    assert.ok(page?.webSocketDebuggerUrl, 'Chrome must expose a page CDP target');
-    return page;
-  });
-  const socket = new WebSocket(target.webSocketDebuggerUrl);
-  const messages = new Map();
-  let nextId = 1;
-  socket.addEventListener('message', (event) => {
-    const message = JSON.parse(event.data);
-    const pending = messages.get(message.id);
-    if (pending) { messages.delete(message.id); pending.resolve(message); }
-  });
-  await new Promise((resolve, reject) => {
-    socket.addEventListener('open', resolve, { once: true });
-    socket.addEventListener('error', reject, { once: true });
-  });
-  return {
-    async send(method, params = {}) {
-      const id = nextId++;
-      const response = new Promise((resolve) => messages.set(id, { resolve }));
-      socket.send(JSON.stringify({ id, method, params }));
-      const message = await response;
-      if (message.error) throw new Error(`${method}: ${message.error.message}`);
-      return message.result;
-    },
-    close() { socket.close(); },
-  };
-}
-
 async function withBrowser(origin, callback) {
-  assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for the e2e browser checks');
-  const profile = await mkdtemp(join(tmpdir(), 'kalebcole-inline-actions-'));
-  const debugPort = 9322 + (process.pid % 500);
-  const chrome = spawn(chromeExecutable, [
-    '--headless=new', `--remote-debugging-port=${debugPort}`, `--user-data-dir=${profile}`,
-    '--no-first-run', '--no-default-browser-check', '--disable-gpu', 'about:blank',
-  ], { stdio: 'ignore' });
-  const cdp = await openCdpSocket(`http://127.0.0.1:${debugPort}`);
-  try {
-    await cdp.send('Page.enable');
-    await callback(cdp, origin);
-  } finally {
-    cdp.close();
-    chrome.kill();
-    await new Promise((resolve) => chrome.once('exit', resolve));
-    await rm(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
-  }
+  await withChrome((cdp) => callback(cdp, origin), { label: 'hero browser session' });
 }
 
 async function setViewport(cdp, width, height = 900) {
@@ -257,6 +190,7 @@ test('production hero uses the approved inline-desktop and below-mobile action c
       }
     });
   } finally {
+    server.closeAllConnections();
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
 });
@@ -278,6 +212,7 @@ test('production hero preserves bubble targets, exact destinations, and same-tab
       ]);
     });
   } finally {
+    server.closeAllConnections();
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
 });
@@ -316,6 +251,7 @@ test('hero action cluster FLIPs as one target at its 1200px inline threshold and
       assert.equal(reduced.result.value, 0, 'reduced motion must reflow without FLIP animation');
     });
   } finally {
+    server.closeAllConnections();
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
 });
@@ -379,6 +315,7 @@ test('production hero keeps mount-ink social marks readable across color modes a
       assert.notEqual(forcedColors.result.value.markColor, forcedColors.result.value.backgroundColor, 'forced-colors social SVG mark contrasts with its bubble background');
     });
   } finally {
+    server.closeAllConnections();
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
 });
