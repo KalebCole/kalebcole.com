@@ -8,6 +8,7 @@ import { gzipSync } from 'node:zlib';
 import { decompress } from 'wawoff2';
 import { PRODUCTION_ORIGIN, resolveSocialImageOrigin } from '../src/lib/site-origin.mjs';
 import { hasCanonicalResumeLinkInPrimaryNavigation } from './certify-primary-navigation.mjs';
+import { webFontFaceProblems } from './certify-web-fonts.mjs';
 import { ELSEWHERE_LINKS } from '../src/lib/elsewhere.mjs';
 import { PERSON_ID } from '../src/lib/person-schema.mjs';
 import { THUMBNAIL_MAX_RENDERED_WIDTH, THUMBNAIL_PUBLIC_DIRECTORY, thumbnailPath } from '../src/lib/recommend-thumbnails.mjs';
@@ -1079,13 +1080,7 @@ assert.doesNotMatch(notFoundMain, /<(?:form|input)\b[^>]*(?:search|type="search"
 assert.match(recommends, />\s*Things I thought were interesting\.\s*</, 'Recommends must be introduced exactly as: Things I thought were interesting.');
 
 // Typography: self-hosted WOFF2 with font-display: swap for every web font.
-for (const face of matches(builtCss, /@font-face\s*\{[^}]*\}/gi).map((match) => match[0])) {
-  if (!/src:\s*url\(/i.test(face)) continue;
-  assert.match(face, /font-display:\s*swap/i, `web font must use font-display: swap (DESIGN.md Typography): ${face.slice(0, 120)}`);
-  for (const source of matches(face, /url\(([^)]+)\)/gi).map((match) => match[1].replace(/["']/g, ''))) {
-    assert.ok(source.startsWith('/') && source.endsWith('.woff2'), `web font must be a self-hosted WOFF2 file, found ${source}`);
-  }
-}
+assert.deepEqual(webFontFaceProblems(builtCss), [], 'every web font must be a self-hosted WOFF2 with font-display: swap');
 
 const productionNames = walk(dist).map((path) => relative(dist, path).replaceAll('\\', '/'));
 assert.equal(
