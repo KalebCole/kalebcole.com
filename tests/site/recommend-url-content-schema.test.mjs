@@ -4,16 +4,15 @@ import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, syml
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { root } from "../support/root.mjs";
+import { fixtures as fixtureRoot, root } from "../support/root.mjs";
 
 // Astro's own frontmatter parser, the one its glob loader uses for content collections.
 import { parseFrontmatter } from "@astrojs/markdown-remark";
 
 import { recommendUrl, recommendUrlProblems } from "../../src/lib/recommend-url.mjs";
 
-const repositoryRoot = root;
-const fixtures = path.join(repositoryRoot, "tests", "fixtures", "recommend-urls");
-const astroBin = path.join(repositoryRoot, "node_modules", "astro", "astro.js");
+const fixtures = path.join(fixtureRoot, "recommend-urls");
+const astroBin = path.join(root, "node_modules", "astro", "astro.js");
 
 // Where each dirty fixture is placed under src/content/recommends, and what the build must report.
 const dirtyCases = {
@@ -109,25 +108,25 @@ test("schema refine errors never echo secret values", () => {
 });
 
 function buildWith(entries) {
-  const root = mkdtempSync(path.join(os.tmpdir(), "recommend-url-build-"));
+  const workspace = mkdtempSync(path.join(os.tmpdir(), "recommend-url-build-"));
   try {
     for (const name of ["astro.config.mjs", "package.json", "tsconfig.json", "src", "public", "scripts", "automations"]) {
-      cpSync(path.join(repositoryRoot, name), path.join(root, name), { recursive: true });
+      cpSync(path.join(root, name), path.join(workspace, name), { recursive: true });
     }
-    symlinkSync(path.join(repositoryRoot, "node_modules"), path.join(root, "node_modules"), "dir");
+    symlinkSync(path.join(root, "node_modules"), path.join(workspace, "node_modules"), "dir");
     for (const [source, place] of entries) {
-      const destination = path.join(root, "src", "content", "recommends", place);
+      const destination = path.join(workspace, "src", "content", "recommends", place);
       mkdirSync(path.dirname(destination), { recursive: true });
       cpSync(source, destination);
     }
     const result = spawnSync(process.execPath, [astroBin, "build"], {
-      cwd: root,
+      cwd: workspace,
       encoding: "utf8",
       env: { ...process.env, GITHUB_TOKEN: "" },
     });
     return { status: result.status, output: `${result.stdout}\n${result.stderr}` };
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(workspace, { recursive: true, force: true });
   }
 }
 

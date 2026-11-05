@@ -12,7 +12,6 @@ import { dist, root } from '../support/root.mjs';
 // browser widens its layout viewport to fit overflow seen during load (for
 // example a transformed entrance animation), so innerWidth growing past
 // clientWidth is the symptom, not just scrollWidth.
-
 const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
     ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -86,7 +85,7 @@ const measure = `(async () => {
 
 test('main routes do not scroll sideways on small phones', async () => {
   assert.ok(existsSync(dist), 'dist must exist; run the production build first');
-  assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for browser layout certification');
+  assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for the e2e browser checks');
   const { server, origin } = await startStaticServer();
   const profile = await mkdtemp(join(tmpdir(), 'kalebcole-overflow-'));
   const debugPort = 9833 + (process.pid % 500);

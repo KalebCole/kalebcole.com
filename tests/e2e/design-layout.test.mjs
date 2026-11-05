@@ -13,7 +13,6 @@ import { dist, root } from '../support/root.mjs';
 // every image decoded, video metadata, finished animations, two frames) before
 // it measures, so nothing depends on a fixed sleep. A load that never settles
 // fails with its reason instead of measuring a half-loaded page.
-
 const blogSource = join(root, 'src', 'content', 'blog');
 const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
@@ -129,7 +128,7 @@ export async function stopTracked({ child, exited }) {
 
 async function withBrowser(callback) {
   assert.ok(existsSync(dist), 'dist must exist; run the production build first');
-  assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for browser layout certification');
+  assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for the e2e browser checks');
   const { server, origin } = await startStaticServer();
   const profile = await mkdtemp(join(tmpdir(), 'kalebcole-design-layout-'));
   const debugPort = 10_400 + (process.pid % 500);

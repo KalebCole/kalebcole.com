@@ -6,14 +6,15 @@
     "dev": "astro dev",
     "prebuild": "npm run portrait && npm run recommend-thumbnails",
     "build": "astro build",
-    "check": "npm test && npm run test:site && node --test 'tests/e2e/**/*.test.mjs'",
+    "check": "npm test && npm run test:site && npm run test:e2e:run",
     "certify": "echo 'npm run certify is deprecated; running npm run check.' && npm run check",
     "portrait": "node scripts/build-portrait.mjs",
     "preview": "astro preview",
     "recommend-thumbnails": "node scripts/recommend-thumbnails.mjs",
-    "test": "node --test 'tests/unit/**/*.test.mjs'",
-    "test:site": "npm run build && node tests/site/run.mjs && node --test 'tests/site/**/*.test.mjs'",
-    "test:e2e": "npm run build && node --test 'tests/e2e/**/*.test.mjs'"
+    "test": "node tests/support/run-tests.mjs tests/unit 12",
+    "test:site": "npm run build && node tests/site/run.mjs && node tests/support/run-tests.mjs tests/site 1",
+    "test:e2e": "npm run build && npm run test:e2e:run",
+    "test:e2e:run": "node tests/support/run-tests.mjs tests/e2e 3"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",

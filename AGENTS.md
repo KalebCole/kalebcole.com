@@ -29,7 +29,7 @@ npm run dev
 GITHUB_TOKEN="" npm run build
 npm test
 GITHUB_TOKEN="" npm run test:site
-CHROME_BIN=/path/to/chrome npm run test:e2e
+CHROME_BIN=/path/to/chrome GITHUB_TOKEN="" npm run test:e2e
 CHROME_BIN=/path/to/chrome GITHUB_TOKEN="" npm run check
 npm run portrait
 npm run recommend-thumbnails
@@ -74,9 +74,10 @@ The post text, word for word.
 Tests live in `tests/`, grouped by how they run:
 
 - `tests/unit/`: fast tests that need no build. `npm test` runs them.
-- `tests/site/`: checks on the production build in `dist/`, plus tests that run a build themselves. `npm run test:site` builds the site, then runs `tests/site/run.mjs` and `node --test` on `tests/site/`. The runner loads `dist/` once (`checks/context.mjs`), runs every module listed in `MODULES`, prints every failure with its module name, and exits 1 if any failed. Each topic (meta, JSON-LD, writing, recommends, fonts, icons, budgets, feeds, and so on) is one module in `tests/site/checks/` that exports `check(context)` and returns its failures. Shared helpers and budgets are in `checks/helpers.mjs`.
-- `tests/e2e/`: real-browser checks in headless Chrome over the DevTools protocol, against `dist/` (set `CHROME_BIN`). `npm run test:e2e` builds the site, then runs them. Measured layout rules from `DESIGN.md`, such as media centering, live in `tests/e2e/design-layout.test.mjs`.
+- `tests/site/`: checks on the production build in `dist/`, plus tests that run a build themselves. `npm run test:site` builds the site, then runs `tests/site/run.mjs` and the `*.test.mjs` files in `tests/site/`. The runner loads `dist/` once (`checks/context.mjs`), runs every module listed in `MODULES`, prints every failure with its module name, and exits 1 if any failed. Each topic (meta, JSON-LD, writing, recommends, fonts, icons, budgets, feeds, and so on) is one module in `tests/site/checks/` that exports `check(context)` and returns its failures. Shared helpers and budgets are in `checks/helpers.mjs`.
+- `tests/e2e/`: real-browser checks in headless Chrome over the DevTools protocol, against `dist/` (set `CHROME_BIN`). `npm run test:e2e` builds the site, then runs them; `npm run test:e2e:run` runs them on an existing build. Measured layout rules from `DESIGN.md`, such as media centering, live in `tests/e2e/design-layout.test.mjs`.
 - `tests/fixtures/`: test pages and sample data.
+- `tests/support/run-tests.mjs <folder> <minimum>`: runs every `*.test.mjs` file in a folder with `node --test`, and fails if it finds fewer files than the minimum in `package.json`, so a moved or empty folder cannot pass with zero tests. No shell globs, so it works on any OS. If you remove a test file on purpose, lower that minimum in the same change.
 - `tests/support/root.mjs`: the repository root, `dist/`, and `tests/fixtures/` for any test. Use it instead of a relative path like `new URL('..', import.meta.url)`.
 
 `scripts/` holds only build tools (portrait, recommend thumbnails, the GitHub snapshot, and their helpers). A check that needs one of their helpers imports it from `scripts/`.

@@ -4,7 +4,6 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { PRODUCTION_ORIGIN, resolveSocialImageOrigin } from '../../../src/lib/site-origin.mjs';
-
 import { dist, root } from '../../support/root.mjs';
 
 export { dist, root };

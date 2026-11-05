@@ -8,7 +8,6 @@ import { extname, join, normalize } from 'node:path';
 import { dist, root } from '../support/root.mjs';
 import test from 'node:test';
 
-
 const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
     ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -88,7 +87,7 @@ async function openCdpSocket(debugOrigin) {
 }
 
 async function withBrowser(origin, callback) {
-  assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for browser layout certification');
+  assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for the e2e browser checks');
   const profile = await mkdtemp(join(tmpdir(), 'kalebcole-inline-actions-'));
   const debugPort = 9322 + (process.pid % 500);
   const chrome = spawn(chromeExecutable, [
