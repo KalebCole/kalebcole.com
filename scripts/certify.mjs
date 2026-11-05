@@ -8,6 +8,7 @@ import { gzipSync } from 'node:zlib';
 import { decompress } from 'wawoff2';
 import { PRODUCTION_ORIGIN, resolveSocialImageOrigin } from '../src/lib/site-origin.mjs';
 import { hasCanonicalResumeLinkInPrimaryNavigation } from './certify-primary-navigation.mjs';
+import { webFontFaceProblems } from './certify-web-fonts.mjs';
 import { ELSEWHERE_LINKS } from '../src/lib/elsewhere.mjs';
 import { PERSON_ID } from '../src/lib/person-schema.mjs';
 import { THUMBNAIL_MAX_RENDERED_WIDTH, THUMBNAIL_PUBLIC_DIRECTORY, thumbnailPath } from '../src/lib/recommend-thumbnails.mjs';
@@ -1004,6 +1005,82 @@ assert.doesNotMatch(writingFeed, /kalebcole\.dev/i, 'Writing feed must not retai
 assert.doesNotMatch(recommendsFeed, /kalebcole\.dev/i, 'Recommends feed must not retain the former origin');
 assert.match(recommendsFeed, /<category>read<\/category>/i, 'Recommends feed must retain medium categories');
 assert.match(recommendsFeed, /<category>curation<\/category>/i, 'Recommends feed may retain hidden topic categories');
+
+// DESIGN.md rules that static output can prove. Each names its DESIGN.md section.
+// Measured layout rules (media centering, targets, text wrapping) live in test/design-layout.test.mjs.
+function productionFiles() {
+  return walk(dist).map((path) => relative(dist, path).replaceAll('\\', '/'));
+}
+const iconOrder = ['/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/favicon.svg', '/apple-touch-icon.png'];
+for (const [route, path] of routes) {
+  const html = text(path);
+  // Don't: "force external links into a new tab".
+  for (const link of matches(html, /<a\b[^>]*\btarget=(?:"[^"]*"|'[^']*')[^>]*>/gi).map((match) => match[0])) {
+    assert.fail(`${route} link must open in the same tab (DESIGN.md Don'ts): ${link}`);
+  }
+  // Writing article: "Video exposes native controls".
+  for (const video of matches(html, /<video\b[^>]*>/gi).map((match) => match[0])) {
+    assert.match(video, /\scontrols(?:[\s=>])/i, `${route} video must expose native controls (DESIGN.md Writing article): ${video}`);
+  }
+  // Writing article: video has "a download fallback" inside the element.
+  for (const [video, open] of matches(html, /(<video\b[^>]*>)[\s\S]*?<\/video>/gi).map((match) => [match[0], match[1]])) {
+    const source = attribute(open, 'src') ?? video.match(/<source\b[^>]*\bsrc="([^"]+)"/i)?.[1];
+    assert.ok(source && video.includes(`<a href="${source}"`), `${route} video must link its own file as a download fallback (DESIGN.md Writing article): ${open}`);
+  }
+  // Release gates: logical headings. Inside main, a heading never skips a level.
+  const headingLevels = matches(html.match(/<main\b[\s\S]*?<\/main>/i)?.[0] ?? '', /<h([1-6])\b/gi).map((match) => Number(match[1]));
+  for (const [index, level] of headingLevels.entries()) {
+    if (index > 0) assert.ok(level <= headingLevels[index - 1] + 1, `${route} headings must not skip a level (h${headingLevels[index - 1]} then h${level}; DESIGN.md release gates)`);
+  }
+  // Shared footer, feeds: Writing feed on the homepage, Writing index, and articles; Recommends advertises only its own feed.
+  const feeds = matches(html, /<link\b[^>]*\brel="alternate"[^>]*\btype="application\/rss\+xml"[^>]*>/gi).map((match) => attribute(match[0], 'href'));
+  if (route === '/' || route.startsWith('/blog/')) assert.deepEqual(feeds, ['/rss.xml'], `${route} must advertise only the Writing feed (DESIGN.md Shared footer, feeds)`);
+  if (route === '/recommends/') assert.deepEqual(feeds, ['/recommends/rss.xml'], '/recommends/ must advertise only the Recommends feed, never combined with Writing');
+  // Shared footer: plain GitHub, LinkedIn, X, and Email links.
+  const footer = matches(html, /<footer\b[^>]*class="site-footer[\s\S]*?<\/footer>/gi).map((match) => match[0]).join('');
+  assert.match(footer, /href="mailto:[^"]+"/i, `${route} footer must include the Email link (DESIGN.md Shared footer)`);
+  // Open-tail KC identity: ICO and PNG fallbacks before the SVG primary, then the touch icon; no manifest.
+  const icons = matches(html, /<link\b[^>]*\brel="(?:icon|apple-touch-icon)"[^>]*>/gi).map((match) => attribute(match[0], 'href'));
+  assert.deepEqual(icons, iconOrder, `${route} must declare icons in the DESIGN.md order: ICO, 16px PNG, 32px PNG, SVG, then the Apple touch icon`);
+  assert.doesNotMatch(html, /<link\b[^>]*\brel="manifest"/i, `${route} must not link a web manifest until installability is a product decision (DESIGN.md)`);
+}
+assert.equal(
+  productionFiles().filter((name) => /(?:manifest\.(?:json|webmanifest)|site\.webmanifest|(?:^|[-_])(?:192|512)(?:x(?:192|512))?\.png$)/i.test(name)).length,
+  0,
+  'production output must not contain a web manifest or 192px/512px PWA icons (DESIGN.md Open-tail KC identity)',
+);
+
+// Writing article: return link, title, one-sentence summary, metadata, sign-off, onward links.
+for (const slug of publishedPostSlugs) {
+  const route = `/blog/${slug}/`;
+  const html = text(routes.get(route));
+  const header = html.match(/<header\b[^>]*class="article-header"[^>]*>([\s\S]*?)<\/header>/i)?.[1] ?? '';
+  assert.match(header, /^\s*<a\b[^>]*class="back-link"[^>]*href="\/blog"[^>]*>← Writing<\/a>\s*<h1\b/i, `${route} must open with a visible ← Writing link, then the title (DESIGN.md Writing article)`);
+  assert.match(header, /<\/h1>\s*<p\b[^>]*class="article-summary"[^>]*>[^<]+<\/p>/i, `${route} title must be followed by the description summary`);
+  const metaLine = header.match(/<p\b[^>]*class="meta-line"[^>]*>([\s\S]*?)<\/p>/i)?.[1] ?? '';
+  assert.match(metaLine, /^\s*<time\b[^>]*datetime="[^"]+"[^>]*>[^<]+<\/time>\s*<span>[1-9]\d* min read<\/span>/i, `${route} metadata must show the publication date, then a reading time of at least one minute`);
+  const published = attribute(metaLine.match(/<time\b[^>]*>/i)[0], 'datetime');
+  const longDate = new Date(published).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  const ending = html.match(/<footer\b[^>]*class="article-ending"[^>]*>([\s\S]*?)<\/footer>/i)?.[1] ?? '';
+  assert.match(ending, new RegExp(`class="article-signoff"[^>]*>\\s*<p>[^<]*Kaleb</p>\\s*<time\\b[^>]*datetime="${published}"[^>]*>\\s*${longDate}\\s*</time>`), `${route} must end with the Kaleb sign-off and the publication date written out (${longDate})`);
+  assert.match(ending, /<nav\b[^>]*>\s*<a\b[^>]*href="\/blog"[^>]*>← All writing<\/a>/i, `${route} must offer ← All writing after the sign-off`);
+  // No table of contents, facts box, author bio, or side rail.
+  assert.doesNotMatch(html, /class="[^"]*\b(?:toc|table-of-contents|facts-box|author-bio|side-rail)\b/i, `${route} must not add a table of contents, facts box, author bio, or side rail (DESIGN.md Writing article)`);
+}
+
+// Shared footer, feeds, and error route: one h1, one candid sentence, plain Home and Writing links, no redirect.
+const notFound = text(routes.get('/404'));
+assert.match(notFound, /<h1\b[^>]*>Page not found<\/h1>/i, '/404 h1 must read Page not found');
+const notFoundMain = notFound.match(/<main\b[\s\S]*?<\/main>/i)?.[0] ?? '';
+assert.deepEqual(matches(notFoundMain, /<a\b[^>]*href="([^"]+)"/gi).map((match) => match[1]), ['/', '/blog'], '/404 must link only to Home and Writing');
+assert.doesNotMatch(notFound, /<meta\b[^>]*http-equiv="refresh"|location\.(?:replace|assign|href\s*=)/i, '/404 must not redirect automatically');
+assert.doesNotMatch(notFoundMain, /<(?:form|input)\b[^>]*(?:search|type="search")/i, '/404 must not include search');
+
+// Recommends: introduced exactly as "Things I thought were interesting."
+assert.match(recommends, />\s*Things I thought were interesting\.\s*</, 'Recommends must be introduced exactly as: Things I thought were interesting.');
+
+// Typography: self-hosted WOFF2 with font-display: swap for every web font.
+assert.deepEqual(webFontFaceProblems(builtCss), [], 'every web font must be a self-hosted WOFF2 with font-display: swap');
 
 const productionNames = walk(dist).map((path) => relative(dist, path).replaceAll('\\', '/'));
 assert.equal(
