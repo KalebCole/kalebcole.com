@@ -32,13 +32,14 @@ jobs:
         # Limitation: pull requests opened with the default GITHUB_TOKEN do not
         # trigger other workflows (including Check). Required status checks will
         # stay pending until someone with write access pushes an empty commit to
-        # the PR branch, or until this step uses a fine-grained PAT/App token
-        # stored as SNAPSHOT_PR_TOKEN instead of github.token (simplest durable
-        # fix; the owner adds that secret). Do not change repo rulesets.
+        # the PR branch, or until the owner adds a fine-grained PAT/App token as
+        # SNAPSHOT_PR_TOKEN (this step already prefers that secret when set).
+        # Do not change repo rulesets.
         id: cpr
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          token: ${{ github.token }}
+          # Prefer SNAPSHOT_PR_TOKEN when set so the opened PR can trigger Check.
+          token: ${{ secrets.SNAPSHOT_PR_TOKEN != '' && secrets.SNAPSHOT_PR_TOKEN || github.token }}
           commit-message: 'chore: refresh GitHub snapshot'
           author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
           committer: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
@@ -53,7 +54,7 @@ jobs:
             Pull requests opened with the default `GITHUB_TOKEN` do not trigger the Check workflow, so the required `unit`, `site`, and `e2e` status checks stay pending. To unblock merge:
 
             1. Push an empty commit to this branch from an account with write access (`git commit --allow-empty -m "ci: trigger checks" && git push`), or
-            2. Add a fine-grained PAT (contents + pull requests) as the `SNAPSHOT_PR_TOKEN` repository secret and re-run this workflow (simplest durable fix; no ruleset change).
+            2. Add a fine-grained PAT (contents + pull requests) as the `SNAPSHOT_PR_TOKEN` repository secret and re-run this workflow. The workflow already uses that secret when present (simplest durable fix; no ruleset change).
 
             Do not loosen ruleset 26508165 to bypass those checks.
           add-paths: |

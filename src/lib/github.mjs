@@ -61,7 +61,7 @@ export function parseGitHubSnapshot(value, now = new Date()) {
 
   try {
     const repos = normalizePinnedReposResponse({ data: { user: { pinnedItems: { nodes: value.pinnedRepositories } } } });
-    if (repos.length > 6 || new Set(repos.map((repo) => repo.name)).size !== repos.length) {
+    if (repos.length > 6 || new Set(repos.map((repo) => repo.url.replace(/\/$/, ''))).size !== repos.length) {
       return { status: 'invalid', repos: [] };
     }
     return {

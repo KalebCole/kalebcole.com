@@ -136,3 +136,13 @@ test('normalizePinnedReposResponse still rejects invalid pinned repository URLs'
     );
   }
 });
+
+
+test('same repository name under different owners is not treated as a duplicate', () => {
+  const other = { name: 'example', description: null, url: 'https://github.com/microsoft/example' };
+  const verifiedAt = now.toISOString();
+  assert.deepEqual(
+    parseGitHubSnapshot({ version: 1, verifiedAt, pinnedRepositories: [repo, other] }, now),
+    { status: 'ready', repos: [repo, other], verifiedAt },
+  );
+});
