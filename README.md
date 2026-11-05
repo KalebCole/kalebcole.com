@@ -18,8 +18,8 @@ the Projects page and homepage. Site builds read this file and never contact
 GitHub for pinned repositories. The weekly
 [`refresh-github.yml`](.github/workflows/refresh-github.yml) workflow can also be
 run manually in Actions. It uses the workflow's `GITHUB_TOKEN`, includes only
-public pinned repositories, and commits when the repositories change or their
-verification date needs renewal.
+public pinned repositories, and opens or updates a pull request when the
+repositories change or their verification date needs renewal.
 
 To refresh locally, run `GITHUB_TOKEN="$YOUR_GITHUB_TOKEN" node scripts/refresh-github.mjs`.
 The token needs access to GitHub's GraphQL API and must not be committed. If a

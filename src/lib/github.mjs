@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 
 const SNAPSHOT_PATH = resolve(process.cwd(), 'src/data/github.json');
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
-const REPO_URL = /^https:\/\/github\.com\/KalebCole\/[A-Za-z0-9_.-]+\/?$/;
+const REPO_URL = /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/;
 
 export function normalizePinnedReposResponse(response) {
   const nodes = response?.data?.user?.pinnedItems?.nodes;

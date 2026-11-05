@@ -9,7 +9,7 @@ Policy: `PRODUCT.md` (Content and Publishing Boundaries), `DESIGN.md` (Projects 
 
 ## Common tasks
 
-- **A pinned repo changed on GitHub.** Refresh the snapshot instead of hand-editing `src/data/github.json`, so its verification fields stay consistent. The `refresh-github.yml` workflow commits straight to `master`, which publishes, so running it (`gh workflow run refresh-github.yml`) is the owner's decision.
+- **A pinned repo changed on GitHub.** Refresh the snapshot instead of hand-editing `src/data/github.json`, so its verification fields stay consistent. The `refresh-github.yml` workflow opens or updates a PR on `chore/refresh-github-snapshot` (it cannot push straight to `master` under the required-check ruleset), so running it (`gh workflow run refresh-github.yml`) and merging that PR are the owner's decisions.
 - **Better copy or image for a project.** Edit its `repoOverrides` entry. The description is the owner's words, so ask for it rather than writing one. Give the image real `width`, `height`, and `alt`.
 
 ## Verify
