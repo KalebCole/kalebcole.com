@@ -117,14 +117,15 @@ export function classifyAnswer(text, signals) {
     targetText: sentences
       .filter((sentence) => !(sentence.namesake.length > 0 && sentence.target.length === 0))
       .map((sentence) => sentence.text)
-      .join(' '),
+      .join('\n'),
   };
 }
 
 /**
  * Target facts present, contradicted, and negated in text attributed to the
  * target. A negated contradiction ("not its sole creator") is not a
- * contradiction, and a negated fact earns no credit.
+ * contradiction, and a negated fact earns no credit, even when another
+ * sentence asserts it.
  */
 export function extractTargetFacts(text, signals) {
   const present = [];
@@ -140,9 +141,12 @@ export function extractTargetFacts(text, signals) {
   }
   const unique = (ids) => [...new Set(ids)];
   const contradictedIds = unique(contradicted);
+  // A fact both asserted and denied earns no automatic credit; it stays in
+  // negated so a reviewer labels it.
+  const negatedIds = unique(negated).filter((id) => !contradictedIds.includes(id));
   return {
-    present: unique(present).filter((id) => !contradictedIds.includes(id)),
+    present: unique(present).filter((id) => !contradictedIds.includes(id) && !negatedIds.includes(id)),
     contradicted: contradictedIds,
-    negated: unique(negated).filter((id) => !present.includes(id) && !contradictedIds.includes(id)),
+    negated: negatedIds,
   };
 }

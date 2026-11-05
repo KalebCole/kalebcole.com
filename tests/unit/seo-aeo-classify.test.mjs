@@ -78,3 +78,22 @@ test('auxiliary negations such as does not deny a target fact', () => {
     assert.equal(facts.present.includes('target-employer'), false, text);
   }
 });
+
+test('a fact both asserted and denied gets no automatic credit', () => {
+  const facts = extractTargetFacts('Kaleb Cole is a software engineer at Microsoft. He does not work at Microsoft.', signals);
+  assert.deepEqual(facts.negated, ['target-employer']);
+  assert.equal(facts.present.includes('target-employer'), false);
+});
+
+test('a sole-creator claim about another project does not contradict the series fact', () => {
+  const facts = extractTargetFacts('Kaleb Cole is a software engineer at Microsoft. He is the sole creator of a small game.', signals);
+  assert.deepEqual(facts.contradicted, []);
+});
+
+test('sentence boundaries survive into fact extraction', () => {
+  const result = classifyAnswer('Kaleb Cole is not the Atomwaffen leader\nHe is a software engineer at Microsoft', signals);
+  assert.equal(result.classification, 'both-separated');
+  const facts = extractTargetFacts(result.targetText, signals);
+  assert.ok(facts.present.includes('target-role'));
+  assert.ok(facts.present.includes('target-employer'));
+});

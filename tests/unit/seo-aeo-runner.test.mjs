@@ -258,3 +258,8 @@ test('rescoring with current definitions keeps the capture-time locale in the co
   const rescored = rescoreRun({ definitions: mobile, runDir: run.dir, allowDefinitionChange: true, now: clock });
   assert.equal(rescored.scores.groups[0].compatibilityKey, run.scores.groups[0].compatibilityKey);
 });
+
+test('repeats outside 1 to 5 are refused before planning', () => {
+  const registry = createAdapterRegistry({ fixturePath: fixture('demo') });
+  assert.throws(() => planRun({ definitions, registry, env: noKeys, providerIds: ['fixture'], repeats: 0 }), /repeats must be a whole number from 1 to 5/);
+});

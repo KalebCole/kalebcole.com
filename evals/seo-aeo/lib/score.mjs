@@ -32,7 +32,9 @@ export function normalizeRank(position, captured) {
 function organicEvidence(answer, rubric, signals, namesakeUrls) {
   if (!Array.isArray(answer.organic)) return null;
   const results = [...answer.organic].sort((a, b) => a.position - b.position);
-  const captured = results.length;
+  // N is the deepest captured position, so a gapped capture cannot push a
+  // score outside 0 to 100.
+  const captured = results.length ? Math.max(results.length, ...results.map((result) => result.position)) : 0;
   const first = (predicate) => results.find(predicate)?.position ?? null;
   const namesakeText = (result) => signals.namesake.some((fact) => fact.match.some((pattern) => pattern.test(`${result.title ?? ''} ${result.snippet ?? ''}`)));
   const site = first((result) => urlMatchesAny(result.url, [rubric.signals.siteUrl]));
@@ -48,13 +50,10 @@ function organicEvidence(answer, rubric, signals, namesakeUrls) {
 
 /**
  * Namesake claims attributed to the engineer in a conflated answer: the
- * reviewer's list when given, else the same-sentence conflations, else every
- * namesake claim the answer asserts (a reviewer confirmed it conflates).
+ * reviewer's list when given, else every namesake claim the answer asserts.
  */
 function conflatedNamesake(auto, review) {
-  if (review?.attributedNamesakeFactIds) return review.attributedNamesakeFactIds;
-  if (auto.conflatedNamesakeFactIds.length) return auto.conflatedNamesakeFactIds;
-  return auto.assertedNamesakeFactIds;
+  return review?.attributedNamesakeFactIds ?? auto.assertedNamesakeFactIds;
 }
 
 /** Scores one answer, applying a human review decision when present. */
@@ -135,7 +134,8 @@ function groupKey(answer) {
 
 /**
  * Hashes everything that must match for two runs to be compared: the
- * definition versions, the locale, the surface and provider settings, the
+ * definition versions, the fact approval status and active fact definitions,
+ * the required facts, the locale, the surface and provider settings, the
  * recorded models, and every query and repeat pair the group actually ran.
  */
 export function compatibilityKey({ queries, facts, rubric, config }, surface, answers = []) {
@@ -146,6 +146,9 @@ export function compatibilityKey({ queries, facts, rubric, config }, surface, an
     queries: queries.version,
     prompts: queries.queries.filter((query) => ran.size === 0 || ran.has(query.id)).map((query) => [query.id, query.prompt]),
     facts: facts.version,
+    factsStatus: facts.status,
+    factDefinitions: activeFacts(facts).map((fact) => [fact.id, fact.distinguishing, fact.match, fact.contradict]),
+    requiredFacts: queries.queries.filter((query) => ran.size === 0 || ran.has(query.id)).map((query) => [query.id, query.requiredFactIds]),
     rubric: rubric.version,
     locale: config.locale,
     samples: answers.length ? samples : { repeats: config.repeats },

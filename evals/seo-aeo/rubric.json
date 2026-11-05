@@ -86,7 +86,7 @@
     },
     "organicRank": {
       "definition": "Position of the first kalebcole.com organic result, normalized.",
-      "normalization": "score = round(100 * (N + 1 - p) / N) where p is the 1-based organic position and N the number of organic results captured. Not in the captured top N scores 0 and keeps the raw rank as >N.",
+      "normalization": "score = round(100 * (N + 1 - p) / N) where p is the 1-based organic position and N the deepest captured position. Not in the captured top N scores 0 and keeps the raw rank as >N.",
       "raw": "first kalebcole.com position, first target-owned profile position, first namesake result position, N",
       "missing": "Not applicable on surfaces without organic results. Missing when no organic list was captured."
     }

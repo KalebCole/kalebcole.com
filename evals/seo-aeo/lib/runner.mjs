@@ -37,6 +37,7 @@ export function planRun({ definitions, registry, env, providerIds, queryIds, rep
   const { config, facts, queries } = definitions;
   const effectiveLimits = { ...config.limits, ...Object.fromEntries(Object.entries(limits).filter(([, value]) => value !== undefined)) };
   const runRepeats = repeats ?? config.repeats;
+  if (!Number.isInteger(runRepeats) || runRepeats < 1 || runRepeats > 5) throw new Error(`repeats must be a whole number from 1 to 5, got ${runRepeats}`);
   const selectedQueries = selectQueries(queries, queryIds);
   const runnable = [];
   const skipped = [];

@@ -180,3 +180,24 @@ test('namesake organic positions do not depend on query order', () => {
   const { metrics } = groupOf(answers);
   assert.deepEqual(metrics.organicRank.perQuery.map((row) => row.namesakePosition), [1, 1, 1, 1]);
 });
+
+test('a gapped organic capture still scores within 0 to 100', () => {
+  const answers = [{ provider: 'google-organic', surface: 'google-organic', label: 'serp-capture', queryId: 'name', repeat: 1, status: 'ok', organic: [{ position: 3, url: 'https://kalebcole.com/' }], capturedAt: '2026-11-05T22:00:00Z' }];
+  const [row] = groupOf(answers).metrics.organicRank.perQuery;
+  assert.deepEqual([row.siteRank, row.captured, row.score], [3, 3, 33]);
+});
+
+test('a confirmed conflation counts namesake claims from every sentence', () => {
+  const answers = [{ provider: 'fixture', surface: 'fixture', label: 'fixture', queryId: 'name', repeat: 1, status: 'ok', capturedAt: '2026-11-05T22:00:00Z',
+    text: 'Kaleb Cole is a Microsoft software engineer who was sentenced to seven years. He was convicted by a federal jury.' }];
+  const [evaluation] = scoreRun({ answers, definitions }).evaluations;
+  const group = groupOf(answers, [{ answerId: evaluation.answerId, reviewer: 'kaleb', reviewedAt: '2026-11-06', classification: 'conflated' }]);
+  assert.deepEqual(group.metrics.factAccuracy.incorrect, 2);
+});
+
+test('rejecting a fact changes the compatibility key', () => {
+  const rejected = structuredClone(definitions);
+  rejected.facts.facts.find((fact) => fact.id === 'target-employer').approval = 'rejected';
+  const answers = answersFrom('target');
+  assert.notEqual(scoreRun({ answers, definitions }).groups[0].compatibilityKey, scoreRun({ answers, definitions: rejected }).groups[0].compatibilityKey);
+});

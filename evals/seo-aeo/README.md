@@ -73,7 +73,7 @@ Each run writes to a new `evals/seo-aeo/artifacts/<run-id>/` (UTC timestamp, pro
 
 Each answer is classified as target only, other only, both separated, conflated, or uncertain (`rubric.json`). Regex signals come from the `match` patterns in `facts.json` and the cue lists in `rubric.json`. Seattle and the bare name are not distinguishing, since the namesake's case was also in Washington.
 
-- Polarity is scoped to each claim: a match is negated only when a negation cue comes before it in the same sentence with no clause break (`;`, `and`, `but`, ...) between them. A negated target fact earns no credit and goes to the review queue for a label.
+- Polarity is scoped to each claim: a match is negated only when a negation cue comes before it in the same sentence with no clause break (`;`, `and`, `but`, ...) between them. A negated target fact, or one the answer both asserts and denies, earns no credit and goes to the review queue for a label.
 - A correct namesake-only answer is a visibility miss, not a false claim.
 - A negation ("is not the Kaleb Cole who...") or a separation cue ("a different Kaleb Cole") is separation, not conflation.
 - Conflated and uncertain answers go to the review queue and stay out of the scores until a review decision exists. Suspected conflations are listed as critical in the report either way.
@@ -87,9 +87,9 @@ Metrics are per provider and surface, never merged across API proxies, SERP capt
 | Fact accuracy | Correct target claims over correct plus contradicted plus conflated namesake claims. |
 | Completeness | Required facts per query that appear. |
 | Citation support | Answers about the engineer that cite a site he owns or a corroborating page. Whether the page supports the claim is a reviewer call. |
-| Organic rank | `round(100 * (N + 1 - p) / N)` for the first kalebcole.com result at position p of N captured; not in the top N scores 0 and keeps the raw rank as `>N`. |
+| Organic rank | `round(100 * (N + 1 - p) / N)` for the first kalebcole.com result at position p, where N is the deepest captured position; not in the top N scores 0 and keeps the raw rank as `>N`. |
 
-Each surface also gets a compatibility key built from the query, fact, and rubric versions, the locale, the provider settings, the recorded models, and the queries and repeats that surface actually ran. Compare runs month over month only when the keys match; a model or locale change starts a new baseline.
+Each surface also gets a compatibility key built from the query, fact, and rubric versions, the fact approval status and active fact definitions, the required facts, the locale, the provider settings, the recorded models, and the queries and repeats that surface actually ran. Compare runs month over month only when the keys match; a model or locale change starts a new baseline.
 
 ## Human review
 

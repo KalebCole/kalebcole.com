@@ -88,7 +88,7 @@ async function main(argv) {
   const env = loadEnv({ dir: definitions.dir, files: config.envFiles });
   const registry = createAdapterRegistry({ fixturePath: values.fixture && resolve(values.fixture) });
   const repeats = values.repeats === undefined ? undefined : number('repeats', values.repeats, 5);
-  if (repeats !== undefined && !Number.isInteger(repeats)) throw new Error('--repeats must be a whole number');
+  if (repeats !== undefined && (!Number.isInteger(repeats) || repeats < 1)) throw new Error('--repeats must be a whole number from 1 to 5');
   const plan = planRun({
     definitions,
     registry,
