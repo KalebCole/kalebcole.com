@@ -20,7 +20,7 @@ typography:
     fontSize: "clamp(3.5rem, 9vw, 6rem)"
     fontWeight: 800
     lineHeight: 0.88
-    letterSpacing: "-0.035em"
+    letterSpacing: "-0.0375em"
   page-title:
     fontFamily: "Bricolage Grotesque, system-ui, sans-serif"
     fontSize: "clamp(2.75rem, 7vw, 4.5rem)"
@@ -146,7 +146,7 @@ Exact component dimensions and optical offsets named below are approved
 exceptions to the spacing scale; do not silently round them to the nearest
 step.
 
-- Main shell: `min(1180px, calc(100% - clamp(2rem, 8vw, 8rem)))`.
+- Main shell: `min(1280px, calc(100% - clamp(2rem, 6vw, 6rem)))`.
 - Navigation: 86px minimum height with a 2px ink rule.
 - Homepage hero: asymmetric `1.35fr / 0.65fr` grid, `61vh` minimum height,
   `clamp(2rem, 7vw, 7rem)` gap, and 64px vertical padding.
@@ -296,10 +296,12 @@ creating many adjacent sizes:
 - **Note:** brief, visibly personal annotations only.
 - **Metadata:** dates, read time, media, sources, and compact filing data.
 
-Display tracking may tighten to `-0.035em`; never go tighter. Body, notes, and
-metadata remain at normal tracking. Apply `text-wrap: balance` to headings and
-`text-wrap: pretty` to prose. On blue-hour surfaces, add 0.05–0.1 line-height
-when a light text role needs additional breathing room.
+Display tracking may tighten to `-0.035em` for page and section titles, and to
+`-0.0375em` for the homepage display greeting and statement only; never go
+tighter than those role caps. Body, notes, and metadata remain at normal
+tracking. Apply `text-wrap: balance` to headings and `text-wrap: pretty` to
+prose. On blue-hour surfaces, add 0.05–0.1 line-height when a light text role
+needs additional breathing room.
 
 **The One Primary Voice Rule.** Bricolage carries the publication. Recursive
 and Azeret are accents with named jobs, never competing display families.
@@ -503,8 +505,10 @@ Beats, tilt, image depth, Reading Nudge movement, and touch press transforms.
 Project visuals instead use the Static Mount: no transition or transform and a
 fixed `6px 7px 0 var(--coral)` shadow.
 
-**No Article-Page Motion.** Individual writing and article pages stay static and
-have no motion.
+**No Article-Page Motion.** Article prose, media, and other content inside the
+article stay static and have no motion. Shared page chrome (the site header
+settle entrance) may still run on article routes; it respects
+`prefers-reduced-motion` and is not article content.
 
 ### Portrait and editorial imagery
 
