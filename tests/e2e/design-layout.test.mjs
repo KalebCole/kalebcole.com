@@ -204,8 +204,8 @@ test('article media is centered on the prose column and capped at 56rem (DESIGN.
 test('navigation height, touch targets, and text wrapping follow DESIGN.md on every route', async () => {
   const failures = [];
   await withBrowser(async (cdp, origin) => {
-    // Composition and spacing: navigation is at least 86px tall. (The 1180px shell
-    // maximum is not checked: the code uses 1280px; see the DESIGN.md checks issue.)
+    // Composition and spacing: navigation is at least 86px tall. Shell maximum is
+    // 1280px (DESIGN.md Composition and spacing).
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1000, deviceScaleFactor: 1, mobile: false });
     for (const route of routes) {
       await open(cdp, origin, route);
@@ -327,9 +327,9 @@ test('article motion check sees load-time and scroll-triggered animations on a s
   });
 });
 
-// DESIGN.md Writing article: "Article prose and media remain still; do not animate
-// while someone reads." Scoped to the article itself: the shared header's settle
-// still runs on every route, which the issue lists as a question for Kaleb.
+// DESIGN.md Writing article / No Article-Page Motion: article prose and media
+// remain still. Shared header settle may still run on article routes; this check
+// scopes to content inside the article.
 test('article content holds still: nothing inside the article animates (DESIGN.md No Article-Page Motion)', async () => {
   const failures = [];
   await withBrowser(async (cdp, origin) => {
