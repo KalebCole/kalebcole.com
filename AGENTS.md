@@ -8,6 +8,8 @@ Read the relevant source-of-truth documents before changing the site:
 
 Inspect the current implementation before proposing changes. These documents describe intent, but the repository is the source of truth for current behavior.
 
+Agent skills live in `skills/`; start site tasks (Writing, recommends, projects, shipping, SEO) with `skills/kalebcole-site/SKILL.md`.
+
 ## Working agreement
 
 - Default branch: `master`
