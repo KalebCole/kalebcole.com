@@ -66,6 +66,7 @@ Each run writes to `evals/seo-aeo/artifacts/<run-id>/`, which git ignores:
 - `answers.jsonl`: normalized answers (`schemas/answer.schema.json`).
 - `scores.json`: per-surface scores and per-answer evaluations.
 - `review.jsonl`: what a human needs to check.
+- `review-decisions.json`: decisions applied by `report --review`, reused on later reports.
 - `report.md`: the readable summary, times shown in Pacific time with the UTC value beside them.
 
 ## Scoring
@@ -87,7 +88,7 @@ Metrics are per provider and surface, never merged across API proxies, SERP capt
 | Citation support | Answers about the engineer that cite a site he owns or a corroborating page. Whether the page supports the claim is a reviewer call. |
 | Organic rank | `round(100 * (N + 1 - p) / N)` for the first kalebcole.com result at position p of N captured; not in the top N scores 0 and keeps the raw rank as `>N`. |
 
-Each surface also gets a compatibility key built from the query, fact, and rubric versions, the locale, and repeats. Compare runs month over month only when the keys match; a model or locale change starts a new baseline.
+Each surface also gets a compatibility key built from the query, fact, and rubric versions, the locale, and the queries and repeats that surface actually ran. Compare runs month over month only when the keys match; a model or locale change starts a new baseline.
 
 ## Human review
 
@@ -97,7 +98,7 @@ Each surface also gets a compatibility key built from the query, fact, and rubri
 [{ "answerId": "openai-web-search:chatgpt-api-proxy:who-is:1", "reviewer": "kaleb", "reviewedAt": "2026-12-01", "classification": "both-separated", "citationSupport": true }]
 ```
 
-Then rescore with `report <run-dir> --review <file>`.
+Then rescore with `report <run-dir> --review <file>`. Applied decisions are saved in the run's `review-decisions.json` and reused on every later `report`, so regenerating a report never drops a confirmation; a new review file is merged on top.
 
 ## Approving the facts
 

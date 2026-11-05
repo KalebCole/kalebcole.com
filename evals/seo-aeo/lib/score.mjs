@@ -81,8 +81,8 @@ export function evaluateAnswer(answer, { queries, facts, rubric, signals, namesa
     if (label === 'incorrect') contradicted.add(factId);
   }
   const excluded = new Set(rubric.accuracyExcludesFactIds);
-  const required = query?.requiredFactIds ?? [];
   const targetFactIds = new Set(activeFacts(facts).filter((fact) => fact.subject === 'target').map((fact) => fact.id));
+  const required = (query?.requiredFactIds ?? []).filter((id) => targetFactIds.has(id));
 
   const citations = answer.citations ?? [];
   const targetOwned = citations.filter((citation) => urlMatchesAny(citation.url, rubric.signals.targetOwnedUrls)).map((citation) => citation.url);
@@ -120,14 +120,20 @@ function groupKey(answer) {
   return `${answer.provider}|${answer.surface}|${answer.label}`;
 }
 
-export function compatibilityKey({ queries, facts, rubric, config }, surface) {
+/**
+ * Hashes everything that must match for two runs to be compared: the
+ * definition versions, the locale, the surface, and the queries and repeats
+ * the group actually ran.
+ */
+export function compatibilityKey({ queries, facts, rubric, config }, surface, answers = []) {
+  const ran = new Set(answers.map((answer) => answer.queryId));
   const basis = {
     queries: queries.version,
-    prompts: queries.queries.map((query) => [query.id, query.prompt]),
+    prompts: queries.queries.filter((query) => ran.size === 0 || ran.has(query.id)).map((query) => [query.id, query.prompt]),
     facts: facts.version,
     rubric: rubric.version,
     locale: config.locale,
-    repeats: config.repeats,
+    repeats: answers.length ? Math.max(...answers.map((answer) => answer.repeat)) : config.repeats,
     surface,
   };
   return createHash('sha256').update(JSON.stringify(basis)).digest('hex').slice(0, 12);
@@ -276,7 +282,7 @@ export function scoreRun({ answers, definitions, reviews = [] }) {
         provider,
         surface,
         label,
-        compatibilityKey: compatibilityKey(definitions, surface),
+        compatibilityKey: compatibilityKey(definitions, surface, members),
         ...scoreGroup(members, providerConfig),
       };
     }),

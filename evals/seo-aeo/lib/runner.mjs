@@ -303,14 +303,27 @@ export function readReviews(definitions, file) {
   return reviews;
 }
 
-/** Rescores an existing run directory, optionally with review decisions. */
+export const REVIEW_DECISIONS_FILE = 'review-decisions.json';
+
+/**
+ * Rescores an existing run directory. Review decisions applied earlier are
+ * kept in the run's review-decisions.json and reused, so regenerating a
+ * report never drops a human confirmation. A new review file is merged on
+ * top, newest decision per answer winning.
+ */
 export function rescoreRun({ definitions, runDir, reviewFile }) {
   const manifestPath = join(runDir, 'manifest.json');
   const answersPath = join(runDir, 'answers.jsonl');
   if (!existsSync(manifestPath) || !existsSync(answersPath)) throw new Error(`${runDir} is not a run directory (needs manifest.json and answers.jsonl)`);
   const manifest = readJson(manifestPath);
   const answers = readFileSync(answersPath, 'utf8').split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line));
-  const reviews = reviewFile ? readReviews(definitions, reviewFile) : [];
-  if (reviewFile) manifest.reviewFile = reviewFile;
+  const storedPath = join(runDir, REVIEW_DECISIONS_FILE);
+  const decisions = new Map((existsSync(storedPath) ? readReviews(definitions, storedPath) : []).map((review) => [review.answerId, review]));
+  if (reviewFile) {
+    for (const review of readReviews(definitions, reviewFile)) decisions.set(review.answerId, review);
+    manifest.reviewFiles = [...(manifest.reviewFiles ?? []), reviewFile];
+  }
+  const reviews = [...decisions.values()];
+  if (reviews.length) writeJson(storedPath, reviews);
   return finishRun({ definitions, dir: runDir, manifest, answers, reviews });
 }

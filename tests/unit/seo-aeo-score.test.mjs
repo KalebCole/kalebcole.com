@@ -126,3 +126,21 @@ test('surfaces never merge: each provider and surface is its own group', () => {
   assert.deepEqual(groups.map((group) => [group.surface, group.metrics.visibility.score]), [['fixture', 100], ['chatgpt-ui', 0]]);
   assert.notEqual(groups[0].compatibilityKey, groups[1].compatibilityKey);
 });
+
+test('a rejected fact drops out of completeness instead of becoming impossible to meet', () => {
+  const rejected = structuredClone(definitions);
+  rejected.facts.facts.find((fact) => fact.id === 'target-employer').approval = 'rejected';
+  const answers = answersFrom('target');
+  const { metrics } = scoreRun({ answers, definitions: rejected }).groups[0];
+  assert.equal(metrics.completeness.score, 100);
+  assert.equal(metrics.completeness.denominator, 5);
+});
+
+test('the compatibility key changes with the queries and repeats a group actually ran', () => {
+  const full = answersFrom('target');
+  const key = (answers) => scoreRun({ answers, definitions }).groups[0].compatibilityKey;
+  const twice = [...full, ...full.map((answer) => ({ ...answer, repeat: 2 }))];
+  assert.notEqual(key(full), key(twice));
+  assert.notEqual(key(full), key(full.slice(0, 1)));
+  assert.equal(key(full), key(answersFrom('namesake')));
+});

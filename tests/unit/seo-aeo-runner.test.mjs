@@ -178,6 +178,10 @@ test('report rescoring applies review decisions from a file', async (t) => {
   const rescored = rescoreRun({ definitions, runDir: run.dir, reviewFile });
   assert.equal(rescored.scores.groups[0].critical.confirmedConflations.length, 1);
   assert.match(readFileSync(join(run.dir, 'report.md'), 'utf8'), /Confirmed conflation/);
+
+  const regenerated = rescoreRun({ definitions, runDir: run.dir });
+  assert.equal(regenerated.scores.groups[0].critical.confirmedConflations.length, 1, 'a plain report keeps earlier decisions');
+  assert.ok(existsSync(join(run.dir, 'review-decisions.json')));
 });
 
 test('an AdapterError carries its retryable flag', () => {
