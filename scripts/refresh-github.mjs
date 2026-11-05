@@ -27,7 +27,7 @@ export async function refreshGitHubSnapshot({ token, path = snapshotPath, fetchI
   if (!response.ok) throw new Error(`GitHub refresh failed with HTTP ${response.status}.`);
 
   const repos = normalizePinnedReposResponse(await response.json());
-  if (repos.length > 6 || new Set(repos.map((repo) => repo.name)).size !== repos.length) {
+  if (repos.length > 6 || new Set(repos.map((repo) => repo.url.replace(/\/$/, ''))).size !== repos.length) {
     throw new Error('GitHub returned duplicate or excessive pinned repositories.');
   }
 

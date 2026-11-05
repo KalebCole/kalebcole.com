@@ -47,8 +47,10 @@ export const check = collect('llms-txt', async ({ routes }) => {
       assert.ok(existsSync(localAsset(pathname)) || existsSync(outputForPath(pathname)), `/llms.txt links to missing ${pathname}`);
     } else {
       assert.ok(
-        llmsProfileUrls.includes(url) || url.startsWith('https://github.com/KalebCole/') || url === 'https://microsoft.github.io/student-learning-series/',
-        `/llms.txt must only link to ${site} or Kaleb's listed profiles, found ${url}`,
+        llmsProfileUrls.includes(url)
+          || /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/.test(url)
+          || url === 'https://microsoft.github.io/student-learning-series/',
+        `/llms.txt must only link to ${site}, listed profiles, or a validated GitHub pin, found ${url}`,
       );
     }
   }

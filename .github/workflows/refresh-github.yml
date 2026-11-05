@@ -5,8 +5,11 @@ on:
     - cron: '17 9 * * 1'
   workflow_dispatch:
 
+# Opens a PR when the snapshot changes. Direct pushes to master are rejected by
+# ruleset 26508165 (required unit/site/e2e checks, no bypass).
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: refresh-github-snapshot
@@ -24,14 +27,35 @@ jobs:
         run: node scripts/refresh-github.mjs
         env:
           GITHUB_TOKEN: ${{ github.token }}
-      - name: Commit changed snapshot
-        run: |
-          if git diff --quiet -- src/data/github.json; then
-            echo 'Snapshot unchanged.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/data/github.json
-          git commit -m 'chore: refresh GitHub snapshot'
-          git push
+      - name: Open or update snapshot PR
+        # Pin peter-evans/create-pull-request to the v8.1.1 commit.
+        # Limitation: pull requests opened with the default GITHUB_TOKEN do not
+        # trigger other workflows (including Check). Required status checks will
+        # stay pending until someone with write access pushes an empty commit to
+        # the PR branch, or until the owner adds a fine-grained PAT/App token as
+        # SNAPSHOT_PR_TOKEN (this step already prefers that secret when set).
+        # Do not change repo rulesets.
+        id: cpr
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          # Prefer SNAPSHOT_PR_TOKEN when set so the opened PR can trigger Check.
+          token: ${{ secrets.SNAPSHOT_PR_TOKEN != '' && secrets.SNAPSHOT_PR_TOKEN || github.token }}
+          commit-message: 'chore: refresh GitHub snapshot'
+          author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
+          committer: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
+          branch: chore/refresh-github-snapshot
+          delete-branch: true
+          title: 'chore: refresh GitHub snapshot'
+          body: |
+            Automated refresh of `src/data/github.json` from Kaleb's public pinned repositories.
+
+            ## Checks
+
+            Pull requests opened with the default `GITHUB_TOKEN` do not trigger the Check workflow, so the required `unit`, `site`, and `e2e` status checks stay pending. To unblock merge:
+
+            1. Push an empty commit to this branch from an account with write access (`git commit --allow-empty -m "ci: trigger checks" && git push`), or
+            2. Add a fine-grained PAT (contents + pull requests) as the `SNAPSHOT_PR_TOKEN` repository secret and re-run this workflow. The workflow already uses that secret when present (simplest durable fix; no ruleset change).
+
+            Do not loosen ruleset 26508165 to bypass those checks.
+          add-paths: |
+            src/data/github.json

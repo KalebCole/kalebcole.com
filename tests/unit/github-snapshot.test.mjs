@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { getPinnedRepos, parseGitHubSnapshot } from '../../src/lib/github.mjs';
+import { getPinnedRepos, normalizePinnedReposResponse, parseGitHubSnapshot } from '../../src/lib/github.mjs';
 import { showStaleGitHubSnapshotStatus } from '../../src/scripts/github-snapshot-age.mjs';
 import { refreshGitHubSnapshot } from '../../scripts/refresh-github.mjs';
 
@@ -105,4 +105,44 @@ test('refresh writes normalized public data only when repositories change', asyn
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
+});
+
+
+test('normalizePinnedReposResponse accepts any valid https://github.com/<owner>/<repo> pin', () => {
+  const microsoft = {
+    name: 'student-learning-series',
+    description: 'Microsoft student learning content',
+    url: 'https://github.com/microsoft/student-learning-series',
+  };
+  assert.deepEqual(
+    normalizePinnedReposResponse({ data: { user: { pinnedItems: { nodes: [microsoft, repo] } } } }),
+    [microsoft, repo],
+  );
+});
+
+test('normalizePinnedReposResponse still rejects invalid pinned repository URLs', () => {
+  const cases = [
+    { ...repo, url: 'http://github.com/KalebCole/example' },
+    { ...repo, url: 'https://github.com/KalebCole/example/extra' },
+    { ...repo, url: 'https://evil.example/KalebCole/example' },
+    { ...repo, url: 'https://github.com/KalebCole/example?x=1' },
+    { ...repo, url: 'https://github.com/KalebCole/' },
+    { name: 'example', description: null, url: 'https://github.com/KalebCole/other-name' },
+  ];
+  for (const bad of cases) {
+    assert.throws(
+      () => normalizePinnedReposResponse({ data: { user: { pinnedItems: { nodes: [bad] } } } }),
+      /invalid pinned repository/,
+    );
+  }
+});
+
+
+test('same repository name under different owners is not treated as a duplicate', () => {
+  const other = { name: 'example', description: null, url: 'https://github.com/microsoft/example' };
+  const verifiedAt = now.toISOString();
+  assert.deepEqual(
+    parseGitHubSnapshot({ version: 1, verifiedAt, pinnedRepositories: [repo, other] }, now),
+    { status: 'ready', repos: [repo, other], verifiedAt },
+  );
 });
