@@ -1,0 +1,8 @@
+{
+  "description": "An AI Overview that did not trigger for any query.",
+  "responses": {
+    "*": {
+      "status": "absent"
+    }
+  }
+}

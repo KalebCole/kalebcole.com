@@ -1,0 +1,19 @@
+{
+  "description": "Answers about the software engineer only.",
+  "responses": {
+    "*": {
+      "status": "ok",
+      "text": "Kaleb Cole is a software engineer at Microsoft in Seattle. He works on the platform behind Azure support tickets and writes about AI agents on kalebcole.com.",
+      "citations": [
+        {
+          "url": "https://kalebcole.com/",
+          "title": "Kaleb Cole"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole on GitHub"
+        }
+      ]
+    }
+  }
+}

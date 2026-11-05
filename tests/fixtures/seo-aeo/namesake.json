@@ -1,0 +1,15 @@
+{
+  "description": "Answers about the namesake only.",
+  "responses": {
+    "*": {
+      "status": "ok",
+      "text": "Kaleb Cole is a former leader of the neo-Nazi group Atomwaffen Division. A federal jury convicted him, and in January 2022 he was sentenced to seven years in prison for a plot to intimidate journalists.",
+      "citations": [
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates",
+          "title": "Leader of Neo-Nazi Group Sentenced"
+        }
+      ]
+    }
+  }
+}

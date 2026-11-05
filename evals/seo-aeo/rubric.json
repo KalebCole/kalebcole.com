@@ -1,0 +1,91 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-11-05",
+  "classifications": {
+    "target-only": "Describes only Kaleb Cole the software engineer.",
+    "other-only": "Describes only the namesake. Correct namesake answers are visibility misses, not false claims.",
+    "both-separated": "Mentions both people and keeps them apart, through an explicit separation cue or a negation.",
+    "conflated": "Attaches namesake facts to the software engineer in the same sentence without a separation cue or negation. Critical. Needs human confirmation before it counts.",
+    "uncertain": "Not enough signal to decide, or both people appear without a separation cue. Needs human review before it counts."
+  },
+  "reviewRequired": [
+    "conflated",
+    "uncertain"
+  ],
+  "accuracyExcludesFactIds": [
+    "target-name"
+  ],
+  "signals": {
+    "separationCues": [
+      "\\b(a |an )?(different|another|other|separate|unrelated|distinct)\\b.{0,40}\\b(person|people|individual|man|men|kaleb cole)\\b",
+      "\\bnot to be confused\\b",
+      "\\bnot the same (person|individual|man|kaleb cole)\\b",
+      "\\bno (relation|connection)\\b",
+      "\\bunrelated\\b",
+      "\\bunlike\\b",
+      "\\btwo (people|men|individuals|notable people)\\b",
+      "\\b(shares?|sharing) (the|a|his) (same )?name\\b",
+      "\\bsame name\\b",
+      "\\bnamesake\\b",
+      "\\bmay refer to\\b"
+    ],
+    "negationCues": [
+      "\\b(is|was|has) not\\b",
+      "\\b(isn't|wasn't|hasn't)\\b",
+      "\\bnever\\b",
+      "\\bno (link|ties?|affiliation)\\b",
+      "\\bnothing to do with\\b",
+      "\\bnot (affiliated|associated|connected|linked|related)\\b"
+    ],
+    "targetOwnedUrls": [
+      "kalebcole.com",
+      "github.com/KalebCole",
+      "linkedin.com/in/kaleb-cole",
+      "x.com/Kalebicole",
+      "twitter.com/Kalebicole"
+    ],
+    "corroboratingUrls": [
+      "microsoft.github.io/student-learning-series"
+    ],
+    "siteUrl": "kalebcole.com"
+  },
+  "metrics": {
+    "visibility": {
+      "definition": "Share of decided answers that identify the software engineer.",
+      "numerator": "target-only + both-separated",
+      "denominator": "decided answers: target-only, other-only, both-separated, and reviewer-confirmed conflated",
+      "missing": "No decided answers. Errors, skips, absent AI blocks and answers pending review are reported, never counted as zero."
+    },
+    "entitySeparation": {
+      "definition": "Share of decided answers that do not conflate the two people.",
+      "numerator": "decided answers that are not conflated",
+      "denominator": "decided answers",
+      "critical": "Any reviewer-confirmed conflation is a critical alert. Suspected conflations pending review are listed separately."
+    },
+    "factAccuracy": {
+      "definition": "Correct target claims over verifiable target claims asserted.",
+      "numerator": "target facts matched in target-attributable text",
+      "denominator": "matched target facts + contradicted target facts + namesake facts attached to the engineer in confirmed conflations",
+      "missing": "Not applicable when an answer asserts no target claims."
+    },
+    "completeness": {
+      "definition": "Required facts present over required facts, per query.",
+      "numerator": "required facts present in target-attributable text",
+      "denominator": "required facts for each decided answer. Other-only answers contribute zero present.",
+      "missing": "No decided answers."
+    },
+    "citationSupport": {
+      "definition": "Share of answers about the engineer that cite a target-owned or corroborating URL.",
+      "numerator": "answers about the engineer citing at least one targetOwnedUrls or corroboratingUrls entry",
+      "denominator": "answers about the engineer on surfaces that return citations",
+      "review": "Domain matching is automatic. Whether the cited page supports the claim is a reviewer call, reported as confirmed or unconfirmed.",
+      "missing": "Not applicable when the surface returns no citations or no answer is about the engineer."
+    },
+    "organicRank": {
+      "definition": "Position of the first kalebcole.com organic result, normalized.",
+      "normalization": "score = round(100 * (N + 1 - p) / N) where p is the 1-based organic position and N the number of organic results captured. Not in the captured top N scores 0 and keeps the raw rank as >N.",
+      "raw": "first kalebcole.com position, first target-owned profile position, first namesake result position, N",
+      "missing": "Not applicable on surfaces without organic results. Missing when no organic list was captured."
+    }
+  }
+}

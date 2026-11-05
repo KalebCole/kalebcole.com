@@ -1,0 +1,17 @@
+{
+  "description": "Answers that describe both people and keep them apart.",
+  "responses": {
+    "*": {
+      "status": "ok",
+      "text": "There are two notable people named Kaleb Cole. One is a software engineer at Microsoft in Seattle who writes on kalebcole.com. A different Kaleb Cole, a former Atomwaffen Division leader, was sentenced to seven years in federal prison in 2022.",
+      "citations": [
+        {
+          "url": "https://kalebcole.com/"
+        },
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates"
+        }
+      ]
+    }
+  }
+}
