@@ -9,7 +9,10 @@ interface Props {
 
 const { limit, variant = 'index', layoutMotion = false } = Astro.props;
 const { repos, status, verifiedAt } = getPinnedRepos();
-const displayedRepos = typeof limit === 'number' ? repos.slice(0, Math.max(0, limit - 1)) : repos;
+// The series is featured above with its website link, so skip its GitHub pin.
+const featuredRepoUrls = new Set(['https://github.com/microsoft/student-learning-series']);
+const unfeaturedRepos = repos.filter((repo) => !featuredRepoUrls.has(repo.url.replace(/\/$/, '')));
+const displayedRepos = typeof limit === 'number' ? unfeaturedRepos.slice(0, Math.max(0, limit - 1)) : unfeaturedRepos;
 const githubPreviewUrl = (url: string) => {
   const [, owner, name] = new URL(url).pathname.replace(/\/$/, '').split('/');
   return `https://opengraph.githubassets.com/1/${owner}/${name}`;
