@@ -201,3 +201,10 @@ test('rejecting a fact changes the compatibility key', () => {
   const answers = answersFrom('target');
   assert.notEqual(scoreRun({ answers, definitions }).groups[0].compatibilityKey, scoreRun({ answers, definitions: rejected }).groups[0].compatibilityKey);
 });
+
+test('the compatibility key changes with organic capture depth', () => {
+  const capture = (depth) => [{ provider: 'google-organic', surface: 'google-organic', label: 'serp-capture', queryId: 'name', repeat: 1, status: 'ok', capturedAt: '2026-11-05T22:00:00Z',
+    organic: Array.from({ length: depth }, (_, index) => ({ position: index + 1, url: index === 2 ? 'https://kalebcole.com/' : `https://example.com/${index}` })) }];
+  const key = (depth) => scoreRun({ answers: capture(depth), definitions }).groups[0].compatibilityKey;
+  assert.notEqual(key(5), key(10));
+});

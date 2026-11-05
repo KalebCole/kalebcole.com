@@ -97,3 +97,10 @@ test('sentence boundaries survive into fact extraction', () => {
   assert.ok(facts.present.includes('target-role'));
   assert.ok(facts.present.includes('target-employer'));
 });
+
+test('a correct attribution that names the series before denying sole credit is not a contradiction', () => {
+  const facts = extractTargetFacts('He helped create Build Your Personal Brand with Copilot and is not its sole creator.', signals);
+  assert.deepEqual(facts.contradicted, []);
+  assert.ok(facts.present.includes('target-series-role'));
+  assert.deepEqual(extractTargetFacts('Build Your Personal Brand with Copilot lists him as its sole creator.', signals).contradicted, ['target-series-role']);
+});

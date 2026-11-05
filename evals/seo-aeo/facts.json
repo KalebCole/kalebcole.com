@@ -300,7 +300,7 @@
       ],
       "contradict": [
         "\\b(sole|solo|only) creator\\b.{0,40}\\b(build your personal brand with copilot|series)\\b",
-        "\\b(build your personal brand with copilot|series)\\b.{0,60}\\b(sole|solo|only) creator\\b",
+        "(?<=\\b(build your personal brand with copilot|series)\\b.{0,60})\\b(sole|solo|only) creator\\b",
         "\\bcreated (the series|build your personal brand with copilot) (alone|by himself|single-handedly)\\b"
       ],
       "sources": [

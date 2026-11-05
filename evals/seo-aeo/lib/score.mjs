@@ -140,7 +140,8 @@ function groupKey(answer) {
  */
 export function compatibilityKey({ queries, facts, rubric, config }, surface, answers = []) {
   const ran = new Set(answers.map((answer) => answer.queryId));
-  const samples = [...new Set(answers.map((answer) => `${answer.queryId}:${answer.repeat}`))].sort();
+  // Each sample carries its organic capture depth, since depth changes rank normalization.
+  const samples = [...new Set(answers.map((answer) => `${answer.queryId}:${answer.repeat}:${answer.organic?.captured ?? '-'}`))].sort();
   const provider = config.providers.find((entry) => entry.id === answers[0]?.provider);
   const basis = {
     queries: queries.version,
