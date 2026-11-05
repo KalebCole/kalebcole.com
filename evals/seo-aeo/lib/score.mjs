@@ -136,10 +136,11 @@ function groupKey(answer) {
 /**
  * Hashes everything that must match for two runs to be compared: the
  * definition versions, the locale, the surface and provider settings, the
- * recorded models, and the queries and repeats the group actually ran.
+ * recorded models, and every query and repeat pair the group actually ran.
  */
 export function compatibilityKey({ queries, facts, rubric, config }, surface, answers = []) {
   const ran = new Set(answers.map((answer) => answer.queryId));
+  const samples = [...new Set(answers.map((answer) => `${answer.queryId}:${answer.repeat}`))].sort();
   const provider = config.providers.find((entry) => entry.id === answers[0]?.provider);
   const basis = {
     queries: queries.version,
@@ -147,7 +148,7 @@ export function compatibilityKey({ queries, facts, rubric, config }, surface, an
     facts: facts.version,
     rubric: rubric.version,
     locale: config.locale,
-    repeats: answers.length ? Math.max(...answers.map((answer) => answer.repeat)) : config.repeats,
+    samples: answers.length ? samples : { repeats: config.repeats },
     surface,
     provider: provider ? { id: provider.id, adapter: provider.adapter, label: provider.label, citations: provider.citations, organic: provider.organic } : answers[0]?.provider ?? null,
     models: [...new Set(answers.map((answer) => answer.model).filter(Boolean))].sort(),

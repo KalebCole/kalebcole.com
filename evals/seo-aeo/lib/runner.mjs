@@ -12,6 +12,7 @@ import { validate } from './schema.mjs';
 import { answerId, scoreRun } from './score.mjs';
 
 const round = (value) => Math.round(value * 10000) / 10000;
+const providerSnapshot = ({ id, adapter, label, surface, citations, organic }) => ({ id, adapter, label, surface, citations, organic });
 
 function selectQueries(queries, queryIds) {
   const enabled = queries.queries.filter((query) => query.enabled);
@@ -166,6 +167,9 @@ function manifestFor({ definitions, runId, kind, plan, startedAt, finishedAt }) 
     factsStatus: facts.status,
     provisional: facts.status !== 'approved',
     locale: config.locale,
+    providers: plan
+      ? [...plan.runnable, ...plan.skipped].map((entry) => providerSnapshot(entry.provider))
+      : config.providers.filter((provider) => provider.label === 'manual-ui').map(providerSnapshot),
     repeats: plan?.repeats ?? null,
     limits: plan?.limits ?? config.limits,
     plan: plan
@@ -325,6 +329,35 @@ export function readReviews(definitions, file) {
 export const REVIEW_DECISIONS_FILE = 'review-decisions.json';
 
 /**
+ * Merges a follow-up decision into the saved one: supplied fields replace
+ * earlier ones, fact labels merge per fact, and anything left out is kept.
+ */
+export function mergeReview(previous, next) {
+  if (!previous) return next;
+  return { ...previous, ...next, facts: { ...(previous.facts ?? {}), ...(next.facts ?? {}) } };
+}
+
+/**
+ * Scoring uses the current definitions, but the locale and provider settings
+ * stay as they were at capture time, so compatibility keys and surface
+ * capabilities describe the captures rather than today's config.
+ */
+function withCaptureSettings(definitions, manifest) {
+  const captured = new Map((manifest.providers ?? []).map((provider) => [provider.id, provider]));
+  return {
+    ...definitions,
+    config: {
+      ...definitions.config,
+      locale: manifest.locale ?? definitions.config.locale,
+      providers: [
+        ...definitions.config.providers.map((provider) => (captured.has(provider.id) ? { ...provider, ...captured.get(provider.id) } : provider)),
+        ...[...captured.values()].filter((provider) => !definitions.config.providers.some((entry) => entry.id === provider.id)),
+      ],
+    },
+  };
+}
+
+/**
  * Rescores an existing run directory. Review decisions applied earlier are
  * kept in the run's review-decisions.json and reused, so regenerating a
  * report never drops a human confirmation. A new review file is merged on
@@ -349,10 +382,10 @@ export function rescoreRun({ definitions, runDir, reviewFile, allowDefinitionCha
   const storedPath = join(runDir, REVIEW_DECISIONS_FILE);
   const decisions = new Map((existsSync(storedPath) ? readReviews(definitions, storedPath) : []).map((review) => [review.answerId, review]));
   if (reviewFile) {
-    for (const review of readReviews(definitions, reviewFile)) decisions.set(review.answerId, review);
+    for (const review of readReviews(definitions, reviewFile)) decisions.set(review.answerId, mergeReview(decisions.get(review.answerId), review));
     manifest.reviewFiles = [...(manifest.reviewFiles ?? []), reviewFile];
   }
   const reviews = [...decisions.values()];
   if (reviews.length) writeJson(storedPath, reviews);
-  return finishRun({ definitions, dir: runDir, manifest, answers, reviews });
+  return finishRun({ definitions: withCaptureSettings(definitions, manifest), dir: runDir, manifest, answers, reviews });
 }

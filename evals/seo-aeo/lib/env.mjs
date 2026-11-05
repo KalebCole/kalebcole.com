@@ -19,7 +19,8 @@ export function parseEnvFile(text) {
 }
 
 /**
- * Process environment wins over files; earlier files win over later ones.
+ * Process environment wins over files, even when set to an empty value;
+ * earlier files win over later ones.
  * Returns a reader with has(name) and get(name).
  */
 export function loadEnv({ dir, files = ['.env.local', '.env'], env = process.env } = {}) {
@@ -28,8 +29,9 @@ export function loadEnv({ dir, files = ['.env.local', '.env'], env = process.env
     const path = join(dir, file);
     if (existsSync(path)) Object.assign(merged, parseEnvFile(readFileSync(path, 'utf8')));
   }
+  // An explicitly set variable wins even when empty, so KEY="" turns a key off.
   for (const [key, value] of Object.entries(env)) {
-    if (value !== undefined && value !== '') merged[key] = value;
+    if (value !== undefined) merged[key] = value;
   }
   return {
     has: (name) => typeof merged[name] === 'string' && merged[name].trim() !== '',

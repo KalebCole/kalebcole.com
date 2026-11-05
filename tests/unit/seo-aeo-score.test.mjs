@@ -167,3 +167,16 @@ test('the compatibility key changes with the recorded model', () => {
   const key = (model) => scoreRun({ answers: answersFrom('target').map((answer) => ({ ...answer, model })), definitions }).groups[0].compatibilityKey;
   assert.notEqual(key('model-a'), key('model-b'));
 });
+
+test('the compatibility key hashes every query and repeat pair', () => {
+  const answer = (queryId, repeat) => ({ provider: 'fixture', surface: 'fixture', label: 'fixture', queryId, repeat, status: 'ok', text: 'Kaleb Cole is a software engineer at Microsoft.', capturedAt: '2026-11-05T22:00:00Z' });
+  const key = (answers) => scoreRun({ answers, definitions }).groups[0].compatibilityKey;
+  assert.notEqual(key([answer('name', 1), answer('name', 2), answer('who-is', 1)]), key([answer('name', 1), answer('who-is', 1), answer('who-is', 2)]));
+});
+
+test('namesake organic positions do not depend on query order', () => {
+  const organic = [{ position: 1, url: 'https://news.example/story', title: 'Kaleb Cole, Atomwaffen Division member' }, { position: 2, url: 'https://kalebcole.com/' }];
+  const answers = queryIds.map((queryId) => ({ provider: 'google-organic', surface: 'google-organic', label: 'serp-capture', queryId, repeat: 1, status: 'ok', organic, capturedAt: '2026-11-05T22:00:00Z' }));
+  const { metrics } = groupOf(answers);
+  assert.deepEqual(metrics.organicRank.perQuery.map((row) => row.namesakePosition), [1, 1, 1, 1]);
+});

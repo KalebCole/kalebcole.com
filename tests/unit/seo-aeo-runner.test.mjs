@@ -37,6 +37,7 @@ test('env files parse KEY=VALUE lines and blank values count as missing', (t) =>
   assert.equal(env.has('SERPAPI_API_KEY'), true);
   assert.equal(env.has('OPENAI_API_KEY'), false);
   assert.equal(loadEnv({ dir, env: { SERPAPI_API_KEY: 'from-process' } }).get('SERPAPI_API_KEY'), 'from-process');
+  assert.equal(loadEnv({ dir, env: { SERPAPI_API_KEY: '' } }).has('SERPAPI_API_KEY'), false, 'an explicit empty value turns the key off');
 });
 
 test('preflight lists calls and a conservative spend ceiling, and calls nothing', () => {
@@ -224,4 +225,36 @@ test('a run with only skipped providers still writes its missingness', async (t)
   assert.equal(result.answers.length, 4);
   assert.ok(result.answers.every((answer) => answer.status === 'skipped'));
   assert.match(readFileSync(join(result.dir, 'report.md'), 'utf8'), /SERPAPI_API_KEY is not set/);
+});
+
+test('a follow-up review merges into the saved decision instead of replacing it', async (t) => {
+  const out = tempDir(t);
+  const registry = createAdapterRegistry({ fixturePath: fixture('conflated') });
+  const plan = planRun({ definitions, registry, env: noKeys, providerIds: ['fixture'], queryIds: ['name'] });
+  const run = await executeRun({ definitions, plan, env: noKeys, outDir: out, now: clock, sleep: noSleep, runId: 'merge' });
+  const answerId = run.scores.review[0].answerId;
+  const write = (name, decisions) => {
+    const file = join(out, name);
+    writeFileSync(file, JSON.stringify(decisions));
+    return file;
+  };
+  rescoreRun({ definitions, runDir: run.dir, reviewFile: write('first.json', [{ answerId, reviewer: 'kaleb', reviewedAt: '2026-11-06', classification: 'conflated', facts: { 'target-role': 'correct' } }]) });
+  const followUp = rescoreRun({ definitions, runDir: run.dir, reviewFile: write('second.json', [{ answerId, reviewer: 'kaleb', reviewedAt: '2026-11-07', citationSupport: false, facts: { 'target-employer': 'incorrect' } }]) });
+  assert.equal(followUp.scores.groups[0].critical.confirmedConflations.length, 1);
+  const [saved] = JSON.parse(readFileSync(join(run.dir, 'review-decisions.json'), 'utf8'));
+  assert.deepEqual(saved.facts, { 'target-role': 'correct', 'target-employer': 'incorrect' });
+  assert.equal(saved.classification, 'conflated');
+  assert.equal(saved.citationSupport, false);
+});
+
+test('rescoring with current definitions keeps the capture-time locale in the compatibility key', async (t) => {
+  const registry = createAdapterRegistry({ fixturePath: fixture('demo') });
+  const plan = planRun({ definitions, registry, env: noKeys, providerIds: ['fixture'] });
+  const run = await executeRun({ definitions, plan, env: noKeys, outDir: tempDir(t), now: clock, sleep: noSleep, runId: 'locale' });
+  const mobile = structuredClone(definitions);
+  mobile.dir = definitions.dir;
+  mobile.config.locale.device = 'mobile';
+  mobile.config.version = '1.1.0';
+  const rescored = rescoreRun({ definitions: mobile, runDir: run.dir, allowDefinitionChange: true, now: clock });
+  assert.equal(rescored.scores.groups[0].compatibilityKey, run.scores.groups[0].compatibilityKey);
 });

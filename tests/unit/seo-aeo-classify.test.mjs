@@ -70,3 +70,11 @@ test('the fact sheet wording itself is credited, and only an asserted sole-creat
   const asserted = extractTargetFacts('He is the sole creator of Build Your Personal Brand with Copilot.', signals);
   assert.deepEqual(asserted.contradicted, ['target-series-role']);
 });
+
+test('auxiliary negations such as does not deny a target fact', () => {
+  for (const text of ['Kaleb Cole is a software engineer. He does not work at Microsoft.', 'Kaleb Cole is a software engineer. He doesn’t work at Microsoft.']) {
+    const facts = extractTargetFacts(text, signals);
+    assert.deepEqual(facts.negated, ['target-employer'], text);
+    assert.equal(facts.present.includes('target-employer'), false, text);
+  }
+});

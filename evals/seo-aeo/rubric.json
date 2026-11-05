@@ -30,9 +30,12 @@
       "\\bmay refer to\\b"
     ],
     "negationCues": [
-      "\\b(is|was|has) not\\b",
-      "\\b(isn't|wasn't|hasn't)\\b",
+      "\\b(is|was|has|had|are|were) not\\b",
+      "\\b(does|do|did|can|could|will|would|should) not\\b",
+      "\\b(isn|wasn|hasn|hadn|aren|weren|doesn|don|didn|couldn|won|wouldn|shouldn)['’]t\\b",
+      "\\bcan(not|['’]t)\\b",
       "\\bnever\\b",
+      "\\bno longer\\b",
       "\\bno (link|ties?|affiliation)\\b",
       "\\bnothing to do with\\b",
       "\\bnot (affiliated|associated|connected|linked|related)\\b"

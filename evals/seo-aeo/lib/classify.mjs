@@ -11,7 +11,7 @@
 const CLAUSE_BREAK = /[;:]|\b(and|but|while|whereas|although|though|however|yet)\b/iu;
 
 export function compileSignals(facts, rubric) {
-  const compile = (patterns) => patterns.map((pattern) => new RegExp(pattern, 'giu'));
+  const compile = (patterns) => patterns.map((pattern) => new RegExp(pattern, 'iu'));
   const fact = (entry) => ({
     id: entry.id,
     distinguishing: entry.distinguishing,
@@ -33,7 +33,9 @@ export function splitSentences(text) {
     .filter(Boolean);
 }
 
-const matchesOf = (pattern, text) => [...text.matchAll(new RegExp(pattern.source, pattern.flags))];
+// Signals are compiled without the g flag so .test() never carries lastIndex
+// between calls; matchAll gets a fresh global copy each time.
+const matchesOf = (pattern, text) => [...text.matchAll(new RegExp(pattern.source, `${pattern.flags}g`))];
 const testAny = (patterns, text) => patterns.some((pattern) => matchesOf(pattern, text).length > 0);
 
 /** True when a negation cue governs the match starting at index. */

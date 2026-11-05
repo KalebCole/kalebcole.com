@@ -45,7 +45,7 @@ Only the `fixture` adapter exists today. `config.json` already lists the planned
 | `gemini-grounded` | Gemini API with Google Search grounding | API proxy, not the Gemini app | `GEMINI_API_KEY` | #191 |
 | `manual-ui` | Fresh-chat consumer UI checks | manual UI | none, use `import` | #195 |
 
-Keys live in `evals/seo-aeo/.env.local` (or `.env`), which git ignores; a process environment variable wins over the file. Values are never printed or written to artifacts. A missing key skips that provider with a message naming the key, and the skipped calls appear in the report's missingness instead of disappearing.
+Keys live in `evals/seo-aeo/.env.local` (or `.env`), which git ignores. A process environment variable wins over the file, even when set to an empty value, so `OPENAI_API_KEY= npm run eval:seo-aeo` turns that key off. Values are never printed or written to artifacts. A missing key skips that provider with a message naming the key, and the skipped calls appear in the report's missingness instead of disappearing.
 
 Live providers also stay off while `facts.json` is `pending-approval`, so no live baseline is scored against facts Kaleb has not approved.
 
@@ -99,7 +99,7 @@ Each surface also gets a compatibility key built from the query, fact, and rubri
 [{ "answerId": "openai-web-search:chatgpt-api-proxy:who-is:1", "reviewer": "kaleb", "reviewedAt": "2026-12-01", "classification": "both-separated", "citationSupport": true }]
 ```
 
-When confirming a conflation, `attributedNamesakeFactIds` can list the namesake facts the answer pinned on the engineer; without it, every namesake claim the answer asserts counts. Then rescore with `report <run-dir> --review <file>`. Applied decisions are saved in the run's `review-decisions.json` and reused on every later `report`, so regenerating a report never drops a confirmation; a new review file is merged on top. `report` refuses to rescore a run whose query, fact, rubric, or config versions or fact approval status have changed since it was scored, unless you pass `--rescore-with-current`, which records the new provenance in the manifest and the report.
+When confirming a conflation, `attributedNamesakeFactIds` can list the namesake facts the answer pinned on the engineer; without it, every namesake claim the answer asserts counts. Then rescore with `report <run-dir> --review <file>`. Applied decisions are saved in the run's `review-decisions.json` and reused on every later `report`, so regenerating a report never drops a confirmation; a new review file is merged on top, field by field, with fact labels merged per fact. `report` refuses to rescore a run whose query, fact, rubric, or config versions or fact approval status have changed since it was scored, unless you pass `--rescore-with-current`, which records the new provenance in the manifest and the report. Rescoring keeps the capture-time locale and provider settings, so compatibility keys still describe the captures.
 
 ## Approving the facts
 
