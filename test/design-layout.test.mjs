@@ -112,13 +112,29 @@ async function openCdp(debugOrigin) {
   };
 }
 
+// Spawn a child and capture its exit right away, so a child that dies early
+// (a Chrome crash, a bad CHROME_BIN) is still observed by cleanup.
+export function spawnTracked(command, args, options) {
+  const child = spawn(command, args, options);
+  const exited = new Promise((resolve) => {
+    child.once('exit', resolve);
+    child.once('error', resolve);
+  });
+  return { child, exited };
+}
+
+export async function stopTracked({ child, exited }) {
+  if (child.exitCode === null && child.signalCode === null) child.kill();
+  await exited;
+}
+
 async function withBrowser(callback) {
   assert.ok(existsSync(dist), 'dist must exist; run the production build first');
   assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for browser layout certification');
   const { server, origin } = await startStaticServer();
   const profile = await mkdtemp(join(tmpdir(), 'kalebcole-design-layout-'));
   const debugPort = 10_400 + (process.pid % 500);
-  const chrome = spawn(chromeExecutable, [
+  const chrome = spawnTracked(chromeExecutable, [
     '--headless=new', `--remote-debugging-port=${debugPort}`, `--user-data-dir=${profile}`,
     '--no-first-run', '--no-default-browser-check', '--disable-gpu', '--autoplay-policy=user-gesture-required', 'about:blank',
   ], { stdio: 'ignore' });
@@ -131,8 +147,7 @@ async function withBrowser(callback) {
     await callback(cdp, origin);
   } finally {
     cdp?.close();
-    chrome.kill();
-    await new Promise((resolve) => chrome.once('exit', resolve));
+    await stopTracked(chrome);
     await rm(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
     await new Promise((resolve) => server.close(resolve));
   }
@@ -310,6 +325,84 @@ test('navigation height, touch targets, and text wrapping follow DESIGN.md on ev
   assert.deepEqual(failures, [], `navigation, targets, and text wrapping must match DESIGN.md:\n${failures.join('\n')}`);
 });
 
+// Records every animation and transition that starts inside the article, from
+// before the first script runs: CSS animations and transitions through their
+// start events, script animations by wrapping Element.prototype.animate. A
+// short animation that finishes during load is still in the history.
+export const motionRecorder = `(() => {
+  const history = [];
+  Object.defineProperty(window, '__articleMotion', { value: history });
+  const note = (target, what) => {
+    if (target instanceof Element && target.closest('main article')) history.push((target.className || target.localName) + ' ' + what);
+  };
+  addEventListener('animationstart', (event) => note(event.target, 'animation ' + event.animationName), true);
+  addEventListener('transitionrun', (event) => note(event.target, 'transition ' + event.propertyName), true);
+  const animate = Element.prototype.animate;
+  Element.prototype.animate = function (...args) {
+    note(this, 'Element.animate');
+    return animate.apply(this, args);
+  };
+})()`;
+
+// Scroll to the bottom instantly (the site sets scroll-behavior: smooth) and
+// wait until the page is really there, then read the history.
+const scrollToBottomThenReadMotion = `(async () => {
+  const bottom = () => Math.max(0, document.documentElement.scrollHeight - innerHeight);
+  window.scrollTo({ top: bottom(), behavior: 'instant' });
+  const deadline = performance.now() + 10000;
+  while (Math.abs(scrollY - bottom()) > 1) {
+    if (performance.now() > deadline) throw new Error('scroll never reached the bottom: ' + scrollY + ' of ' + bottom());
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const running = document.getAnimations()
+    .filter((animation) => animation.effect?.target?.closest?.('main article'))
+    .map((animation) => (animation.effect.target.className || animation.effect.target.localName) + ' ' + (animation.animationName || animation.constructor.name));
+  return { scrollY, bottom: bottom(), motion: [...new Set([...window.__articleMotion, ...running])] };
+})()`;
+
+async function articleMotion(cdp, url) {
+  const { identifier } = await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: motionRecorder });
+  try {
+    await cdp.send('Page.navigate', { url });
+    await eventually(async () => {
+      const state = await evaluate(cdp, '({ href: location.href, readyState: document.readyState })');
+      assert.equal(state.href, url);
+      assert.equal(state.readyState, 'complete');
+    }, 20_000);
+    return await evaluate(cdp, scrollToBottomThenReadMotion);
+  } finally {
+    await cdp.send('Page.removeScriptToEvaluateOnNewDocument', { identifier });
+  }
+}
+
+// A page that breaks the rule in the two ways a load-time snapshot misses: a
+// 1ms animation that is over before readyState is complete, and an animation
+// started only once a smooth-scrolling page reaches its last paragraph.
+const motionFixture = `data:text/html,${encodeURIComponent(`<!doctype html>
+<style>
+  html { scroll-behavior: smooth; }
+  @keyframes blink { from { opacity: 0; } to { opacity: 1; } }
+  .quick { animation: blink 1ms; }
+  .late.seen { animation: blink 5s; }
+  p { height: 3000px; }
+</style>
+<main><article><p class="quick">first</p><p class="late">last</p></article></main>
+<script>
+  new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add('seen')))
+    .observe(document.querySelector('.late'));
+</script>`)}`;
+
+test('article motion check sees load-time and scroll-triggered animations on a smooth-scrolling page', async () => {
+  await withBrowser(async (cdp) => {
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+    const result = await articleMotion(cdp, motionFixture);
+    assert.ok(result.bottom > 0 && Math.abs(result.scrollY - result.bottom) <= 1, `fixture must be scrolled to the bottom, at ${result.scrollY} of ${result.bottom}`);
+    assert.ok(result.motion.includes('quick animation blink'), `the 1ms load animation must be recorded: ${result.motion.join(', ')}`);
+    assert.ok(result.motion.some((entry) => entry.startsWith('late seen')), `the scroll-triggered animation must be recorded: ${result.motion.join(', ')}`);
+  });
+});
+
 // DESIGN.md Writing article: "Article prose and media remain still; do not animate
 // while someone reads." Scoped to the article itself: the shared header's settle
 // still runs on every route, which the issue lists as a question for Kaleb.
@@ -320,18 +413,20 @@ test('article content holds still: nothing inside the article animates (DESIGN.m
     for (const route of posts) {
       const url = new URL(route, origin);
       url.searchParams.set('__design', String(++navigationCount));
-      await cdp.send('Page.navigate', { url: url.href });
-      await eventually(async () => {
-        const state = await evaluate(cdp, '({ href: location.href, readyState: document.readyState })');
-        assert.equal(state.href, url.href);
-        assert.equal(state.readyState, 'complete');
-      }, 20_000);
-      // Read animations before settle, which would wait them out. Scrolling must not start any either.
-      const atLoad = await evaluate(cdp, `document.getAnimations().filter((animation) => animation.effect?.target?.closest?.('main article')).map((animation) => (animation.effect.target.className || animation.effect.target.localName) + ' ' + (animation.animationName || animation.constructor.name))`);
-      await evaluate(cdp, `(async () => { window.scrollTo(0, document.documentElement.scrollHeight); await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))); })()`);
-      const afterScroll = await evaluate(cdp, `document.getAnimations().filter((animation) => animation.effect?.target?.closest?.('main article')).map((animation) => (animation.effect.target.className || animation.effect.target.localName) + ' ' + (animation.animationName || animation.constructor.name))`);
-      for (const animation of [...atLoad, ...afterScroll]) failures.push(`${route}: animation running inside the article: ${animation}`);
+      const { motion } = await articleMotion(cdp, url.href);
+      for (const animation of motion) failures.push(`${route}: animation inside the article: ${animation}`);
     }
   });
   assert.deepEqual(failures, [], `article pages must not animate:\n${failures.join('\n')}`);
+});
+
+test('browser cleanup finishes when the child has already exited', async () => {
+  const tracked = spawnTracked(process.execPath, ['-e', ''], { stdio: 'ignore' });
+  await tracked.exited;
+  let timer;
+  const stopped = await Promise.race([
+    stopTracked(tracked).then(() => true),
+    new Promise((resolve) => { timer = setTimeout(() => resolve(false), 2000); }),
+  ]).finally(() => clearTimeout(timer));
+  assert.ok(stopped, 'stopping an already exited child must not wait for an exit event that already fired');
 });
