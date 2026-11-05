@@ -26,6 +26,7 @@ export const check = collect('projects', async ({ routes, homepage, projectsPage
   assert.match(pinnedReposSource, /url: 'https:\/\/kalebcole\.github\.io\/uprint-cli\/'/i, 'uprint override must target its website');
   assert.match(pinnedReposSource, /name: 'uprint-cli'/, 'uprint override must use the repository name');
   assert.match(pinnedReposSource, /description: 'Agentic CLI for Microsoft Employees to print hassle-free at the Redmond campus'/, 'uprint override must match the GitHub About description');
+  assert.match(pinnedReposSource, /'KalebCole\/uprint-cli':\s*\{/, 'uprint must have a presentation override keyed by owner/repo');
   assert.match(pinnedReposSource, /'KalebCole\/partiful-cli':\s*\{/, 'Partiful must have a presentation override keyed by owner/repo');
   assert.match(
     pinnedReposSource,
@@ -66,10 +67,11 @@ export const check = collect('projects', async ({ routes, homepage, projectsPage
   assert.doesNotMatch(projectsPage, /Still curious\?|I keep more experiments, tools, and unfinished threads on GitHub\.|Find me on GitHub/i, 'Projects index must not render the removed GitHub onward prompt');
   assert.doesNotMatch(projectsPage, /\b(?:case study|case-study|metrics?|stars|forks|language)\b/i, 'Projects index must not add metrics, project-language metadata, or case-study framing');
   for (const [surface, html] of [['homepage', homepage], ['Projects index', projectsPage]]) {
-    if (/uprint-cli/i.test(html)) {
-      assert.match(html, /href="https:\/\/kalebcole\.github\.io\/uprint-cli\/"/i, `${surface} uprint card must target its website`);
-      assert.match(html, /src="\/projects\/uprint-website\.webp"/i, `${surface} uprint card must use the website preview`);
-      assert.match(html, /Agentic CLI for Microsoft Employees to print hassle-free at the Redmond campus/i, `${surface} uprint card must match the GitHub About description`);
+    // Scope to KalebCole/uprint-cli presentation, not any repo named uprint-cli.
+    if (/https:\/\/(?:kalebcole\.github\.io|github\.com\/KalebCole)\/uprint-cli/i.test(html)) {
+      assert.match(html, /href="https:\/\/kalebcole\.github\.io\/uprint-cli\/"/i, `${surface} KalebCole/uprint-cli card must target its website`);
+      assert.match(html, /src="\/projects\/uprint-website\.webp"/i, `${surface} KalebCole/uprint-cli card must use the website preview`);
+      assert.match(html, /Agentic CLI for Microsoft Employees to print hassle-free at the Redmond campus/i, `${surface} KalebCole/uprint-cli card must match the GitHub About description`);
     }
   }
 
