@@ -24,8 +24,8 @@ export const APPROVED_LLMS_TXT_COPY = Object.freeze({
 
 /**
  * The Copilot series row on the Projects page, in llms.txt form. Title and
- * series description match src/components/PinnedRepos.astro (certify checks
- * this); the URL and the third-person role sentence were approved by Kaleb
+ * series description match src/components/PinnedRepos.astro (the site checks
+ * verify this); the URL and the third-person role sentence were approved by Kaleb
  * for llms.txt on 2026-11-01. Protected wording: do not edit without his ok.
  */
 export const LLMS_SERIES_PROJECT = Object.freeze({

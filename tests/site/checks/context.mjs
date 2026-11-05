@@ -1,4 +1,4 @@
-// Loads the production build once. Every certify module reads from this context.
+// Loads the production build once. Every site check module reads from this context.
 import { readdirSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { blogSource, dist, metaContent, root, routeForHtml, text, walk } from './helpers.mjs';

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { collect, root, text } from './helpers.mjs';
 
-// Theme toggle icon states (formerly scripts/certify-theme-toggle.mjs).
+// Theme toggle icon states.
 export const check = collect('theme-toggle', async () => {
   const component = text(join(root, 'src', 'components', 'ThemeToggle.astro'));
   const styles = text(join(root, 'src', 'styles', 'global.css'));

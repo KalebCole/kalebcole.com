@@ -1,0 +1,77 @@
+name: Check
+
+# Runs the three kinds of checks as parallel jobs on every pull request and on
+# every push to master:
+#   unit: npm test (tests/unit/, no build)
+#   site: npm run test:site (production build, then tests/site/)
+#   e2e:  npm run test:e2e (production build, then headless Chrome in tests/e2e/)
+# Together they are npm run check.
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# The build needs no network: the GitHub snapshot (src/data/github.json) and
+# recommend thumbnails (public/recommends/thumbs/) are committed caches. The
+# prebuild step may rewrite public/me.jpg; the checkout is thrown away, so that
+# does not matter here.
+#
+# The runner sets CI, which turns on ANSI colors in Astro and Vite output. Some
+# tests match build error text with plain regexes (#180), so keep the log
+# uncolored the same as a local terminal pipe.
+env:
+  GITHUB_TOKEN: ''
+  NO_COLOR: '1'
+  FORCE_COLOR: '0'
+
+jobs:
+  unit:
+    name: unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  site:
+    name: site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:site
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Find Chrome
+        run: |
+          chrome="$(command -v google-chrome || command -v google-chrome-stable)"
+          "$chrome" --version
+          echo "CHROME_BIN=$chrome" >> "$GITHUB_ENV"
+      - run: npm run test:e2e

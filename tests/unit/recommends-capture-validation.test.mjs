@@ -4,10 +4,11 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { root } from "../support/root.mjs";
 
-import { validateCaptureRequest } from "../scripts/validate-recommends-capture.mjs";
+import { validateCaptureRequest } from "../../scripts/validate-recommends-capture.mjs";
 
-const repositoryRoot = path.resolve(import.meta.dirname, "..");
+const repositoryRoot = root;
 const validator = path.join(repositoryRoot, "scripts", "validate-recommends-capture.mjs");
 
 function validRequest(overrides = {}) {

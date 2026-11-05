@@ -6,15 +6,14 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize } from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+import { dist, root } from '../support/root.mjs';
 
 // Measured DESIGN.md rules, checked in headless Chrome on the production build.
 // Each check waits for a settled page (exact URL, readyState complete, fonts,
 // every image decoded, video metadata, finished animations, two frames) before
 // it measures, so nothing depends on a fixed sleep. A load that never settles
 // fails with its reason instead of measuring a half-loaded page.
-const root = fileURLToPath(new URL('..', import.meta.url));
-const dist = join(root, 'dist');
+
 const blogSource = join(root, 'src', 'content', 'blog');
 const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')

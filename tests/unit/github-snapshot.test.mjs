@@ -3,9 +3,9 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { getPinnedRepos, parseGitHubSnapshot } from '../src/lib/github.mjs';
-import { showStaleGitHubSnapshotStatus } from '../src/scripts/github-snapshot-age.mjs';
-import { refreshGitHubSnapshot } from '../scripts/refresh-github.mjs';
+import { getPinnedRepos, parseGitHubSnapshot } from '../../src/lib/github.mjs';
+import { showStaleGitHubSnapshotStatus } from '../../src/scripts/github-snapshot-age.mjs';
+import { refreshGitHubSnapshot } from '../../scripts/refresh-github.mjs';
 
 const now = new Date('2026-10-16T12:00:00.000Z');
 const repo = { name: 'example', description: null, url: 'https://github.com/KalebCole/example' };

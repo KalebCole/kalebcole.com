@@ -3,8 +3,9 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { THUMBNAIL_MAX_RENDERED_WIDTH, THUMBNAIL_WIDTHS, thumbnailPath } from '../src/lib/recommend-thumbnails.mjs';
-import { frontmatterValue, publishedRecommendImages } from '../scripts/recommend-thumbnails.mjs';
+import { root } from '../support/root.mjs';
+import { THUMBNAIL_MAX_RENDERED_WIDTH, THUMBNAIL_WIDTHS, thumbnailPath } from '../../src/lib/recommend-thumbnails.mjs';
+import { frontmatterValue, publishedRecommendImages } from '../../scripts/recommend-thumbnails.mjs';
 
 test('thumbnail widths never exceed twice the largest rendered width', () => {
   for (const width of THUMBNAIL_WIDTHS) assert.ok(width <= THUMBNAIL_MAX_RENDERED_WIDTH * 2);
@@ -34,7 +35,7 @@ test('only published recommends with artwork get thumbnails', async () => {
 });
 
 test('cached thumbnails are reused and new or changed images are generated', async () => {
-  const { planThumbnails } = await import('../scripts/recommend-thumbnails.mjs');
+  const { planThumbnails } = await import('../../scripts/recommend-thumbnails.mjs');
   const cached = { slug: 'cached', image: 'https://example.com/cached.png' };
   const changed = { slug: 'changed', image: 'https://example.com/new.png' };
   const missingFile = { slug: 'missing-file', image: 'https://example.com/missing.png' };
@@ -58,6 +59,6 @@ test('cached thumbnails are reused and new or changed images are generated', asy
 
 test('every build runs the thumbnail step', async () => {
   const { readFile } = await import('node:fs/promises');
-  const { scripts } = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  const { scripts } = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
   assert.match(scripts.prebuild, /\bnpm run recommend-thumbnails\b/);
 });

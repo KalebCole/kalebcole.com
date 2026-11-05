@@ -6,14 +6,13 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize } from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+import { dist, root } from '../support/root.mjs';
 
 // Small phones must never scroll sideways. Mobile emulation matters: a phone
 // browser widens its layout viewport to fit overflow seen during load (for
 // example a transformed entrance animation), so innerWidth growing past
 // clientWidth is the symptom, not just scrollWidth.
-const root = fileURLToPath(new URL('..', import.meta.url));
-const dist = join(root, 'dist');
+
 const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
     ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'

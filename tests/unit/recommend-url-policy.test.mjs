@@ -2,14 +2,15 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import test from "node:test";
+import { root } from "../support/root.mjs";
 
 import {
   disallowedQueryParametersIn,
   isDisallowedQueryParameter,
   normalizeRecommendUrl as normalize,
-} from "../scripts/recommend-url-policy.mjs";
+} from "../../scripts/recommend-url-policy.mjs";
 
-const repositoryRoot = path.resolve(import.meta.dirname, "..");
+const repositoryRoot = root;
 
 test("keeps YouTube v and t and strips si", () => {
   assert.equal(

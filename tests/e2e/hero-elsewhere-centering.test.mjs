@@ -5,11 +5,10 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dist, root } from '../support/root.mjs';
 import test from 'node:test';
 
-const root = fileURLToPath(new URL('..', import.meta.url));
-const dist = join(root, 'dist');
+
 const chromeExecutable = process.env.CHROME_BIN
   ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
     ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'

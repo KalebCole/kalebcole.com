@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { APPROVED_LLMS_TXT_COPY, buildLlmsTxt } from '../src/lib/llms-txt.mjs';
-import { PERSON_SCHEMA } from '../src/lib/person-schema.mjs';
+import { APPROVED_LLMS_TXT_COPY, buildLlmsTxt } from '../../src/lib/llms-txt.mjs';
+import { PERSON_SCHEMA } from '../../src/lib/person-schema.mjs';
 
 const post = (id, date, draft = false) => ({
   id,

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { resolveSocialImageOrigin } from '../../src/lib/site-origin.mjs';
+import { resolveSocialImageOrigin } from '../../../src/lib/site-origin.mjs';
 import { attribute, budgets, collect, localAsset, matches, metaContent, pngDimensions, site, socialImageOrigin, text } from './helpers.mjs';
 
 // Meta and SEO: canonical, Open Graph and Twitter tags on every route, the homepage title, description and social image, Writing index description, and article social images.

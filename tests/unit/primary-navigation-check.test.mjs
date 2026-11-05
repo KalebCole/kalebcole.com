@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { hasCanonicalResumeLinkInPrimaryNavigation } from '../scripts/certify/navigation.mjs';
+import { hasCanonicalResumeLinkInPrimaryNavigation } from '../site/checks/navigation.mjs';
 
 test('rejects a résumé link outside primary navigation', () => {
   const html = '<nav aria-label="Primary navigation"><a href="/blog">Writing</a></nav><footer><a href="/resume.pdf">Résumé</a></footer>';

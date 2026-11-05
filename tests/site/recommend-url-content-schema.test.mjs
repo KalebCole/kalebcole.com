@@ -4,14 +4,15 @@ import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, syml
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { root } from "../support/root.mjs";
 
 // Astro's own frontmatter parser, the one its glob loader uses for content collections.
 import { parseFrontmatter } from "@astrojs/markdown-remark";
 
-import { recommendUrl, recommendUrlProblems } from "../src/lib/recommend-url.mjs";
+import { recommendUrl, recommendUrlProblems } from "../../src/lib/recommend-url.mjs";
 
-const repositoryRoot = path.resolve(import.meta.dirname, "..");
-const fixtures = path.join(repositoryRoot, "test", "fixtures", "recommend-urls");
+const repositoryRoot = root;
+const fixtures = path.join(repositoryRoot, "tests", "fixtures", "recommend-urls");
 const astroBin = path.join(repositoryRoot, "node_modules", "astro", "astro.js");
 
 // Where each dirty fixture is placed under src/content/recommends, and what the build must report.
