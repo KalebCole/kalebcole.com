@@ -1,0 +1,539 @@
+{
+  "status": "pending-approval",
+  "version": "0.1.0",
+  "updated": "2026-11-05",
+  "approval": {
+    "status": "pending",
+    "approvedBy": null,
+    "approvedAt": null,
+    "instructions": "Kaleb reviews every fact whose subject is target, sets each approval to approved or rejected, then sets status to approved. Live providers refuse to run until status is approved."
+  },
+  "note": "Proposal. Facts go to the scorer only, never into search prompts. Target facts come only from kalebcole.com, the public GitHub profile, and the repository Person schema. Namesake facts are independent public sources about a different person with the same name, used only to tell the two apart.",
+  "facts": [
+    {
+      "id": "target-name",
+      "subject": "target",
+      "claim": "The site owner's name is Kaleb Cole.",
+      "value": "Kaleb Cole",
+      "distinguishing": false,
+      "match": [
+        "\\bkaleb cole\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://github.com/KalebCole/kalebcole.com/blob/56a64ca6e5a5d9baa14f829fcd886d3f8637cb82/src/lib/person-schema.mjs",
+          "title": "Person JSON-LD source (src/lib/person-schema.mjs)",
+          "publisher": "kalebcole.com repository",
+          "retrieved": "2026-11-05",
+          "quote": "name: 'Kaleb Cole'"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole GitHub profile",
+          "publisher": "GitHub",
+          "retrieved": "2026-11-05",
+          "quote": "Kaleb Cole"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-role",
+      "subject": "target",
+      "claim": "Kaleb Cole is a software engineer.",
+      "value": "Software Engineer",
+      "distinguishing": true,
+      "match": [
+        "\\bsoftware (engineer|developer)\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://github.com/KalebCole/kalebcole.com/blob/56a64ca6e5a5d9baa14f829fcd886d3f8637cb82/src/lib/person-schema.mjs",
+          "title": "Person JSON-LD source (src/lib/person-schema.mjs)",
+          "publisher": "kalebcole.com repository",
+          "retrieved": "2026-11-05",
+          "quote": "jobTitle: 'Software Engineer'"
+        },
+        {
+          "url": "https://kalebcole.com/",
+          "title": "Kaleb Cole | Software engineer in Seattle",
+          "publisher": "kalebcole.com",
+          "retrieved": "2026-11-05",
+          "quote": "software engineer at Microsoft"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole GitHub profile",
+          "publisher": "GitHub",
+          "retrieved": "2026-11-05",
+          "quote": "I'm a software engineer at Microsoft."
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-employer",
+      "subject": "target",
+      "claim": "Kaleb Cole works at Microsoft.",
+      "value": "Microsoft",
+      "distinguishing": true,
+      "match": [
+        "\\bmicrosoft\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://github.com/KalebCole/kalebcole.com/blob/56a64ca6e5a5d9baa14f829fcd886d3f8637cb82/src/lib/person-schema.mjs",
+          "title": "Person JSON-LD source (src/lib/person-schema.mjs)",
+          "publisher": "kalebcole.com repository",
+          "retrieved": "2026-11-05",
+          "quote": "worksFor: { '@type': 'Organization', name: 'Microsoft' }"
+        },
+        {
+          "url": "https://kalebcole.com/",
+          "title": "Kaleb Cole | Software engineer in Seattle",
+          "publisher": "kalebcole.com",
+          "retrieved": "2026-11-05",
+          "quote": "software engineer at Microsoft"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole GitHub profile",
+          "publisher": "GitHub",
+          "retrieved": "2026-11-05",
+          "quote": "Microsoft"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-location",
+      "subject": "target",
+      "claim": "Kaleb Cole is based in Seattle, Washington.",
+      "value": "Seattle, WA",
+      "distinguishing": false,
+      "match": [
+        "\\bseattle\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://github.com/KalebCole/kalebcole.com/blob/56a64ca6e5a5d9baa14f829fcd886d3f8637cb82/src/lib/person-schema.mjs",
+          "title": "Person JSON-LD source (src/lib/person-schema.mjs)",
+          "publisher": "kalebcole.com repository",
+          "retrieved": "2026-11-05",
+          "quote": "homeLocation: { '@type': 'Place', name: 'Seattle, WA' }"
+        },
+        {
+          "url": "https://kalebcole.com/",
+          "title": "Kaleb Cole | Software engineer in Seattle",
+          "publisher": "kalebcole.com",
+          "retrieved": "2026-11-05",
+          "quote": "Kaleb Cole | Software engineer in Seattle"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole GitHub profile",
+          "publisher": "GitHub",
+          "retrieved": "2026-11-05",
+          "quote": "Seattle"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-website",
+      "subject": "target",
+      "claim": "Kaleb Cole's personal website is kalebcole.com.",
+      "value": "https://kalebcole.com/",
+      "distinguishing": true,
+      "match": [
+        "kalebcole\\.com"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://github.com/KalebCole/kalebcole.com/blob/56a64ca6e5a5d9baa14f829fcd886d3f8637cb82/src/lib/person-schema.mjs",
+          "title": "Person JSON-LD source (src/lib/person-schema.mjs)",
+          "publisher": "kalebcole.com repository",
+          "retrieved": "2026-11-05",
+          "quote": "url: 'https://kalebcole.com/'"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole GitHub profile",
+          "publisher": "GitHub",
+          "retrieved": "2026-11-05",
+          "quote": "https://kalebcole.com/"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-github",
+      "subject": "target",
+      "claim": "Kaleb Cole's GitHub profile is github.com/KalebCole.",
+      "value": "https://github.com/KalebCole",
+      "distinguishing": true,
+      "match": [
+        "github\\.com/kalebcole\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://github.com/KalebCole/kalebcole.com/blob/56a64ca6e5a5d9baa14f829fcd886d3f8637cb82/src/lib/person-schema.mjs",
+          "title": "Person JSON-LD source (src/lib/person-schema.mjs)",
+          "publisher": "kalebcole.com repository",
+          "retrieved": "2026-11-05",
+          "quote": "sameAs includes https://github.com/KalebCole"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole GitHub profile",
+          "publisher": "GitHub",
+          "retrieved": "2026-11-05",
+          "quote": "KalebCole"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-linkedin",
+      "subject": "target",
+      "claim": "Kaleb Cole's LinkedIn profile is linkedin.com/in/kaleb-cole.",
+      "value": "https://www.linkedin.com/in/kaleb-cole",
+      "distinguishing": true,
+      "match": [
+        "linkedin\\.com/in/kaleb-cole\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://github.com/KalebCole/kalebcole.com/blob/56a64ca6e5a5d9baa14f829fcd886d3f8637cb82/src/lib/person-schema.mjs",
+          "title": "Person JSON-LD source (src/lib/person-schema.mjs)",
+          "publisher": "kalebcole.com repository",
+          "retrieved": "2026-11-05",
+          "quote": "sameAs includes https://www.linkedin.com/in/kaleb-cole"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-x",
+      "subject": "target",
+      "claim": "Kaleb Cole's X account is @Kalebicole.",
+      "value": "https://x.com/Kalebicole",
+      "distinguishing": true,
+      "match": [
+        "x\\.com/kalebicole\\b",
+        "@kalebicole\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://github.com/KalebCole/kalebcole.com/blob/56a64ca6e5a5d9baa14f829fcd886d3f8637cb82/src/lib/person-schema.mjs",
+          "title": "Person JSON-LD source (src/lib/person-schema.mjs)",
+          "publisher": "kalebcole.com repository",
+          "retrieved": "2026-11-05",
+          "quote": "sameAs includes https://x.com/Kalebicole"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole GitHub profile",
+          "publisher": "GitHub",
+          "retrieved": "2026-11-05",
+          "quote": "twitter_username: Kalebicole"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-azure-support",
+      "subject": "target",
+      "claim": "Kaleb Cole works on the platform behind Azure support tickets, including Azure's sovereign clouds.",
+      "value": "Azure support ticket platform, sovereign clouds",
+      "distinguishing": true,
+      "match": [
+        "\\bazure\\b.{0,80}\\bsupport\\b",
+        "\\bsupport tickets?\\b",
+        "\\bsovereign clouds?\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole GitHub profile",
+          "publisher": "GitHub",
+          "retrieved": "2026-11-05",
+          "quote": "I build and operate the platform behind Azure support tickets in sovereign clouds."
+        },
+        {
+          "url": "https://kalebcole.com/llms.txt",
+          "title": "llms.txt",
+          "publisher": "kalebcole.com",
+          "retrieved": "2026-11-05",
+          "quote": "He builds Azure's support ticket platform"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-series-role",
+      "subject": "target",
+      "claim": "Kaleb Cole helped create the Microsoft Developer YouTube series Build Your Personal Brand with Copilot with a team and built its website. He is not its sole creator.",
+      "value": "Co-creator with a team; built the series website",
+      "distinguishing": true,
+      "match": [
+        "build your personal brand with copilot",
+        "student-learning-series"
+      ],
+      "contradict": [
+        "\\b(sole|solo|only) creator\\b.{0,40}\\b(build your personal brand with copilot|series)\\b",
+        "(?<=\\b(build your personal brand with copilot|series)\\b.{0,60})\\b(sole|solo|only) creator\\b",
+        "\\bcreated (the series|build your personal brand with copilot) (alone|by himself|single-handedly)\\b"
+      ],
+      "sources": [
+        {
+          "url": "https://kalebcole.com/projects/",
+          "title": "Projects | Kaleb Cole",
+          "publisher": "kalebcole.com",
+          "retrieved": "2026-11-05",
+          "quote": "I helped create the series with a team and built its website."
+        },
+        {
+          "url": "https://kalebcole.com/llms.txt",
+          "title": "llms.txt",
+          "publisher": "kalebcole.com",
+          "retrieved": "2026-11-05",
+          "quote": "Kaleb helped create the series with a team and built its website."
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "target-topics",
+      "subject": "target",
+      "claim": "Kaleb Cole writes on his site about AI agents and the things he builds with them.",
+      "value": "AI agents",
+      "distinguishing": true,
+      "match": [
+        "\\bai agents?\\b",
+        "\\bagent interfaces?\\b",
+        "\\bagents?\\b.{0,40}\\bbuilds?\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://kalebcole.com/llms.txt",
+          "title": "llms.txt",
+          "publisher": "kalebcole.com",
+          "retrieved": "2026-11-05",
+          "quote": "On his site he writes about AI agents and the things he builds with them."
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "namesake-atomwaffen",
+      "subject": "namesake",
+      "claim": "A different Kaleb Cole was a leader of the neo-Nazi group Atomwaffen Division.",
+      "value": "Atomwaffen Division leader",
+      "distinguishing": true,
+      "match": [
+        "\\batomwaffen\\b",
+        "\\bneo-?nazi\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates",
+          "title": "Leader of Neo-Nazi Group Sentenced for Plot to Target Journalists and Advocates",
+          "publisher": "U.S. Department of Justice, Office of Public Affairs",
+          "retrieved": "2026-11-05",
+          "quote": "Kaleb Cole, 25, a leader of the Neo-Nazi group Atomwaffen Division",
+          "published": "2022-01-11"
+        },
+        {
+          "url": "https://www.counterextremism.com/extremists/kaleb-cole",
+          "title": "Kaleb Cole",
+          "publisher": "Counter Extremism Project",
+          "retrieved": "2026-11-05",
+          "quote": "Kaleb Cole is an alleged member of the Atomwaffen Division, a neo-Nazi group"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "namesake-conviction",
+      "subject": "namesake",
+      "claim": "The namesake was convicted by a federal jury in the Western District of Washington of interfering with a federally protected activity because of religion, three counts of mailing threatening communications, and conspiracy.",
+      "value": "Federal jury conviction, W.D. Wash.",
+      "distinguishing": true,
+      "match": [
+        "\\bconvicted\\b",
+        "\\bfederal jury\\b",
+        "\\bmailing threatening\\b",
+        "\\bthreatening (posters|communications|letters)\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates",
+          "title": "Leader of Neo-Nazi Group Sentenced for Plot to Target Journalists and Advocates",
+          "publisher": "U.S. Department of Justice, Office of Public Affairs",
+          "retrieved": "2026-11-05",
+          "quote": "was convicted by a federal jury in the Western District of Washington of one count of interfering with a federally protected activity because of religion, three counts of mailing threatening communications, and one count of conspiring",
+          "published": "2022-01-11"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "namesake-sentence",
+      "subject": "namesake",
+      "claim": "The namesake was sentenced on January 11, 2022, to 84 months (seven years) in federal prison.",
+      "value": "84 months, sentenced 2022-01-11",
+      "distinguishing": true,
+      "match": [
+        "\\bsentenced\\b",
+        "\\b(84 months|seven years|7 years)\\b",
+        "\\bprison\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates",
+          "title": "Leader of Neo-Nazi Group Sentenced for Plot to Target Journalists and Advocates",
+          "publisher": "U.S. Department of Justice, Office of Public Affairs",
+          "retrieved": "2026-11-05",
+          "quote": "A Washington man was sentenced today to 84 months, or seven years, in prison",
+          "published": "2022-01-11"
+        },
+        {
+          "url": "https://www.counterextremism.com/extremists/kaleb-cole",
+          "title": "Kaleb Cole",
+          "publisher": "Counter Extremism Project",
+          "retrieved": "2026-11-05",
+          "quote": "Cole was sentenced to seven years in prison."
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "namesake-targets",
+      "subject": "namesake",
+      "claim": "The namesake's plot used threatening posters to intimidate journalists and advocates who worked to expose antisemitism.",
+      "value": "Threatened journalists and advocates",
+      "distinguishing": true,
+      "match": [
+        "\\bjournalists\\b.{0,60}\\b(threat|intimidat)",
+        "\\b(threat|intimidat)\\w*\\b.{0,60}\\bjournalists\\b",
+        "\\banti-?semitism\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates",
+          "title": "Leader of Neo-Nazi Group Sentenced for Plot to Target Journalists and Advocates",
+          "publisher": "U.S. Department of Justice, Office of Public Affairs",
+          "retrieved": "2026-11-05",
+          "quote": "his role in a plot to threaten and intimidate journalists and advocates who worked to expose anti-Semitism",
+          "published": "2022-01-11"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "namesake-arrest",
+      "subject": "namesake",
+      "claim": "The namesake was arrested on February 26, 2020, in Montgomery, Texas.",
+      "value": "Arrested 2020-02-26, Montgomery, Texas",
+      "distinguishing": true,
+      "match": [
+        "\\bmontgomery, texas\\b",
+        "\\barrested\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://www.counterextremism.com/extremists/kaleb-cole",
+          "title": "Kaleb Cole",
+          "publisher": "Counter Extremism Project",
+          "retrieved": "2026-11-05",
+          "quote": "Cole was arrested in Montgomery, Texas on February 26, 2020"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "namesake-washington-cell",
+      "subject": "namesake",
+      "claim": "The namesake was reported to be the former leader of Atomwaffen Division's Washington chapter.",
+      "value": "Former Washington chapter leader",
+      "distinguishing": true,
+      "match": [
+        "\\bwashington (state )?(cell|chapter)\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://www.counterextremism.com/extremists/kaleb-cole",
+          "title": "Kaleb Cole",
+          "publisher": "Counter Extremism Project",
+          "retrieved": "2026-11-05",
+          "quote": "According to reports, Cole was the former leader of Atomwaffen Division’s chapter in Washington."
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    },
+    {
+      "id": "namesake-birth-year",
+      "subject": "namesake",
+      "claim": "The namesake was born in 1996 and was 25 years old at sentencing in January 2022.",
+      "value": "Born 1996",
+      "distinguishing": true,
+      "match": [
+        "\\bborn (in )?1996\\b"
+      ],
+      "contradict": [],
+      "sources": [
+        {
+          "url": "https://www.counterextremism.com/extremists/kaleb-cole",
+          "title": "Kaleb Cole",
+          "publisher": "Counter Extremism Project",
+          "retrieved": "2026-11-05",
+          "quote": "Date of Birth 1996"
+        },
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates",
+          "title": "Leader of Neo-Nazi Group Sentenced for Plot to Target Journalists and Advocates",
+          "publisher": "U.S. Department of Justice, Office of Public Affairs",
+          "retrieved": "2026-11-05",
+          "quote": "Kaleb Cole, 25,",
+          "published": "2022-01-11"
+        }
+      ],
+      "verifiedAt": "2026-11-05",
+      "approval": "pending"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "note": "Sample manual UI import: fresh chats with memory off, transcribed word for word.",
+  "captures": [
+    {
+      "provider": "manual-ui",
+      "surface": "chatgpt-ui",
+      "label": "manual-ui",
+      "queryId": "who-is",
+      "prompt": "who is kaleb cole",
+      "repeat": 1,
+      "status": "ok",
+      "text": "There are two notable people named Kaleb Cole. One is a software engineer at Microsoft in Seattle who writes on kalebcole.com. A different Kaleb Cole, a former Atomwaffen Division leader, was sentenced to seven years in federal prison in 2022.",
+      "citations": [
+        {
+          "url": "https://kalebcole.com/"
+        },
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates"
+        }
+      ],
+      "capturedAt": "2026-11-05T22:00:00Z"
+    },
+    {
+      "provider": "manual-ui",
+      "surface": "gemini-ui",
+      "label": "manual-ui",
+      "queryId": "who-is",
+      "prompt": "who is kaleb cole",
+      "repeat": 1,
+      "status": "ok",
+      "text": "Kaleb Cole is a former leader of the neo-Nazi group Atomwaffen Division. A federal jury convicted him, and in January 2022 he was sentenced to seven years in prison for a plot to intimidate journalists.",
+      "capturedAt": "2026-11-05T22:05:00Z"
+    }
+  ]
+}

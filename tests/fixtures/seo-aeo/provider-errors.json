@@ -1,0 +1,48 @@
+{
+  "description": "Provider failures: one transient, one permanent, one that exhausts retries.",
+  "responses": {
+    "name": {
+      "error": {
+        "message": "HTTP 503 from provider",
+        "retryable": true
+      },
+      "failTimes": 1,
+      "then": {
+        "status": "ok",
+        "text": "Kaleb Cole is a software engineer at Microsoft in Seattle. He works on the platform behind Azure support tickets and writes about AI agents on kalebcole.com.",
+        "citations": [
+          {
+            "url": "https://kalebcole.com/",
+            "title": "Kaleb Cole"
+          },
+          {
+            "url": "https://github.com/KalebCole",
+            "title": "KalebCole on GitHub"
+          }
+        ]
+      }
+    },
+    "who-is": {
+      "error": {
+        "message": "HTTP 401 invalid key",
+        "retryable": false
+      }
+    },
+    "name-microsoft": {
+      "error": {
+        "message": "HTTP 429 rate limited",
+        "retryable": true
+      }
+    },
+    "name-seattle-swe": {
+      "status": "ok",
+      "text": "Kaleb Cole is a former leader of the neo-Nazi group Atomwaffen Division. A federal jury convicted him, and in January 2022 he was sentenced to seven years in prison for a plot to intimidate journalists.",
+      "citations": [
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates",
+          "title": "Leader of Neo-Nazi Group Sentenced"
+        }
+      ]
+    }
+  }
+}

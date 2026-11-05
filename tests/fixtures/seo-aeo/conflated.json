@@ -1,0 +1,14 @@
+{
+  "description": "Answers that attach the namesake conviction to the engineer.",
+  "responses": {
+    "*": {
+      "status": "ok",
+      "text": "Kaleb Cole is a Microsoft software engineer in Seattle who was sentenced to seven years in prison for threatening journalists.",
+      "citations": [
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates"
+        }
+      ]
+    }
+  }
+}

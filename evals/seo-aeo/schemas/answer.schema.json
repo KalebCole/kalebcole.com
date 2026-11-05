@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "One captured answer, from an adapter or a manual import",
+  "type": "object",
+  "required": ["provider", "surface", "label", "queryId", "repeat", "status", "capturedAt"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string" },
+    "runId": { "type": "string" },
+    "provider": { "type": "string", "minLength": 1 },
+    "surface": { "type": "string", "minLength": 1 },
+    "label": { "enum": ["fixture", "serp-capture", "api-proxy", "manual-ui"] },
+    "queryId": { "type": "string", "minLength": 1 },
+    "prompt": { "type": "string" },
+    "repeat": { "type": "integer", "minimum": 1 },
+    "status": { "enum": ["ok", "absent", "error", "skipped"] },
+    "reason": { "type": "string" },
+    "text": { "type": "string" },
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["url"],
+        "additionalProperties": false,
+        "properties": {
+          "url": { "type": "string", "format": "uri" },
+          "title": { "type": "string" }
+        }
+      }
+    },
+    "organic": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["position", "url"],
+        "additionalProperties": false,
+        "properties": {
+          "position": { "type": "integer", "minimum": 1 },
+          "url": { "type": "string", "format": "uri" },
+          "title": { "type": "string" },
+          "snippet": { "type": "string" }
+        }
+      }
+    },
+    "model": { "type": "string" },
+    "attempts": { "type": "integer", "minimum": 0 },
+    "costUsd": { "type": "number", "minimum": 0 },
+    "latencyMs": { "type": "number", "minimum": 0 },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "rawHash": { "type": "string" }
+  }
+}
