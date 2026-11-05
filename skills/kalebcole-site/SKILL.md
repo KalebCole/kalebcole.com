@@ -1,21 +1,20 @@
 ---
 name: kalebcole-site
 description: >-
-  Procedures for changing, publishing, and checking kalebcole.com (the Astro
-  site in this repository). Use when adding or editing a Writing post, a
-  recommend, or a project; turning a pasted draft, doc, or note into a post;
-  taking a change from branch through PR, merge, and verified production
-  deploy; preparing the share drafts after a post goes live; or working on
-  search, metadata, structured data, llms.txt, or a site evidence audit.
+  Work on kalebcole.com, the Astro site in this repo: add or edit a Writing
+  post, recommend, or project; publish a draft someone sends; ship a change to
+  production and confirm it is live; write share posts for a new post; or
+  improve SEO and AI-answer visibility. Use for any request to post, publish,
+  fix, or check something on the site.
 ---
 # kalebcole.com site work
 
-This skill holds procedure only. Policy lives in `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, and `CONTEXT.md`; when this skill and one of those disagree, the doc wins and this skill should be fixed.
+If this skill conflicts with `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, or `CONTEXT.md`, follow the doc.
 
 ## Start every task
 
 1. Branch from the latest `origin/master` in a fresh clone or a new worktree, because an old checkout can carry stale generated assets into the diff.
-2. Read `AGENTS.md`, then the parts of `PRODUCT.md`, `DESIGN.md`, and `CONTEXT.md` the task touches, then the code you will change. The code is the truth for current behavior.
+2. Follow `AGENTS.md`'s reading order.
 3. Run `gh pr list --state open` and reuse an open PR that covers the same scope instead of opening a second one.
 
 ## Which reference to read
@@ -29,8 +28,6 @@ This skill holds procedure only. Policy lives in `AGENTS.md`, `PRODUCT.md`, `DES
 | A Writing piece just went live and needs share drafts | `references/publish-day.md` |
 | Search, indexing, metadata, structured data, llms.txt, AI answers, evidence audit | `references/seo.md` |
 
-Most tasks need two: the content reference plus `shipping.md`.
-
 ## Decisions that belong to the site owner
 
 Ask, and wait for an explicit yes, before any of these. Each is publishing or speaking in the owner's name, so an agent cannot infer it from a related request:
@@ -38,7 +35,6 @@ Ask, and wait for an explicit yes, before any of these. Each is publishing or sp
 - Merging a PR. Merging publishes to production. "Open a PR", "show me", or "looks good" on a preview is not a merge.
 - Any wording change beyond a mechanical fix (defined in `references/writing.md`), since the site exists to carry the owner's own words.
 - Closing PRs or issues, or deleting branches, since they may hold work in progress.
-- Choosing a newsletter or email service.
 - Anything that sends or posts: email, X, LinkedIn, messages, issue comments nobody asked for. Draft it and hand it over.
 
 Leave these alone even when a task seems to call for them, because each lives outside the repository's review loop:
@@ -48,6 +44,5 @@ Leave these alone even when a task seems to call for them, because each lives ou
 
 ## Handing work back
 
-- Give the direct page URL that shows the change, not a dashboard link, and say whether it is a PR preview (needs a Vercel login) or production.
 - Say "shipped" or "live" only after `references/shipping.md` "Verify production" passes; a green check is build evidence, not proof the page is right.
 - List anything undecided as a question with the options.
