@@ -10,7 +10,7 @@ import {
   findViewportAnchor,
   initHomeBreakpointMotion,
   isHomeLayoutSettling,
-} from '../src/scripts/home-breakpoint-motion.mjs';
+} from '../../src/scripts/home-breakpoint-motion.mjs';
 
 function elementAt(rect) {
   const calls = [];

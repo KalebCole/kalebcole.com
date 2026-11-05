@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { ELSEWHERE_LINKS } from '../src/lib/elsewhere.mjs';
+import { join } from 'node:path';
+import { root } from '../support/root.mjs';
+import { ELSEWHERE_LINKS } from '../../src/lib/elsewhere.mjs';
 
-const root = new URL('..', import.meta.url);
-const source = (path) => readFileSync(new URL(path, root), 'utf8');
+const source = (path) => readFileSync(join(root, path), 'utf8');
 
 test('Elsewhere source defines the approved hero destinations and accessible names', () => {
   assert.deepEqual(

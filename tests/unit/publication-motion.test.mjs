@@ -4,13 +4,13 @@ import {
   initPublicationMotion,
   initProjectPointerMotion,
   buildPublicationKeyframes,
-} from '../src/scripts/publication-motion.mjs';
+} from '../../src/scripts/publication-motion.mjs';
 import {
   HOME_DESKTOP_MEDIA,
   HOME_PUBLICATION_MEDIA,
   initHomeBreakpointMotion,
   isHomeLayoutSettling,
-} from '../src/scripts/home-breakpoint-motion.mjs';
+} from '../../src/scripts/home-breakpoint-motion.mjs';
 
 function motionElement(top) {
   const calls = [];

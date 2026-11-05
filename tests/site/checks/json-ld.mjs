@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
-import { ELSEWHERE_LINKS } from '../../src/lib/elsewhere.mjs';
-import { PERSON_ID } from '../../src/lib/person-schema.mjs';
+import { ELSEWHERE_LINKS } from '../../../src/lib/elsewhere.mjs';
+import { PERSON_ID } from '../../../src/lib/person-schema.mjs';
 import { attribute, blogSource, collect, matches, metaContent, site, text } from './helpers.mjs';
 
 // JSON-LD: the homepage Person and one BlogPosting per published post.
@@ -36,7 +36,7 @@ export const check = collect('json-ld', async ({ routes, publishedPostSlugs, hom
     assert.equal(blocks.length, isPost ? 1 : 0, `${route} must carry ${isPost ? 'one BlogPosting' : 'no'} JSON-LD block`);
   }
 
-  assert.ok(publishedPostSlugs.length > 0, 'certify needs at least one published post');
+  assert.ok(publishedPostSlugs.length > 0, 'site checks need at least one published post');
   for (const slug of readdirSync(blogSource).filter((file) => file.endsWith('.md')).map((file) => file.replace(/\.md$/, ''))) {
     if (!publishedPostSlugs.includes(slug)) assert.ok(!routes.has(`/blog/${slug}/`), `draft writing ${slug} must not be built`);
   }

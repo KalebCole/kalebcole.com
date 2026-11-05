@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import test from "node:test";
+import { root } from "../support/root.mjs";
 
 import {
   disallowedQueryParametersIn,
   isDisallowedQueryParameter,
   normalizeRecommendUrl as normalize,
-} from "../scripts/recommend-url-policy.mjs";
+} from "../../scripts/recommend-url-policy.mjs";
 
-const repositoryRoot = path.resolve(import.meta.dirname, "..");
 
 test("keeps YouTube v and t and strips si", () => {
   assert.equal(
@@ -126,7 +126,7 @@ test("clean-url CLI prints the normalized URL", () => {
   const output = execFileSync(
     process.execPath,
     ["scripts/clean-url.mjs", "https://www.youtube.com/watch?v=IroPQ150F6c&si=abc123"],
-    { cwd: repositoryRoot, encoding: "utf8" },
+    { cwd: root, encoding: "utf8" },
   );
   assert.equal(output, "https://www.youtube.com/watch?v=IroPQ150F6c\n");
 });

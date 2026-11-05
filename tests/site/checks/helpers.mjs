@@ -1,13 +1,12 @@
-// Shared helpers and constants for the certify modules (scripts/certify/*.mjs).
+// Shared helpers and constants for the site check modules (tests/site/checks/*.mjs).
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join, relative } from 'node:path';
 import { gzipSync } from 'node:zlib';
-import { PRODUCTION_ORIGIN, resolveSocialImageOrigin } from '../../src/lib/site-origin.mjs';
+import { PRODUCTION_ORIGIN, resolveSocialImageOrigin } from '../../../src/lib/site-origin.mjs';
+import { dist, root } from '../../support/root.mjs';
 
-export const root = resolve(fileURLToPath(new URL('../..', import.meta.url)));
-export const dist = join(root, 'dist');
+export { dist, root };
 export const blogSource = join(root, 'src', 'content', 'blog');
 export const site = PRODUCTION_ORIGIN;
 export const socialImageOrigin = resolveSocialImageOrigin(process.env);

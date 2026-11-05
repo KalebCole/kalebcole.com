@@ -1,25 +1,17 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
 import { createReadStream, existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { mkdtemp, rm } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { tmpdir } from 'node:os';
 import { extname, join, normalize } from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+import { eventually, spawnTracked, stopTracked, withChrome } from '../support/chrome.mjs';
+import { dist, root } from '../support/root.mjs';
 
 // Measured DESIGN.md rules, checked in headless Chrome on the production build.
 // Each check waits for a settled page (exact URL, readyState complete, fonts,
 // every image decoded, video metadata, finished animations, two frames) before
 // it measures, so nothing depends on a fixed sleep. A load that never settles
 // fails with its reason instead of measuring a half-loaded page.
-const root = fileURLToPath(new URL('..', import.meta.url));
-const dist = join(root, 'dist');
 const blogSource = join(root, 'src', 'content', 'blog');
-const chromeExecutable = process.env.CHROME_BIN
-  ?? (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
-    ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-    : null);
 const posts = readdirSync(blogSource)
   .filter((file) => file.endsWith('.md'))
   .filter((file) => !/^draft:\s*true\s*$/m.test(readFileSync(join(blogSource, file), 'utf8')))
@@ -70,85 +62,17 @@ async function startStaticServer() {
   return { server, origin: `http://127.0.0.1:${server.address().port}` };
 }
 
-async function eventually(callback, timeoutMs = 10_000) {
-  const deadline = Date.now() + timeoutMs;
-  let lastError;
-  while (Date.now() < deadline) {
-    try { return await callback(); } catch (error) { lastError = error; await new Promise((resolve) => setTimeout(resolve, 100)); }
-  }
-  throw lastError ?? new Error('Timed out waiting for browser');
-}
-
-async function openCdp(debugOrigin) {
-  const target = await eventually(async () => {
-    const page = (await (await fetch(`${debugOrigin}/json/list`)).json()).find((candidate) => candidate.type === 'page');
-    assert.ok(page?.webSocketDebuggerUrl, 'Chrome must expose a page target');
-    return page;
-  });
-  const socket = new WebSocket(target.webSocketDebuggerUrl);
-  const pending = new Map();
-  let nextId = 1;
-  socket.addEventListener('message', (event) => {
-    const message = JSON.parse(event.data);
-    pending.get(message.id)?.(message);
-    pending.delete(message.id);
-  });
-  await new Promise((resolve, reject) => {
-    socket.addEventListener('open', resolve, { once: true });
-    socket.addEventListener('error', reject, { once: true });
-  });
-  return {
-    async send(method, params = {}) {
-      const id = nextId++;
-      let timer;
-      const message = await Promise.race([
-        new Promise((resolve) => { pending.set(id, resolve); socket.send(JSON.stringify({ id, method, params })); }),
-        new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${method} got no answer from Chrome in 30s`)), 30_000); }),
-      ]).finally(() => clearTimeout(timer));
-      if (message.error) throw new Error(`${method}: ${message.error.message}`);
-      return message.result;
-    },
-    close: () => socket.close(),
-  };
-}
-
-// Spawn a child and capture its exit right away, so a child that dies early
-// (a Chrome crash, a bad CHROME_BIN) is still observed by cleanup.
-export function spawnTracked(command, args, options) {
-  const child = spawn(command, args, options);
-  const exited = new Promise((resolve) => {
-    child.once('exit', resolve);
-    child.once('error', resolve);
-  });
-  return { child, exited };
-}
-
-export async function stopTracked({ child, exited }) {
-  if (child.exitCode === null && child.signalCode === null) child.kill();
-  await exited;
-}
-
 async function withBrowser(callback) {
   assert.ok(existsSync(dist), 'dist must exist; run the production build first');
-  assert.ok(chromeExecutable, 'Set CHROME_BIN to a Chrome-family executable for browser layout certification');
   const { server, origin } = await startStaticServer();
-  const profile = await mkdtemp(join(tmpdir(), 'kalebcole-design-layout-'));
-  const debugPort = 10_400 + (process.pid % 500);
-  const chrome = spawnTracked(chromeExecutable, [
-    '--headless=new', `--remote-debugging-port=${debugPort}`, `--user-data-dir=${profile}`,
-    '--no-first-run', '--no-default-browser-check', '--disable-gpu', '--autoplay-policy=user-gesture-required', 'about:blank',
-  ], { stdio: 'ignore' });
-  let cdp;
   try {
-    cdp = await openCdp(`http://127.0.0.1:${debugPort}`);
-    await cdp.send('Page.enable');
-    // Overlay scrollbars, as on phones: the layout viewport is the full emulated width.
-    await cdp.send('Emulation.setScrollbarsHidden', { hidden: true });
-    await callback(cdp, origin);
+    await withChrome(async (cdp) => {
+      // Overlay scrollbars, as on phones: the layout viewport is the full emulated width.
+      await cdp.send('Emulation.setScrollbarsHidden', { hidden: true });
+      await callback(cdp, origin);
+    }, { label: 'design layout browser session', args: ['--autoplay-policy=user-gesture-required'] });
   } finally {
-    cdp?.close();
-    await stopTracked(chrome);
-    await rm(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    server.closeAllConnections();
     await new Promise((resolve) => server.close(resolve));
   }
 }

@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { THUMBNAIL_MAX_RENDERED_WIDTH, THUMBNAIL_PUBLIC_DIRECTORY, thumbnailPath } from '../../src/lib/recommend-thumbnails.mjs';
-import { publishedRecommendImages } from '../recommend-thumbnails.mjs';
+import { THUMBNAIL_MAX_RENDERED_WIDTH, THUMBNAIL_PUBLIC_DIRECTORY, thumbnailPath } from '../../../src/lib/recommend-thumbnails.mjs';
+import { publishedRecommendImages } from '../../../scripts/recommend-thumbnails.mjs';
 import { attribute, collect, localAsset, matches, root, text } from './helpers.mjs';
 
 // Recommend thumbnails (#158): local WebP copies, manifest, and LCP loading.

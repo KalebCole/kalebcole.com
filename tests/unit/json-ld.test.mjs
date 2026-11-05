@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ELSEWHERE_LINKS } from '../src/lib/elsewhere.mjs';
-import { blogPostingSchema, serializeJsonLd } from '../src/lib/json-ld.mjs';
-import { PERSON_AUTHOR, PERSON_ID, PERSON_SCHEMA } from '../src/lib/person-schema.mjs';
+import { ELSEWHERE_LINKS } from '../../src/lib/elsewhere.mjs';
+import { blogPostingSchema, serializeJsonLd } from '../../src/lib/json-ld.mjs';
+import { PERSON_AUTHOR, PERSON_ID, PERSON_SCHEMA } from '../../src/lib/person-schema.mjs';
 
 const post = {
   title: 'A title',

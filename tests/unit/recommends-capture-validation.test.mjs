@@ -4,11 +4,11 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { root } from "../support/root.mjs";
 
-import { validateCaptureRequest } from "../scripts/validate-recommends-capture.mjs";
+import { validateCaptureRequest } from "../../scripts/validate-recommends-capture.mjs";
 
-const repositoryRoot = path.resolve(import.meta.dirname, "..");
-const validator = path.join(repositoryRoot, "scripts", "validate-recommends-capture.mjs");
+const validator = path.join(root, "scripts", "validate-recommends-capture.mjs");
 
 function validRequest(overrides = {}) {
   return {
@@ -28,7 +28,7 @@ function validate(request) {
   try {
     writeFileSync(requestPath, JSON.stringify(request), "utf8");
     return execFileSync(process.execPath, [validator, requestPath], {
-      cwd: repositoryRoot,
+      cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -48,7 +48,7 @@ test("accepts the public dry-run fixture", () => {
   const output = execFileSync(
     process.execPath,
     [validator, "automations/recommends-capture/dry-run.fixture.json"],
-    { cwd: repositoryRoot, encoding: "utf8" },
+    { cwd: root, encoding: "utf8" },
   );
 
   assert.match(output, /recommends capture request is valid/);

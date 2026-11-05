@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { join } from 'node:path';
+import { fixtures } from '../support/root.mjs';
 import { createMarkdownProcessor } from '@astrojs/markdown-remark';
-import remarkXPost from '../src/lib/remark-x-post.mjs';
-import { canonicalStatusUrl, parseXPostBlock, renderXPost } from '../src/lib/x-post.mjs';
+import remarkXPost from '../../src/lib/remark-x-post.mjs';
+import { canonicalStatusUrl, parseXPostBlock, renderXPost } from '../../src/lib/x-post.mjs';
 
-const fixture = readFileSync(new URL('./fixtures/x-post/writing-with-embed.md', import.meta.url), 'utf8');
+const fixture = readFileSync(join(fixtures, 'x-post', 'writing-with-embed.md'), 'utf8');
 const base = { url: 'https://x.com/Kalebicole/status/1850000000000000000', author: 'Kaleb Cole', date: '2026-11-01', text: 'Hello.' };
 
 test('status links are canonicalized to x.com without tracking parameters', () => {

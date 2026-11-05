@@ -27,12 +27,15 @@ Inspect the current implementation before proposing changes. These documents des
 npm ci
 npm run dev
 GITHUB_TOKEN="" npm run build
-GITHUB_TOKEN="" npm run certify
+npm test
+GITHUB_TOKEN="" npm run test:site
+CHROME_BIN=/path/to/chrome GITHUB_TOKEN="" npm run test:e2e
+CHROME_BIN=/path/to/chrome GITHUB_TOKEN="" npm run check
 npm run portrait
 npm run recommend-thumbnails
 ```
 
-The Projects page and homepage use the committed GitHub snapshot even when `GITHUB_TOKEN` is empty. Build or certification failures are not expected.
+The Projects page and homepage use the committed GitHub snapshot even when `GITHUB_TOKEN` is empty. Build or check failures are not expected.
 
 ## Portrait
 
@@ -64,21 +67,30 @@ The post text, word for word.
 - `likes`, `replies`: like and reply counts. They are a snapshot that goes stale, so leave them out unless Kaleb asks; without them the card shows Reply, Copy link, and "Read replies".
 - `caption`, `captionurl`: Kaleb's caption under the card, linked to `captionurl` (or the post).
 
-`.astro` pages use `src/components/XPost.astro` with the same fields as props. The block renders a card that looks like an X post, with X's standard `blockquote.twitter-tweet` markup (`data-dnt="true"`) for the text and same-tab links for the time, Reply, and Read replies. The local time and Copy link come from a small first-party script (`src/scripts/x-post.mjs`) that `Post.astro` inlines only on Writing pages with an `x-post` block; without JavaScript the time stays in UTC and Copy link stays hidden. An `.astro` page using `XPost.astro` does not get that script. It never loads `widgets.js` or anything else from X: the release budget allows 0 third-party JavaScript (`DESIGN.md`), and certify fails any route that loads it. Tracking parameters such as `?s=20` are dropped from the link. A missing field, a bad link, a remote avatar, or an em dash in the quoted text stops the build with the reason; an em dash in someone else's words needs Kaleb's call on the replacement. Quoted text is someone else's exact words: copy it, never edit it.
+`.astro` pages use `src/components/XPost.astro` with the same fields as props. The block renders a card that looks like an X post, with X's standard `blockquote.twitter-tweet` markup (`data-dnt="true"`) for the text and same-tab links for the time, Reply, and Read replies. The local time and Copy link come from a small first-party script (`src/scripts/x-post.mjs`) that `Post.astro` inlines only on Writing pages with an `x-post` block; without JavaScript the time stays in UTC and Copy link stays hidden. An `.astro` page using `XPost.astro` does not get that script. It never loads `widgets.js` or anything else from X: the release budget allows 0 third-party JavaScript (`DESIGN.md`), and the site checks fail any route that loads it. Tracking parameters such as `?s=20` are dropped from the link. A missing field, a bad link, a remote avatar, or an em dash in the quoted text stops the build with the reason; an em dash in someone else's words needs Kaleb's call on the replacement. Quoted text is someone else's exact words: copy it, never edit it.
 
 ## Where checks live
 
-`npm run certify` builds the site, then runs two kinds of checks:
+Tests live in `tests/`, grouped by how they run:
 
-- Static checks on the built output in `scripts/certify/`. `scripts/certify.mjs` is a thin runner: it loads `dist/` once (`context.mjs`), runs every module listed in `MODULES`, prints every failure with its module name, and exits 1 if any failed. Each topic (meta, JSON-LD, writing, recommends, fonts, icons, budgets, feeds, and so on) is one module that exports `check(context)` and returns its failures. Shared helpers and budgets are in `helpers.mjs`.
-- Browser checks in `test/*.test.mjs`, run with `node --test` in headless Chrome against `dist/` (set `CHROME_BIN`). Measured layout rules from `DESIGN.md`, such as media centering, live in `test/design-layout.test.mjs`.
+- `tests/unit/`: fast tests that need no build. `npm test` runs them.
+- `tests/site/`: checks on the production build in `dist/`, plus tests that run a build themselves. `npm run test:site` builds the site, then runs `tests/site/run.mjs` and the `*.test.mjs` files in `tests/site/`. The runner loads `dist/` once (`checks/context.mjs`), runs every module listed in `MODULES`, prints every failure with its module name, and exits 1 if any failed. Each topic (meta, JSON-LD, writing, recommends, fonts, icons, budgets, feeds, and so on) is one module in `tests/site/checks/` that exports `check(context)` and returns its failures. Shared helpers and budgets are in `checks/helpers.mjs`.
+- `tests/e2e/`: real-browser checks in headless Chrome over the DevTools protocol, against `dist/` (set `CHROME_BIN`). `npm run test:e2e` builds the site, then runs them; `npm run test:e2e:run` runs them on an existing build. Measured layout rules from `DESIGN.md`, such as media centering, live in `tests/e2e/design-layout.test.mjs`.
+- `tests/fixtures/`: test pages and sample data.
+- `tests/support/run-tests.mjs <folder> <minimum>`: runs every `*.test.mjs` file in a folder with `node --test`, and fails if it finds fewer files than the minimum in `package.json`, so a moved or empty folder cannot pass with zero tests. No shell globs, so it works on any OS. If you remove a test file on purpose, lower that minimum in the same change.
+- `tests/support/chrome.mjs`: the shared headless Chrome helper for `tests/e2e/` (`withChrome`). Chrome picks a free debugging port, every CDP call times out after 30 seconds, and a browser session fails after 5 minutes with its label, so a stuck page fails fast instead of hanging CI.
+- `tests/support/root.mjs`: the repository root, `dist/`, and `tests/fixtures/` for any test. Use it instead of a relative path like `new URL('..', import.meta.url)`.
 
-To add a check: put the assertion in the module for its topic, with a message that names the route and the rule. For a new topic, copy a small module (such as `scripts/certify/icons.mjs`), wrap the assertions in `collect('<name>', async (context) => { ... })`, and add its name to `MODULES`. If a rule needs real layout, add it to a browser test instead and wait for the page to settle (fonts, images, animations) rather than sleeping. Break the rule in `dist/` once to see the check fail before you ship it.
+`scripts/` holds only build tools (portrait, recommend thumbnails, the GitHub snapshot, and their helpers). A check that needs one of their helpers imports it from `scripts/`.
+
+`npm run check` runs all three (unit, site, then e2e on the same build). `npm run certify` is a deprecated alias for it. CI runs the same three as the `unit`, `site`, and `e2e` jobs in `.github/workflows/check.yml`.
+
+To add a check: put the assertion in the module for its topic, with a message that names the route and the rule. For a new topic, copy a small module (such as `tests/site/checks/icons.mjs`), wrap the assertions in `collect('<name>', async (context) => { ... })`, and add its name to `MODULES` in `tests/site/run.mjs`. If a rule needs real layout, add it to a browser test in `tests/e2e/` instead and wait for the page to settle (fonts, images, animations) rather than sleeping. Break the rule in `dist/` once to see the check fail before you ship it. A pure function that a check uses can get fast tests in `tests/unit/`.
 
 ## Before shipping
 
 1. Review the diff for unrelated changes.
-2. Run `GITHUB_TOKEN="" npm run certify`.
+2. Run `GITHUB_TOKEN="" npm run check` (set `CHROME_BIN` for the browser checks).
 3. Verify the changed route or generated output directly.
 4. Open a pull request with a concise explanation and real verification evidence.
 5. After merge, confirm the Vercel deployment and affected production URLs.
