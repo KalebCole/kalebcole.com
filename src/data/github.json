@@ -1,7 +1,12 @@
 {
   "version": 1,
-  "verifiedAt": "2026-10-17T01:15:33.851Z",
+  "verifiedAt": "2026-11-05T18:27:53.371Z",
   "pinnedRepositories": [
+    {
+      "name": "student-learning-series",
+      "description": "The set of artifacts used for the Microsoft Student Demo series. ",
+      "url": "https://github.com/microsoft/student-learning-series"
+    },
     {
       "name": "partiful-cli",
       "description": "Agentic CLI for creating Partiful events",
