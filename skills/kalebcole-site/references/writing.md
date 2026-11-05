@@ -22,9 +22,10 @@ Mechanical changes need no approval:
 - Fixing a broken or tracking-laden link to the same destination.
 - Moving supplied media into `public/blog/<slug>/` and writing the figure markup (section 4).
 - Applying the `CONTEXT.md` punctuation rule where it is a pure character swap that keeps meaning. If the swap needs rewording, it is not mechanical.
-- Setting or bumping `updated: YYYY-MM-DD` when editing an already-published post, because it feeds `dateModified` in the article's structured data. Skip it only for a typo fix the owner says not to date.
 
 Anything else is not mechanical: a changed word, heading, sentence order, quote, claim strength, title, or description; cutting or adding text; "fixing" grammar.
+
+Leave `updated` alone for mechanical edits. It shows as the post's public "Updated" date and feeds `dateModified`, so set or bump it only for a substantive revision of a published post, with a date the owner gives or approves.
 
 ## 3. Showing a non-mechanical edit
 
@@ -46,7 +47,7 @@ Copy the pattern in `src/content/blog/amazon-muse-shopping-agents.md` (figures w
 ## 5. Prepare the PR
 
 1. Branch as in `shipping.md` and keep only this piece in the diff.
-2. Run the checks in `shipping.md`, then open `/blog/<slug>/` in the preview and confirm the title, one exact quote from the body, every image URL (WebP and fallback), the figcaptions, and video controls if any.
+2. Run the checks in `shipping.md`. For a non-draft piece, open `/blog/<slug>/` in the preview and confirm the title, one exact quote from the body, every image URL (WebP and fallback), the figcaptions, and video controls if any. A `draft: true` piece has no route, so instead confirm it is absent from `/blog/` and `/rss.xml`; do not clear the draft flag just to get a preview.
 
 ## Pitfall
 
