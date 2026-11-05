@@ -30,7 +30,7 @@ npm run eval:seo-aeo -- import captures.json  # manual UI captures (see schemas/
 npm run eval:seo-aeo -- report evals/seo-aeo/artifacts/<run-id> --review decisions.json
 ```
 
-Options: `--provider`, `--query`, `--repeats`, `--max-cost-usd`, `--max-requests`, `--fixture`, `--out`, `--review`, `--dry-run`. The cost and request flags can only lower the caps in `config.json`.
+Options: `--provider`, `--query`, `--repeats`, `--max-cost-usd`, `--max-requests`, `--fixture`, `--out`, `--review`, `--rescore-with-current`, `--dry-run`. The cost and request flags can only lower the caps in `config.json`.
 
 ## Providers and keys
 
@@ -59,7 +59,7 @@ Preflight prints every planned call, a per-provider spend ceiling, and a worst c
 
 ## Artifacts
 
-Each run writes to `evals/seo-aeo/artifacts/<run-id>/`, which git ignores:
+Each run writes to a new `evals/seo-aeo/artifacts/<run-id>/` (UTC timestamp, providers, and a random suffix), which git ignores. An existing run directory is never reused or overwritten. A run whose providers are all skipped still writes its artifacts, so the missing checks stay on record.
 
 - `manifest.json`: commit, versions, locale, caps, plan, skips, requests and spend.
 - `raw/<provider>/<query>/<repeat>.json`: the untouched capture or error.
@@ -73,6 +73,7 @@ Each run writes to `evals/seo-aeo/artifacts/<run-id>/`, which git ignores:
 
 Each answer is classified as target only, other only, both separated, conflated, or uncertain (`rubric.json`). Regex signals come from the `match` patterns in `facts.json` and the cue lists in `rubric.json`. Seattle and the bare name are not distinguishing, since the namesake's case was also in Washington.
 
+- Polarity is scoped to each claim: a match is negated only when a negation cue comes before it in the same sentence with no clause break (`;`, `and`, `but`, ...) between them. A negated target fact earns no credit and goes to the review queue for a label.
 - A correct namesake-only answer is a visibility miss, not a false claim.
 - A negation ("is not the Kaleb Cole who...") or a separation cue ("a different Kaleb Cole") is separation, not conflation.
 - Conflated and uncertain answers go to the review queue and stay out of the scores until a review decision exists. Suspected conflations are listed as critical in the report either way.
@@ -88,7 +89,7 @@ Metrics are per provider and surface, never merged across API proxies, SERP capt
 | Citation support | Answers about the engineer that cite a site he owns or a corroborating page. Whether the page supports the claim is a reviewer call. |
 | Organic rank | `round(100 * (N + 1 - p) / N)` for the first kalebcole.com result at position p of N captured; not in the top N scores 0 and keeps the raw rank as `>N`. |
 
-Each surface also gets a compatibility key built from the query, fact, and rubric versions, the locale, and the queries and repeats that surface actually ran. Compare runs month over month only when the keys match; a model or locale change starts a new baseline.
+Each surface also gets a compatibility key built from the query, fact, and rubric versions, the locale, the provider settings, the recorded models, and the queries and repeats that surface actually ran. Compare runs month over month only when the keys match; a model or locale change starts a new baseline.
 
 ## Human review
 
@@ -98,7 +99,7 @@ Each surface also gets a compatibility key built from the query, fact, and rubri
 [{ "answerId": "openai-web-search:chatgpt-api-proxy:who-is:1", "reviewer": "kaleb", "reviewedAt": "2026-12-01", "classification": "both-separated", "citationSupport": true }]
 ```
 
-Then rescore with `report <run-dir> --review <file>`. Applied decisions are saved in the run's `review-decisions.json` and reused on every later `report`, so regenerating a report never drops a confirmation; a new review file is merged on top.
+When confirming a conflation, `attributedNamesakeFactIds` can list the namesake facts the answer pinned on the engineer; without it, every namesake claim the answer asserts counts. Then rescore with `report <run-dir> --review <file>`. Applied decisions are saved in the run's `review-decisions.json` and reused on every later `report`, so regenerating a report never drops a confirmation; a new review file is merged on top. `report` refuses to rescore a run whose query, fact, rubric, or config versions or fact approval status have changed since it was scored, unless you pass `--rescore-with-current`, which records the new provenance in the manifest and the report.
 
 ## Approving the facts
 

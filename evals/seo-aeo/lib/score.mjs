@@ -46,6 +46,17 @@ function organicEvidence(answer, rubric, signals, namesakeUrls) {
   };
 }
 
+/**
+ * Namesake claims attributed to the engineer in a conflated answer: the
+ * reviewer's list when given, else the same-sentence conflations, else every
+ * namesake claim the answer asserts (a reviewer confirmed it conflates).
+ */
+function conflatedNamesake(auto, review) {
+  if (review?.attributedNamesakeFactIds) return review.attributedNamesakeFactIds;
+  if (auto.conflatedNamesakeFactIds.length) return auto.conflatedNamesakeFactIds;
+  return auto.assertedNamesakeFactIds;
+}
+
 /** Scores one answer, applying a human review decision when present. */
 export function evaluateAnswer(answer, { queries, facts, rubric, signals, namesakeUrls, review }) {
   const query = queries.queries.find((entry) => entry.id === answer.queryId);
@@ -56,6 +67,7 @@ export function evaluateAnswer(answer, { queries, facts, rubric, signals, namesa
     label: answer.label,
     queryId: answer.queryId,
     repeat: answer.repeat,
+    model: answer.model,
     status: answer.status,
     reason: answer.reason,
   };
@@ -71,7 +83,7 @@ export function evaluateAnswer(answer, { queries, facts, rubric, signals, namesa
   const pendingReview = !reviewed && rubric.reviewRequired.includes(classification);
 
   const aboutTarget = ABOUT_TARGET.has(classification);
-  const extracted = aboutTarget ? extractTargetFacts(auto.targetText, signals) : { present: [], contradicted: [] };
+  const extracted = aboutTarget ? extractTargetFacts(auto.targetText, signals) : { present: [], contradicted: [], negated: [] };
   const present = new Set(extracted.present);
   const contradicted = new Set(extracted.contradicted);
   for (const [factId, label] of Object.entries(review?.facts ?? {})) {
@@ -102,7 +114,8 @@ export function evaluateAnswer(answer, { queries, facts, rubric, signals, namesa
       present: [...present].filter((id) => targetFactIds.has(id)),
       contradicted: [...contradicted].filter((id) => targetFactIds.has(id)),
       scoredCorrect: [...present].filter((id) => targetFactIds.has(id) && !excluded.has(id)).length,
-      conflatedNamesake: classification === 'conflated' ? auto.conflatedNamesakeFactIds : [],
+      negatedUnlabeled: extracted.negated.filter((id) => targetFactIds.has(id) && !(id in (review?.facts ?? {}))),
+      conflatedNamesake: classification === 'conflated' ? conflatedNamesake(auto, review) : [],
       required,
       requiredPresent: aboutTarget ? required.filter((id) => present.has(id)) : [],
     },
@@ -122,11 +135,12 @@ function groupKey(answer) {
 
 /**
  * Hashes everything that must match for two runs to be compared: the
- * definition versions, the locale, the surface, and the queries and repeats
- * the group actually ran.
+ * definition versions, the locale, the surface and provider settings, the
+ * recorded models, and the queries and repeats the group actually ran.
  */
 export function compatibilityKey({ queries, facts, rubric, config }, surface, answers = []) {
   const ran = new Set(answers.map((answer) => answer.queryId));
+  const provider = config.providers.find((entry) => entry.id === answers[0]?.provider);
   const basis = {
     queries: queries.version,
     prompts: queries.queries.filter((query) => ran.size === 0 || ran.has(query.id)).map((query) => [query.id, query.prompt]),
@@ -135,6 +149,8 @@ export function compatibilityKey({ queries, facts, rubric, config }, surface, an
     locale: config.locale,
     repeats: answers.length ? Math.max(...answers.map((answer) => answer.repeat)) : config.repeats,
     surface,
+    provider: provider ? { id: provider.id, adapter: provider.adapter, label: provider.label, citations: provider.citations, organic: provider.organic } : answers[0]?.provider ?? null,
+    models: [...new Set(answers.map((answer) => answer.model).filter(Boolean))].sort(),
   };
   return createHash('sha256').update(JSON.stringify(basis)).digest('hex').slice(0, 12);
 }
@@ -156,7 +172,7 @@ function scoreGroup(evaluations, provider) {
 
   const correct = aboutTarget.reduce((sum, evaluation) => sum + evaluation.facts.scoredCorrect, 0);
   const incorrect = aboutTarget.reduce((sum, evaluation) => sum + evaluation.facts.contradicted.length + evaluation.facts.conflatedNamesake.length, 0);
-  const factAccuracy = metric(correct, correct + incorrect, 'not-applicable', { pendingReview: pendingCount, correct, incorrect });
+  const factAccuracy = metric(correct, correct + incorrect, decided.length === 0 ? 'missing' : 'not-applicable', { pendingReview: pendingCount, correct, incorrect });
 
   const requiredTotal = decided.reduce((sum, evaluation) => sum + evaluation.facts.required.length, 0);
   const requiredPresent = decided.reduce((sum, evaluation) => sum + evaluation.facts.requiredPresent.length, 0);
@@ -168,7 +184,7 @@ function scoreGroup(evaluations, provider) {
   } else {
     const supported = aboutTarget.filter((evaluation) =>
       evaluation.citations.supportConfirmed !== false && (evaluation.citations.targetOwned.length > 0 || evaluation.citations.corroborating.length > 0));
-    citationSupport = metric(supported.length, aboutTarget.length, 'not-applicable', {
+    citationSupport = metric(supported.length, aboutTarget.length, decided.length === 0 ? 'missing' : 'not-applicable', {
       siteCited: aboutTarget.filter((evaluation) => evaluation.citations.siteCited).length,
       supportConfirmed: aboutTarget.filter((evaluation) => evaluation.citations.supportConfirmed === true).length,
       supportRejected: aboutTarget.filter((evaluation) => evaluation.citations.supportConfirmed === false).length,
@@ -237,6 +253,14 @@ export function reviewQueue(evaluations) {
         autoClassification: evaluation.autoClassification,
         reasons: evaluation.reasons,
         flaggedSentences: evaluation.flaggedSentences,
+      });
+    }
+    if (!evaluation.pendingReview && evaluation.facts?.negatedUnlabeled.length) {
+      items.push({
+        answerId: evaluation.answerId,
+        kind: 'fact-polarity',
+        factIds: evaluation.facts.negatedUnlabeled,
+        note: 'the answer negates these target facts; label each correct, incorrect, or absent',
       });
     }
     if (!evaluation.pendingReview && ABOUT_TARGET.has(evaluation.classification) && evaluation.citations.supportConfirmed === null

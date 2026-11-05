@@ -144,3 +144,26 @@ test('the compatibility key changes with the queries and repeats a group actuall
   assert.notEqual(key(full), key(full.slice(0, 1)));
   assert.equal(key(full), key(answersFrom('namesake')));
 });
+
+test('a reviewer-confirmed conflation counts namesake claims from any sentence as incorrect', () => {
+  const answers = answersFrom('ambiguous').filter((answer) => answer.queryId === 'who-is');
+  const [evaluation] = scoreRun({ answers, definitions }).evaluations;
+  const confirm = (extra = {}) => groupOf(answers, [{ answerId: evaluation.answerId, reviewer: 'kaleb', reviewedAt: '2026-11-06', classification: 'conflated', ...extra }]);
+  const inferred = confirm();
+  assert.ok(inferred.metrics.factAccuracy.incorrect >= 1);
+  assert.ok(inferred.metrics.factAccuracy.score < 100);
+  const listed = confirm({ attributedNamesakeFactIds: ['namesake-sentence', 'namesake-conviction'] });
+  assert.equal(listed.metrics.factAccuracy.incorrect, 2);
+});
+
+test('negated target facts go to the review queue', () => {
+  const answers = [{ provider: 'fixture', surface: 'fixture', label: 'fixture', queryId: 'name', repeat: 1, status: 'ok', capturedAt: '2026-11-05T22:00:00Z',
+    text: 'Kaleb Cole works at Microsoft on Azure support tickets. He is not a software engineer.' }];
+  const result = scoreRun({ answers, definitions });
+  assert.deepEqual(result.review.find((item) => item.kind === 'fact-polarity')?.factIds, ['target-role']);
+});
+
+test('the compatibility key changes with the recorded model', () => {
+  const key = (model) => scoreRun({ answers: answersFrom('target').map((answer) => ({ ...answer, model })), definitions }).groups[0].compatibilityKey;
+  assert.notEqual(key('model-a'), key('model-b'));
+});

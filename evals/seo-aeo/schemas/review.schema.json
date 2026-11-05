@@ -4,19 +4,58 @@
   "type": "array",
   "items": {
     "type": "object",
-    "required": ["answerId", "reviewer", "reviewedAt"],
+    "required": [
+      "answerId",
+      "reviewer",
+      "reviewedAt"
+    ],
     "additionalProperties": false,
     "properties": {
-      "answerId": { "type": "string", "minLength": 1 },
-      "reviewer": { "type": "string", "minLength": 1 },
-      "reviewedAt": { "type": "string", "format": "date" },
-      "classification": { "enum": ["target-only", "other-only", "both-separated", "conflated", "uncertain"] },
+      "answerId": {
+        "type": "string",
+        "minLength": 1
+      },
+      "reviewer": {
+        "type": "string",
+        "minLength": 1
+      },
+      "reviewedAt": {
+        "type": "string",
+        "format": "date"
+      },
+      "classification": {
+        "enum": [
+          "target-only",
+          "other-only",
+          "both-separated",
+          "conflated",
+          "uncertain"
+        ]
+      },
+      "attributedNamesakeFactIds": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^namesake-[a-z0-9-]+$"
+        },
+        "uniqueItems": true
+      },
       "facts": {
         "type": "object",
-        "additionalProperties": { "enum": ["correct", "incorrect", "absent"] }
+        "additionalProperties": {
+          "enum": [
+            "correct",
+            "incorrect",
+            "absent"
+          ]
+        }
       },
-      "citationSupport": { "type": "boolean" },
-      "note": { "type": "string" }
+      "citationSupport": {
+        "type": "boolean"
+      },
+      "note": {
+        "type": "string"
+      }
     }
   }
 }

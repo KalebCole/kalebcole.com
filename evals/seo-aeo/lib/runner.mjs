@@ -1,7 +1,7 @@
 // Plans, runs, imports and rescores eval runs. Preflight shows every call and
 // a conservative spend ceiling before anything runs, and the request, retry,
 // quota and cost caps stop a run from growing past what was planned.
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
@@ -115,8 +115,28 @@ function gitCommit(dir) {
 }
 
 function runIdFor(now, suffix) {
-  return `${now.toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z')}-${suffix}`;
+  const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+  return `${stamp}-${suffix}-${randomBytes(3).toString('hex')}`;
 }
+
+/** Creates a new run directory, refusing to reuse one so no evidence is overwritten. */
+function createRunDir(definitions, outDir, id) {
+  const parent = artifactsRoot(definitions, outDir);
+  mkdirSync(parent, { recursive: true });
+  const dir = join(parent, id);
+  try {
+    mkdirSync(dir);
+  } catch (error) {
+    if (error.code === 'EEXIST') throw new Error(`Run directory ${dir} already exists; refusing to overwrite earlier evidence.`);
+    throw error;
+  }
+  return dir;
+}
+
+const currentProvenance = ({ queries, facts, rubric, config }) => ({
+  versions: { queries: queries.version, facts: facts.version, rubric: rubric.version, config: config.version },
+  factsStatus: facts.status,
+});
 
 export function artifactsRoot(definitions, outDir) {
   if (outDir) return isAbsolute(outDir) ? outDir : resolve(outDir);
@@ -178,9 +198,9 @@ const defaultSleep = (ms) => new Promise((resolveSleep) => setTimeout(resolveSle
 export async function executeRun({ definitions, plan, env, outDir, now = () => new Date(), sleep = defaultSleep, runId }) {
   if (plan.blocked.length) throw new Error(`Run blocked:\n- ${plan.blocked.join('\n- ')}`);
   const startedAt = now();
-  const id = runId ?? runIdFor(startedAt, plan.runnable.map((entry) => entry.provider.id).join('+') || 'none');
-  const dir = join(artifactsRoot(definitions, outDir), id);
-  mkdirSync(dir, { recursive: true });
+  const providers = [...plan.runnable, ...plan.skipped].map((entry) => entry.provider.id);
+  const id = runId ?? runIdFor(startedAt, providers.length > 3 ? `${providers.length}-providers` : providers.join('+') || 'none');
+  const dir = createRunDir(definitions, outDir, id);
 
   const answers = [];
   let requests = 0;
@@ -285,8 +305,7 @@ export function importManual({ definitions, file, outDir, now = () => new Date()
 
   const startedAt = now();
   const id = runId ?? runIdFor(startedAt, 'manual');
-  const dir = join(artifactsRoot(definitions, outDir), id);
-  mkdirSync(dir, { recursive: true });
+  const dir = createRunDir(definitions, outDir, id);
   writeJson(join(dir, 'raw', 'manual-import.json'), input);
   const answers = captures.map((capture) => ({ ...capture, rawHash: capture.rawHash ?? hash(capture) }));
   const manifest = manifestFor({ definitions, runId: id, kind: 'manual-import', plan: null, startedAt: startedAt.toISOString(), finishedAt: now().toISOString() });
@@ -311,11 +330,21 @@ export const REVIEW_DECISIONS_FILE = 'review-decisions.json';
  * report never drops a human confirmation. A new review file is merged on
  * top, newest decision per answer winning.
  */
-export function rescoreRun({ definitions, runDir, reviewFile }) {
+export function rescoreRun({ definitions, runDir, reviewFile, allowDefinitionChange = false, now = () => new Date() }) {
   const manifestPath = join(runDir, 'manifest.json');
   const answersPath = join(runDir, 'answers.jsonl');
   if (!existsSync(manifestPath) || !existsSync(answersPath)) throw new Error(`${runDir} is not a run directory (needs manifest.json and answers.jsonl)`);
   const manifest = readJson(manifestPath);
+  const current = currentProvenance(definitions);
+  const scoredWith = manifest.rescoredWith ?? { versions: manifest.versions, factsStatus: manifest.factsStatus };
+  const changed = JSON.stringify(scoredWith.versions) !== JSON.stringify(current.versions) || scoredWith.factsStatus !== current.factsStatus;
+  if (changed && !allowDefinitionChange) {
+    throw new Error(`${runDir} was scored with queries ${scoredWith.versions.queries}, facts ${scoredWith.versions.facts} (${scoredWith.factsStatus}), rubric ${scoredWith.versions.rubric}, config ${scoredWith.versions.config}, but the current definitions differ. Pass --rescore-with-current to rescore with today's definitions; the report will record it.`);
+  }
+  if (changed) {
+    manifest.rescoredWith = { ...current, at: now().toISOString() };
+    manifest.provisional = current.factsStatus !== 'approved';
+  }
   const answers = readFileSync(answersPath, 'utf8').split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line));
   const storedPath = join(runDir, REVIEW_DECISIONS_FILE);
   const decisions = new Map((existsSync(storedPath) ? readReviews(definitions, storedPath) : []).map((review) => [review.answerId, review]));

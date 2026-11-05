@@ -188,3 +188,40 @@ test('an AdapterError carries its retryable flag', () => {
   assert.equal(new AdapterError('x', { retryable: true }).retryable, true);
   assert.equal(new AdapterError('x').retryable, false);
 });
+
+test('run ids never collide and an existing run directory is never overwritten', async (t) => {
+  const out = tempDir(t);
+  const registry = () => createAdapterRegistry({ fixturePath: fixture('demo') });
+  const run = async (runId) => executeRun({ definitions, plan: planRun({ definitions, registry: registry(), env: noKeys, providerIds: ['fixture'] }), env: noKeys, outDir: out, now: clock, sleep: noSleep, runId });
+  const first = await run();
+  const second = await run();
+  assert.notEqual(first.runId, second.runId);
+  await run('fixed');
+  await assert.rejects(() => run('fixed'), /already exists; refusing to overwrite/);
+  importManual({ definitions, file: fixture('manual-import'), outDir: out, now: clock, runId: 'manual' });
+  assert.throws(() => importManual({ definitions, file: fixture('manual-import'), outDir: out, now: clock, runId: 'manual' }), /already exists/);
+});
+
+test('report refuses to rescore with changed definitions unless asked, and records it', async (t) => {
+  const registry = createAdapterRegistry({ fixturePath: fixture('demo') });
+  const plan = planRun({ definitions, registry, env: noKeys, providerIds: ['fixture'] });
+  const run = await executeRun({ definitions, plan, env: noKeys, outDir: tempDir(t), now: clock, sleep: noSleep, runId: 'provenance' });
+  const changed = structuredClone(definitions);
+  changed.dir = definitions.dir;
+  changed.rubric.version = '9.9.9';
+  assert.throws(() => rescoreRun({ definitions: changed, runDir: run.dir }), /current definitions differ/);
+  const rescored = rescoreRun({ definitions: changed, runDir: run.dir, allowDefinitionChange: true, now: clock });
+  assert.equal(rescored.manifest.rescoredWith.versions.rubric, '9.9.9');
+  assert.equal(rescored.manifest.versions.rubric, definitions.rubric.version);
+  assert.match(readFileSync(join(run.dir, 'report.md'), 'utf8'), /Rescored .* rubric 9\.9\.9/);
+  assert.doesNotThrow(() => rescoreRun({ definitions: changed, runDir: run.dir }));
+});
+
+test('a run with only skipped providers still writes its missingness', async (t) => {
+  const plan = planRun({ definitions, registry: createAdapterRegistry(), env: noKeys, providerIds: ['google-organic'] });
+  assert.equal(plan.runnable.length, 0);
+  const result = await executeRun({ definitions, plan, env: noKeys, outDir: tempDir(t), now: clock, sleep: noSleep });
+  assert.equal(result.answers.length, 4);
+  assert.ok(result.answers.every((answer) => answer.status === 'skipped'));
+  assert.match(readFileSync(join(result.dir, 'report.md'), 'utf8'), /SERPAPI_API_KEY is not set/);
+});

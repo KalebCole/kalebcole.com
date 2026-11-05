@@ -26,6 +26,8 @@ Options:
   --fixture <file>     Fixture file for the fixture provider.
   --out <dir>          Artifacts directory (default: evals/seo-aeo/artifacts, gitignored).
   --review <file>      Review decisions (JSON array or JSONL) for report.
+  --rescore-with-current
+                       Let report rescore a run whose definitions have changed.
   --dry-run            Same as plan.
   --help               Show this help.`;
 
@@ -52,6 +54,7 @@ async function main(argv) {
       fixture: { type: 'string' },
       out: { type: 'string' },
       review: { type: 'string' },
+      'rescore-with-current': { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
@@ -75,7 +78,7 @@ async function main(argv) {
   }
   if (command === 'report') {
     if (!target) throw new Error('report needs a run directory');
-    const result = rescoreRun({ definitions, runDir: resolve(target), reviewFile: values.review && resolve(values.review) });
+    const result = rescoreRun({ definitions, runDir: resolve(target), reviewFile: values.review && resolve(values.review), allowDefinitionChange: values['rescore-with-current'] });
     console.log(`Rescored ${result.dir}; see report.md and review.jsonl`);
     return 0;
   }
@@ -104,7 +107,7 @@ async function main(argv) {
     return plan.blocked.length ? 1 : 0;
   }
   if (plan.blocked.length) return 1;
-  if (plan.runnable.length === 0) {
+  if (plan.runnable.length === 0 && plan.skipped.length === 0) {
     console.log('\nNothing to run.');
     return 0;
   }

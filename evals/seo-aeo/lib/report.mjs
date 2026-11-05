@@ -53,6 +53,10 @@ export function renderReport({ manifest, scores, timeZone = 'America/Los_Angeles
     `- Versions: queries ${manifest.versions.queries}, facts ${manifest.versions.facts}, rubric ${manifest.versions.rubric}, config ${manifest.versions.config}`,
     `- Locale: ${manifest.locale.location}, ${manifest.locale.language}-${manifest.locale.country}, ${manifest.locale.device}`,
   ];
+  if (manifest.rescoredWith) {
+    const { versions } = manifest.rescoredWith;
+    lines.push(`- Rescored ${formatTime(manifest.rescoredWith.at, timeZone)} with current definitions: queries ${versions.queries}, facts ${versions.facts} (${manifest.rescoredWith.factsStatus}), rubric ${versions.rubric}, config ${versions.config}`);
+  }
   if (manifest.provisional) lines.push(`- Provisional: facts.json is ${manifest.factsStatus}, so these scores are not a baseline.`);
   if (manifest.plan?.skipped?.length) {
     lines.push('', '## Skipped', '', ...manifest.plan.skipped.map((entry) => `- ${entry.reason}`));
@@ -84,6 +88,8 @@ export function renderReport({ manifest, scores, timeZone = 'America/Los_Angeles
   for (const item of scores.review) {
     if (item.kind === 'classification') {
       lines.push(`- ${item.answerId}: confirm the classification (auto: ${item.autoClassification}; ${item.reasons.join('; ') || 'no reason recorded'}).`);
+    } else if (item.kind === 'fact-polarity') {
+      lines.push(`- ${item.answerId}: label the negated target fact(s) ${item.factIds.join(', ')}.`);
     } else {
       lines.push(`- ${item.answerId}: confirm the cited page supports the claim (${item.citedUrls.join(', ')}).`);
     }
