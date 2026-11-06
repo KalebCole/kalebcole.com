@@ -1,7 +1,9 @@
 // Sends a frozen plan v2 only from exact request files. It does not rebuild
 // answer text or questions, does not read label files, and does not retry.
+import { spawn as nodeSpawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { closeSync, cpSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, writeFileSync, writeSync } from 'node:fs';
+import { closeSync, cpSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync, writeSync } from 'node:fs';
+import { request as httpsRequest } from 'node:https';
 import { dirname, join } from 'node:path';
 import { EVAL_DIR } from './load.mjs';
 import {
@@ -16,6 +18,7 @@ import {
 } from './decision1-strict.mjs';
 
 export const PLAN_V2_SHA256 = '8b5fa698f1f4d3b50bc0bd86215b6132780d84db41078fdbd27f2b3eb4862abf';
+export const DECISION1_ENDPOINT = 'https://kalebcole2021-0169-resource.cognitiveservices.azure.com/providers/microsoft/v1/systemone';
 export const PLAN_V2_REQUEST_BYTES = 57763;
 export const DEFAULT_AZ_BIN = '/home/box/.local/share/azure-cli-venv/bin/az';
 export const SYSTEMONE_PATH = '/providers/microsoft/v1/systemone';
@@ -25,8 +28,14 @@ function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
-function writeDurable(path, bytes) {
-  const fd = openSync(path, 'w');
+function writeDurable(path, bytes, { exclusive = false } = {}) {
+  let fd;
+  try {
+    fd = openSync(path, exclusive ? 'wx' : 'w');
+  } catch (error) {
+    if (error.code === 'EEXIST') throw new Error(`refusing to overwrite ${path}`);
+    throw error;
+  }
   try {
     writeSync(fd, bytes);
     fsyncSync(fd);
@@ -60,6 +69,7 @@ export function assertPlanV2Document(plan) {
   if (!Array.isArray(plan.items) || plan.items.length < 1 || plan.items.length > DECISION1_MAX_ATTEMPTS) {
     throw new Error('plan must contain 1 to 8 items');
   }
+  if (new Set(plan.items.map((item) => item.id)).size !== plan.items.length) throw new Error('plan item ids must be unique');
   if (plan.wire_source?.sha256 !== DECISION1_QUESTIONS_SHA256) throw new Error('plan wire sha does not match the pinned questions');
   if (plan.budget_preflight?.new_planning_reserve_usd !== '0.005') throw new Error('plan reserve is not $0.005');
   if (plan.budget_preflight?.prior_estimated_usd !== '0.009095688') throw new Error('plan prior usage does not match the pin');
@@ -71,7 +81,7 @@ export function assertPlanV2Document(plan) {
     if (item.question_spec_version !== 'strict-visibility-decision1-v1') throw new Error(`${item.id} question spec version mismatch`);
     if (item.body_sha256 !== item.reviewed_raw_body_sha256) throw new Error(`${item.id} raw body hashes disagree`);
     if (!item.judge_input_sha256 || !item.request_sha256 || !item.request_path) throw new Error(`${item.id} is missing request identity`);
-    if (item.request_path.includes('..') || item.request_path.startsWith('/')) throw new Error(`${item.id} request path must stay under the run root`);
+    if (!item.request_path.startsWith('requests.v2/') || item.request_path.includes('..')) throw new Error(`${item.id} request path must stay under requests.v2`);
     total += item.request_utf8_bytes;
   }
   if (total !== plan.budget_preflight.serialized_payload_total_utf8_bytes) {
@@ -121,6 +131,41 @@ export function verifyPlanFiles(plan, runRoot) {
   return plan.items.map((item) => ({ item, ...verifyFrozenRequest(item, runRoot) }));
 }
 
+function providerUsage(usage) {
+  if (!usage || typeof usage !== 'object') return null;
+  const input = usage.input_tokens;
+  const output = usage.output_tokens;
+  if (!Number.isInteger(input) || !Number.isInteger(output) || input < 0 || output < 0) return null;
+  return { input_tokens: input, output_tokens: output };
+}
+
+function readBudget(path) {
+  return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+function writeBudget(path, budget) {
+  const tmp = `${path}.tmp`;
+  writeDurable(tmp, Buffer.from(`${JSON.stringify(budget, null, 2)}\n`), { exclusive: true });
+  renameSync(tmp, path);
+}
+
+function recordSpend(path, inputTokens) {
+  const budget = readBudget(path);
+  const spent = BigInt(budget.spentNewNano || '0') + (BigInt(inputTokens) * 42n);
+  const cumulative = DECISION1_PRIOR_NANO + spent;
+  const next = {
+    ...budget,
+    spentNewNano: spent.toString(),
+    inputTokens: (budget.inputTokens || 0) + inputTokens,
+    tokenBoundChecked: true,
+    usageUnknown: false,
+  };
+  writeBudget(path, next);
+  if (spent >= DECISION1_NEW_RESERVE_NANO) return { stopped: 'new-reserve' };
+  if (cumulative >= DECISION1_CAP_NANO) return { stopped: 'cumulative-cap' };
+  return { stopped: null };
+}
+
 function journalEntries(path) {
   if (!existsSync(path)) return [];
   return readFileSync(path, 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line));
@@ -143,8 +188,8 @@ export async function executeFrozenPlan({ plan, runRoot, execute = false, transp
   if (typeof transport !== 'function') throw new Error('refusing to send without an explicit transport');
   const journalPath = join(runRoot, 'attempts.jsonl');
   const prior = journalEntries(journalPath);
-  if (prior.length > DECISION1_MAX_ATTEMPTS) throw new Error('attempt journal already exceeds 8');
   const state = latestById(prior);
+  const armedRecords = prior.filter((entry) => entry.phase === 'armed').length;
   for (const entry of state.values()) {
     if (entry.phase === 'armed') {
       summary.stopped = 'ambiguous-attempt';
@@ -155,18 +200,30 @@ export async function executeFrozenPlan({ plan, runRoot, execute = false, transp
       return summary;
     }
   }
-  const armed = prior.filter((entry) => entry.phase === 'armed').length;
   const budgetPath = join(runRoot, 'budget.json');
   mkdirSync(join(runRoot, 'responses'), { recursive: true });
   if (!existsSync(budgetPath)) {
     writeDurable(budgetPath, Buffer.from(`${JSON.stringify({
       priorUsageNano: DECISION1_PRIOR_NANO.toString(),
       newReserveNano: DECISION1_NEW_RESERVE_NANO.toString(),
+      spentNewNano: '0',
+      inputTokens: 0,
       capNano: DECISION1_CAP_NANO.toString(),
       tokenBoundChecked: false,
+      usageUnknown: false,
       calls: 0,
       retries: 0,
-    }, null, 2)}\n`));
+    }, null, 2)}\n`), { exclusive: true });
+  }
+  const existingBudget = existsSync(budgetPath) ? readBudget(budgetPath) : null;
+  if (existingBudget?.usageUnknown === true) {
+    summary.stopped = 'missing-usage';
+    return summary;
+  }
+  const spentSoFar = BigInt(existingBudget?.spentNewNano || '0');
+  if (spentSoFar >= DECISION1_NEW_RESERVE_NANO || DECISION1_PRIOR_NANO + spentSoFar >= DECISION1_CAP_NANO) {
+    summary.stopped = spentSoFar >= DECISION1_NEW_RESERVE_NANO ? 'new-reserve' : 'cumulative-cap';
+    return summary;
   }
   let sends = 0;
   for (const { item, bytes } of verified) {
@@ -175,7 +232,7 @@ export async function executeFrozenPlan({ plan, runRoot, execute = false, transp
       summary.skipped.push(item.id);
       continue;
     }
-    if (armed + sends >= DECISION1_MAX_ATTEMPTS) {
+    if (armedRecords + sends >= DECISION1_MAX_ATTEMPTS) {
       summary.stopped = 'attempt-cap';
       break;
     }
@@ -198,36 +255,43 @@ export async function executeFrozenPlan({ plan, runRoot, execute = false, transp
       return summary;
     }
     const responsePath = join(runRoot, 'responses', `${item.id}.http`);
-    writeDurable(responsePath, Buffer.from(JSON.stringify({ status: http.status, bodySha256: sha256(http.body) })));
-    writeDurable(`${responsePath}.body`, http.body);
+    writeDurable(responsePath, Buffer.from(JSON.stringify({ status: http.status, bodySha256: sha256(http.body) })), { exclusive: true });
+    writeDurable(`${responsePath}.body`, http.body, { exclusive: true });
     let parsed = null;
     try {
       parsed = JSON.parse(http.body.toString('utf8'));
     } catch {
       parsed = null;
     }
-    const usage = parsed?.usage;
-    const usageKnown = usage && Number.isInteger(usage.input_tokens) && Number.isInteger(usage.output_tokens);
+    const usage = providerUsage(parsed?.usage);
     appendDurable(join(runRoot, 'ledger.jsonl'), `${JSON.stringify({
       id: item.id,
       requestSha256: item.request_sha256,
       httpStatus: http.status,
       responseSha256: sha256(http.body),
-      usage: usageKnown ? { input_tokens: usage.input_tokens, output_tokens: usage.output_tokens } : { status: 'unknown' },
+      usage: usage ? { input_tokens: usage.input_tokens, output_tokens: usage.output_tokens } : { status: 'unknown' },
     })}\n`);
-    if (http.status === 401 || http.status === 429) {
+    if (http.status !== 200) {
       appendDurable(journalPath, `${JSON.stringify({ id: item.id, phase: 'stopped', reason: `http-${http.status}-no-retry` })}\n`);
       summary.stopped = `http-${http.status}`;
       summary.sent.push(item.id);
       return summary;
     }
-    if (!usageKnown) {
+    if (!usage) {
+      const budget = readBudget(budgetPath);
+      writeBudget(budgetPath, { ...budget, usageUnknown: true });
       appendDurable(journalPath, `${JSON.stringify({ id: item.id, phase: 'stopped', reason: 'missing-usage' })}\n`);
       summary.stopped = 'missing-usage';
       summary.sent.push(item.id);
       return summary;
     }
+    const spent = recordSpend(budgetPath, usage.input_tokens);
     appendDurable(journalPath, `${JSON.stringify({ id: item.id, phase: 'responded', requestSha256: item.request_sha256 })}\n`);
+    if (spent.stopped) {
+      summary.stopped = spent.stopped;
+      summary.sent.push(item.id);
+      return summary;
+    }
     summary.sent.push(item.id);
     state.set(item.id, { id: item.id, phase: 'responded' });
   }
@@ -245,57 +309,145 @@ const BUNDLE_FILES = [
   'plans/input-plan.v2.json',
 ];
 
-/** Copies the sender and its local imports. The bundle refuses --execute. */
+/** Copies the sender and its local imports. Generated output is not committed. */
 export function exportDecision1Sender(outDir) {
   for (const file of BUNDLE_FILES) {
     mkdirSync(join(outDir, dirname(file)), { recursive: true });
     cpSync(join(EVAL_DIR, file), join(outDir, file));
   }
   writeFileSync(join(outDir, 'send.mjs'), `#!/usr/bin/env node
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { assertPlanV2Document, verifyPlanFiles } from './lib/decision1-send.mjs';
+import { main } from './lib/decision1-send.mjs';
 
-if (process.argv.includes('--execute')) {
-  console.error('sending is disabled in this bundle until a separate review. No request was sent.');
-  process.exit(2);
-}
-const [planPath, runRoot] = process.argv.slice(2);
-if (!planPath) {
-  console.error('usage: node send.mjs <plan.json> [run-root]');
-  process.exit(2);
-}
-const plan = JSON.parse(readFileSync(resolve(planPath), 'utf8'));
-const checked = assertPlanV2Document(plan);
-if (runRoot) {
-  const files = verifyPlanFiles(plan, resolve(runRoot));
-  console.log(\`verified \${files.length}; envelope tokens \${checked.envelope.tokens}; calls 0\`);
-} else {
-  console.log(\`plan ok; \${plan.items.length} items; \${checked.totalRequestBytes} bytes; calls 0\`);
-}
+main(process.argv.slice(2)).then((code) => process.exit(code ?? 0), (error) => {
+  console.error(error.message);
+  process.exit(1);
+});
 `);
   writeFileSync(join(outDir, 'README.md'), `# Decision-1 sender bundle
 
-Offline verifier for plan v2. \`node send.mjs --execute\` does not send.
-Copy this folder to the runbox. Point it at a run root that already contains \`requests.v2/\`.
-Do not put tokens or account keys in this folder.
+\`node send.mjs --plan plans/input-plan.v2.json\` verifies only.
+\`--execute\` is implemented and uses Azure CLI plus node HTTPS. Do not pass it until review.
+The token stays in memory. This folder must not contain tokens or account keys.
 `);
   return outDir;
 }
 
 export function assertSystemoneEndpoint(url) {
-  const parsed = new URL(url);
-  if (parsed.protocol !== 'https:') throw new Error('endpoint must be https');
-  if (parsed.username || parsed.password || parsed.searchParams.has('api-key')) throw new Error('endpoint must not carry credentials');
-  const hostOk = ['.openai.azure.com', '.cognitiveservices.azure.com', '.services.ai.azure.com'].some((suffix) => parsed.hostname.endsWith(suffix));
-  if (!hostOk) throw new Error('endpoint host is not an allowed Azure host');
-  if (!parsed.pathname.endsWith(SYSTEMONE_PATH)) throw new Error('endpoint path is not /providers/microsoft/v1/systemone');
-  return { host: parsed.hostname, path: parsed.pathname };
+  if (url !== DECISION1_ENDPOINT) throw new Error('endpoint is not the pinned systemone URL');
+  return { host: 'kalebcole2021-0169-resource.cognitiveservices.azure.com', path: SYSTEMONE_PATH };
 }
 
-/** Azure CLI args. The token stays inside az. This function does not run az. */
-export function azRestArgs({ azBin = DEFAULT_AZ_BIN, endpoint, bodyPath, resource }) {
+function redact(text, token) {
+  if (!token) return String(text);
+  return String(text).split(token).join('[redacted]');
+}
+
+/** Args for az account get-access-token. The token is not an argument. */
+export function azTokenArgs(azBin = DEFAULT_AZ_BIN, resource) {
+  if (!resource) throw new Error('missing Azure resource');
+  return [azBin, 'account', 'get-access-token', '--resource', resource, '--query', 'accessToken', '-o', 'tsv'];
+}
+
+export function readAzAccessToken({ azBin, resource, spawnImpl = nodeSpawn }) {
+  const args = azTokenArgs(azBin, resource).slice(1);
+  return new Promise((resolve, reject) => {
+    let child;
+    try {
+      child = spawnImpl(azBin, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch {
+      reject(new Error('az failed to start'));
+      return;
+    }
+    let out = '';
+    child.stdout?.on('data', (chunk) => { out += chunk; });
+    child.stderr?.on('data', () => {});
+    child.on('error', () => reject(new Error('az failed to start')));
+    child.on('close', (code) => {
+      const token = out.trim();
+      if (code !== 0 || token.length === 0) reject(new Error('az get-access-token failed'));
+      else resolve(token);
+    });
+  });
+}
+
+/** POST exact bytes. Node does not follow redirects. Timeout destroys the socket. */
+export function postHttps({ endpoint, body, token, timeoutMs = 60000, requestImpl = httpsRequest }) {
+  const url = new URL(endpoint);
   assertSystemoneEndpoint(endpoint);
-  if (!resource || resource.includes('Bearer') || resource.includes('access_token')) throw new Error('resource must not contain a token');
-  return [azBin, 'rest', '--method', 'POST', '--uri', endpoint, '--resource', resource, '--body', `@${bodyPath}`, '--headers', 'Content-Type=application/json'];
+  return new Promise((resolve, reject) => {
+    const req = requestImpl(url, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${token}`,
+        'content-type': 'application/json',
+        'content-length': body.length,
+      },
+      timeout: timeoutMs,
+    }, (res) => {
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => resolve({ status: res.statusCode, body: Buffer.concat(chunks) }));
+    });
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('request timed out'));
+    });
+    req.on('error', (error) => reject(new Error(redact(error.message, token))));
+    req.end(body);
+  });
+}
+
+function option(argv, name) {
+  const index = argv.indexOf(name);
+  if (index === -1) return undefined;
+  return argv[index + 1];
+}
+
+/**
+ * Opt-in sender. Without --execute it only verifies. With --execute it
+ * acquires a token and then calls executeFrozenPlan. Tests inject spawn
+ * and HTTPS. This process must not be pointed at a live endpoint.
+ */
+export async function main(argv, hooks = {}) {
+  if (!option(argv, '--plan') || !option(argv, '--run-root') || !option(argv, '--plan-sha')) {
+    throw new Error('missing --plan, --run-root, or --plan-sha');
+  }
+  const planPath = option(argv, '--plan');
+  const runRoot = option(argv, '--run-root');
+  const planSha = option(argv, '--plan-sha');
+  const planBytes = readFileSync(planPath);
+  if (sha256(planBytes) !== planSha) throw new Error('plan file does not match --plan-sha');
+  if (planSha !== PLAN_V2_SHA256) throw new Error('plan pin is not the reviewed v2 plan');
+  const plan = JSON.parse(planBytes.toString('utf8'));
+  const ids = plan.items?.map((item) => item.id) ?? [];
+  if (ids.length !== 8 || new Set(ids).size !== 8) throw new Error('plan must contain exactly 8 unique items');
+  verifyPlanFiles(plan, runRoot);
+  if (!argv.includes('--execute')) {
+    console.log(`verified ${plan.items.length}; calls 0`);
+    return 0;
+  }
+  const azBin = option(argv, '--az');
+  const endpoint = option(argv, '--endpoint');
+  const resource = option(argv, '--resource');
+  if (!azBin || !existsSync(azBin)) throw new Error('az binary is missing');
+  if (!endpoint || !resource) throw new Error('missing --endpoint or --resource');
+  assertSystemoneEndpoint(endpoint);
+  const token = await readAzAccessToken({ azBin, resource, spawnImpl: hooks.spawnImpl });
+  const transport = (body) => postHttps({
+    endpoint,
+    body,
+    token,
+    timeoutMs: 60000,
+    requestImpl: hooks.requestImpl,
+  });
+  const summary = await executeFrozenPlan({
+    plan,
+    runRoot,
+    execute: true,
+    transport,
+    sleep: hooks.sleep,
+    spacingMs: 5000,
+  });
+  console.log(JSON.stringify({ verified: summary.verified, calls: summary.calls, sent: summary.sent, skipped: summary.skipped, stopped: summary.stopped }));
+  return summary.stopped ? 1 : 0;
 }

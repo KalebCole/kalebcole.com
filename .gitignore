@@ -9,3 +9,4 @@ dist/
 evals/seo-aeo/.env*
 !evals/seo-aeo/.env.example
 evals/seo-aeo/artifacts/
+evals/seo-aeo/sender-bundle/
