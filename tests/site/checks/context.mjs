@@ -16,7 +16,7 @@ export function loadContext() {
     xmlFiles: ['rss.xml', 'recommends/rss.xml'].map((path) => join(dist, path)),
     emittedFiles,
     productionNames: emittedFiles.map((path) => relative(dist, path).replaceAll('\\', '/')),
-    expectedRoutes: ['/', '/blog/', '/blog/github-copilot-canvases/', '/blog/hello-world/', '/recommends/', '/projects/', '/404'],
+    expectedRoutes: ['/', '/blog/', '/blog/github-copilot-canvases/', '/blog/hello-world/', '/recommends/', '/projects/', '/privacy/', '/404'],
     publishedPostSlugs: readdirSync(blogSource)
       .filter((file) => file.endsWith('.md') && !/^draft:\s*true\s*$/m.test(text(join(blogSource, file))))
       .map((file) => file.replace(/\.md$/, '')),

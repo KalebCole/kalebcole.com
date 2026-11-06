@@ -16,7 +16,7 @@ const posts = readdirSync(blogSource)
   .filter((file) => file.endsWith('.md'))
   .filter((file) => !/^draft:\s*true\s*$/m.test(readFileSync(join(blogSource, file), 'utf8')))
   .map((file) => `/blog/${file.replace(/\.md$/, '')}/`);
-const routes = ['/', '/blog/', ...posts, '/recommends/', '/projects/', '/404.html'];
+const routes = ['/', '/blog/', ...posts, '/recommends/', '/projects/', '/privacy/', '/404.html'];
 // DESIGN.md, Composition and spacing: "Detailed media breakout: centered on the
 // prose column and capped near 56rem." Writing article: "At 760px and below
 // they collapse to the container and never widen the page."

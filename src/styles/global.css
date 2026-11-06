@@ -1392,6 +1392,30 @@ html[data-mode="dark"] .media-dialog::backdrop {
   font-weight: 600;
 }
 
+.privacy-page {
+  padding-top: clamp(3rem, 9vw, 7rem);
+}
+
+.privacy-page .page-heading,
+.privacy-page .prose {
+  width: min(var(--measure), 100%);
+  margin-inline: auto;
+}
+
+.privacy-page .page-heading {
+  max-width: none;
+  padding-block: 0;
+}
+
+.privacy-page .page-heading h1 {
+  overflow-wrap: anywhere;
+}
+
+.privacy-page .prose {
+  margin-top: clamp(2rem, 5vw, 3rem);
+  overflow-wrap: break-word;
+}
+
 .recommendations-header {
   display: grid;
   align-items: end;

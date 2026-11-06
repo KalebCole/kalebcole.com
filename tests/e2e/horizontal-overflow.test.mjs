@@ -15,7 +15,7 @@ const posts = readdirSync(join(root, 'src', 'content', 'blog'))
   .filter((file) => file.endsWith('.md'))
   .filter((file) => !/^draft:\s*true\s*$/m.test(readFileSync(join(root, 'src', 'content', 'blog', file), 'utf8')))
   .map((file) => `/blog/${file.replace(/\.md$/, '')}/`);
-const routes = ['/', '/blog/', ...posts, '/recommends/', '/projects/', '/404.html'];
+const routes = ['/', '/blog/', ...posts, '/recommends/', '/projects/', '/privacy/', '/404.html'];
 
 const types = { '.css': 'text/css', '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.png': 'image/png', '.woff2': 'font/woff2' };
 
