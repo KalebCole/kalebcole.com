@@ -23,7 +23,7 @@
   "identityBaseline": "The eight questions in questions/questions.baseline.v1.frozen.json stay unchanged and stay in their own request. This rubric is not added to that request.",
   "collection": {
     "primaryBaseline": "signed-out public consumer UI",
-    "keepDistinct": ["signed-in Google", "signed-in Gemini", "API proxies"],
+    "keepDistinct": ["signed-out ChatGPT", "signed-out Google", "signed-out Gemini", "signed-in Google", "signed-in Gemini", "API proxies"],
     "modelVersionsDistinct": "Signed-out Gemini Flash-Lite is not signed-in Gemini Flash.",
     "signOutDoesNotRemove": ["IP", "location", "session"],
     "queries": [

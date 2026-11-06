@@ -46,6 +46,7 @@ function winRecord(overrides = {}) {
     coverage: 'answer-present',
     queryId: 'name',
     surface: 'synthetic',
+    tool: 'synthetic',
     targetPrimary: 'true',
     criminalNamesakeMention: 'false',
     identityClass: 'target-only',
@@ -296,20 +297,38 @@ test('unknown, abstention, invalid, and version mismatch keep their denominators
   assert.equal(onlyGap.groups[0].coverage.aioAbsent, 1);
 });
 
-test('surfaces and model versions are not pooled, and rubric 1.0.0 cannot be scored as the strict win', () => {
+test('surfaces, consumer tools, and model versions are not pooled, and rubric 1.0.0 cannot be scored as the strict win', () => {
   const records = [
-    winRecord({ id: 'signed-out-lite', surface: 'public-signed-out', model: 'gemini-flash-lite' }),
-    winRecord({ id: 'signed-in-flash', surface: 'signed-in-gemini', model: 'gemini-flash' }),
-    winRecord({ id: 'signed-in-google', surface: 'signed-in-google', model: 'google-ai-mode', targetPrimary: 'false' }),
+    winRecord({ id: 'signed-out-lite', surface: 'public-signed-out', tool: 'gemini', model: 'gemini-flash-lite' }),
+    winRecord({ id: 'signed-in-flash', surface: 'signed-in-gemini', tool: 'gemini', model: 'gemini-flash' }),
+    winRecord({ id: 'signed-in-google', surface: 'signed-in-google', tool: 'google', model: 'google-ai-mode', targetPrimary: 'false' }),
   ];
   const split = scoreStrictVisibility(records, rubric);
   assert.equal(split.groups.length, 3);
   assert.equal(split.pooled, false);
-  assert.deepEqual(split.groups.map((group) => `${group.surface}/${group.model}`).sort(), [
-    'public-signed-out/gemini-flash-lite',
-    'signed-in-gemini/gemini-flash',
-    'signed-in-google/google-ai-mode',
+  assert.deepEqual(split.groups.map((group) => `${group.surface}/${group.tool}/${group.model}`).sort(), [
+    'public-signed-out/gemini/gemini-flash-lite',
+    'signed-in-gemini/gemini/gemini-flash',
+    'signed-in-google/google/google-ai-mode',
   ]);
+  const signedOut = [
+    winRecord({ id: 'chatgpt-win', surface: 'public-signed-out', tool: 'chatgpt' }),
+    winRecord({ id: 'google-loss', surface: 'public-signed-out', tool: 'google', targetPrimary: 'false' }),
+  ];
+  const tools = scoreStrictVisibility(signedOut, rubric);
+  assert.equal(tools.groups.length, 2);
+  assert.equal(tools.pooled, false);
+  const chatgpt = tools.groups.find((group) => group.tool === 'chatgpt');
+  const google = tools.groups.find((group) => group.tool === 'google');
+  assert.equal(chatgpt.model, 'model-not-recorded');
+  assert.equal(google.model, 'model-not-recorded');
+  assert.deepEqual([chatgpt.visibility.wins, chatgpt.visibility.full.denominator], [1, 1]);
+  assert.deepEqual([google.visibility.wins, google.visibility.losses, google.visibility.full.denominator], [0, 1, 1]);
+  const omittedTool = { ...winRecord({ id: 'tool-omitted', surface: 'public-signed-out' }) };
+  delete omittedTool.tool;
+  assert.equal(scoreExtraction(omittedTool).outcome, 'invalid');
+  assert.equal(scoreExtraction(omittedTool).win, false);
+  assert.equal(scoreExtraction(winRecord({ surface: 'public-signed-out', tool: 'synthetic' })).outcome, 'invalid');
   assert.throws(() => scoreStrictVisibility(records, definitions.rubric), /refusing to score/);
   assert.equal(scoreExtraction(winRecord({ queryId: 'project-query', rubricVersion: STRICT_VISIBILITY_VERSION })).outcome, 'invalid');
   assert.equal(scoreExtraction(winRecord({ surface: 'grok' })).outcome, 'invalid');

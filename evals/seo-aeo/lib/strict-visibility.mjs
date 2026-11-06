@@ -49,6 +49,14 @@ const JUDGMENT_FIELDS = {
 };
 
 const COVERAGE = new Set(['answer-present', 'no-answer', 'aio-absent']);
+const TOOLS = ['synthetic', 'chatgpt', 'google', 'gemini'];
+const TOOLS_FOR_SURFACE = {
+  synthetic: ['synthetic'],
+  'public-signed-out': ['chatgpt', 'google', 'gemini'],
+  'signed-in-google': ['google'],
+  'signed-in-gemini': ['gemini'],
+  'api-proxy': ['chatgpt', 'gemini'],
+};
 const POSITION = new Set(['target-leads', 'target-mentioned-later', 'target-absent', 'uncertain', 'not-recorded']);
 
 export const RUBRIC_1_STRICT_DISCLOSURE_LINES = [
@@ -107,6 +115,7 @@ function blank(record, fields) {
     coverage,
     queryId: APPROVED_QUERY_IDS.includes(record?.queryId) ? record.queryId : null,
     surface: typeof record?.surface === 'string' ? record.surface : null,
+    tool: TOOLS.includes(record?.tool) ? record.tool : null,
     model: typeof record?.model === 'string' ? record.model : null,
     targetPrimary: echoEnum(record, 'targetPrimary', JUDGMENT_FIELDS.targetPrimary),
     criminalNamesakeMention: echoEnum(record, 'criminalNamesakeMention', JUDGMENT_FIELDS.criminalNamesakeMention),
@@ -138,6 +147,10 @@ export function scoreExtraction(record) {
     for (const key of Object.keys(JUDGMENT_FIELDS)) {
       if (!Object.hasOwn(record, key)) problems.push(`missing required ${key}`);
     }
+  }
+  const allowedTools = TOOLS_FOR_SURFACE[record.surface];
+  if (allowedTools && Object.hasOwn(record, 'tool') && !allowedTools.includes(record.tool)) {
+    problems.push(`tool ${JSON.stringify(record.tool)} does not belong on surface ${record.surface}`);
   }
   if (problems.length > 0) {
     return blank(record, { appliedRubric: STRICT_VISIBILITY_VERSION, outcome: 'invalid', problems });
@@ -173,7 +186,7 @@ function tally(items, key, value) {
   return items.filter((item) => item[key] === value).length;
 }
 
-function summarize(surface, model, items) {
+function summarize(surface, tool, model, items) {
   const wins = tally(items, 'outcome', 'win');
   const losses = tally(items, 'outcome', 'loss');
   const unknown = tally(items, 'outcome', 'unknown');
@@ -192,6 +205,7 @@ function summarize(surface, model, items) {
   const citationUnknown = tally(judged, 'citationSupport', 'unknown');
   return {
     surface,
+    tool,
     model,
     observations: items.length,
     visibility: {
@@ -250,8 +264,8 @@ function summarize(surface, model, items) {
 }
 
 /**
- * Scores a batch. Groups stay split by surface and model. There is no
- * pooled win rate and no independent-sample count.
+ * Scores a batch. Groups stay split by surface, consumer tool, and model.
+ * There is no pooled win rate and no independent-sample count.
  */
 export function scoreStrictVisibility(records, rubric) {
   if (!Array.isArray(records)) throw new Error('extractions must be an array');
@@ -261,7 +275,7 @@ export function scoreStrictVisibility(records, rubric) {
   const scored = records.map((record) => scoreExtraction(record));
   const groups = new Map();
   for (const item of scored) {
-    const key = `${item.surface ?? 'surface-missing'}\0${item.model ?? 'model-not-recorded'}`;
+    const key = `${item.surface ?? 'surface-missing'}\0${item.tool ?? 'tool-missing'}\0${item.model ?? 'model-not-recorded'}`;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(item);
   }
@@ -277,8 +291,8 @@ export function scoreStrictVisibility(records, rubric) {
     groups: [...groups.entries()]
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([key, items]) => {
-        const [surface, model] = key.split('\0');
-        return summarize(surface, model, items);
+        const [surface, tool, model] = key.split('\0');
+        return summarize(surface, tool, model, items);
       }),
     records: scored,
   };
@@ -311,7 +325,7 @@ export function renderStrictVisibilityReport(result, rubric) {
     const visibility = group.visibility;
     lines.push(
       '',
-      `## ${group.surface} / ${group.model}`,
+      `## ${group.surface} / ${group.tool} / ${group.model}`,
       '',
       `${group.observations} observations.`,
       `Strict visibility win, full denominator (unknown and abstentions stay in): ${fraction(visibility.full)}.`,
