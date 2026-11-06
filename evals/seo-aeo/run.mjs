@@ -7,7 +7,9 @@ import { createAdapterRegistry } from './lib/adapters/index.mjs';
 import { loadEnv } from './lib/env.mjs';
 import { loadDefinitions } from './lib/load.mjs';
 import { executeRun, formatPlan, importManual, planRun, rescoreRun } from './lib/runner.mjs';
+import { loadStrictJudgeRequest, persistRawResponse, prepareStrictValidation, validateStrictPreparation } from './lib/strict-judge.mjs';
 import { loadStrictRubric, readExtractionFile, renderStrictVisibilityReport, scoreStrictVisibility, verifyFrozenQuestionFiles } from './lib/strict-visibility.mjs';
+import { readFileSync } from 'node:fs';
 
 const USAGE = `Usage: npm run eval:seo-aeo -- <command> [options]
 
@@ -18,6 +20,9 @@ Commands:
   report <run-dir>     Rescore a run, optionally with --review decisions.
   validate             Check queries, facts, rubric, config, and frozen question hashes.
   score-strict <file>  Score strict-visibility-win-v1 extractions offline. No network calls.
+  prepare-strict <plan>  Write a no-call strict judge plan. Refuses network.
+  persist-raw          Store one prepared raw response. Needs --out, --key, --body, and token counts.
+  validate-strict      Check a preparation. Does not read gold labels or call a model.
 
 Options:
   --provider <ids>     Comma-separated provider ids (default: enabled providers).
@@ -59,6 +64,10 @@ async function main(argv) {
       'rescore-with-current': { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
+      body: { type: 'string' },
+      key: { type: 'string' },
+      'input-tokens': { type: 'string' },
+      'output-tokens': { type: 'string' },
     },
   });
   if (values.help) {
@@ -67,6 +76,33 @@ async function main(argv) {
   }
 
   const [command = 'plan', target] = positionals;
+  if (command === 'prepare-strict' || command === 'persist-raw' || command === 'validate-strict') {
+    if (values.provider) throw new Error(`${command} does not call a provider`);
+    loadStrictJudgeRequest();
+    if (command === 'prepare-strict') {
+      if (!target) throw new Error('prepare-strict needs a plan file');
+      if (!values.out) throw new Error('prepare-strict needs --out');
+      const plan = JSON.parse(readFileSync(resolve(target), 'utf8'));
+      const result = prepareStrictValidation({ dir: resolve(values.out), items: plan.items });
+      console.log(`${result.status} ${result.dir} request ${result.manifest.requestSha256} calls ${result.manifest.calls}`);
+      return 0;
+    }
+    if (!values.out) throw new Error(`${command} needs --out`);
+    const dir = resolve(values.out);
+    if (command === 'persist-raw') {
+      if (!values.key || !values.body) throw new Error('persist-raw needs --key and --body');
+      const usage = {
+        inputTokens: number('input-tokens', values['input-tokens']),
+        outputTokens: number('output-tokens', values['output-tokens']),
+      };
+      const result = persistRawResponse({ dir, idempotenceKey: values.key, body: readFileSync(resolve(values.body)), usage });
+      console.log(`${result.status} ${result.sha256}`);
+      return 0;
+    }
+    const report = validateStrictPreparation(dir);
+    console.log(`protocol ${report.protocol}; stored ${report.stored}; missing ${report.missing}; judgeAccuracy ${report.judgeAccuracy}; calls ${report.calls}`);
+    return 0;
+  }
   if (command === 'score-strict') {
     if (!target) throw new Error('score-strict needs an extraction file');
     const rubric = loadStrictRubric();
@@ -78,7 +114,8 @@ async function main(argv) {
   if (command === 'validate') {
     verifyFrozenQuestionFiles();
     loadStrictRubric();
-    console.log(`Definitions are valid. facts.json status: ${definitions.facts.status}. Frozen question hashes match.`);
+    loadStrictJudgeRequest();
+    console.log(`Definitions are valid. facts.json status: ${definitions.facts.status}. Frozen question hashes match. Strict judge candidate hash matches.`);
     return 0;
   }
   if (command === 'import') {

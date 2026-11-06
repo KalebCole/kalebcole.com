@@ -50,7 +50,7 @@ const JUDGMENT_FIELDS = {
 
 const COVERAGE = new Set(['answer-present', 'no-answer', 'aio-absent']);
 const TOOLS = ['synthetic', 'chatgpt', 'google', 'gemini'];
-const TOOLS_FOR_SURFACE = {
+export const TOOLS_FOR_SURFACE = {
   synthetic: ['synthetic'],
   'public-signed-out': ['chatgpt', 'google', 'gemini'],
   'signed-in-google': ['google'],

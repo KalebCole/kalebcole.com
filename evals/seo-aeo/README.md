@@ -115,6 +115,20 @@ The JSON schema does not require the answer-present judgment fields. The local v
 
 `separateJudgeRequests` checks that the eight baseline questions and the visibility-only question stay in two payloads. Unit tests call it. `score-strict` and `validate` do not call a judge, and no adapter sends either payload.
 
+## Strict judge candidate (`strict-visibility-extraction-v1`)
+
+`questions/questions.strict-visibility-win-v1.candidate.json` is a separate extraction request for rubric `strict-visibility-win-v1`. It is not part of the eight identity questions, and it is not `visibility-only-v1`. Its sha256 is pinned. The request does not decide the win. `scoreExtraction` does. The candidate is not a validated judge.
+
+These commands make no network call:
+
+```bash
+npm run eval:seo-aeo -- prepare-strict tests/fixtures/seo-aeo/strict-judge-plan.json --out evals/seo-aeo/artifacts/strict-judge
+npm run eval:seo-aeo -- persist-raw --out evals/seo-aeo/artifacts/strict-judge --key <idempotence-key> --body response.json --input-tokens 0 --output-tokens 0
+npm run eval:seo-aeo -- validate-strict --out evals/seo-aeo/artifacts/strict-judge
+```
+
+`prepare-strict` writes the plan first, with `calls: 0`. Each item's idempotence key includes the request hash, surface, tool, model, query, and repeat, so signed-out ChatGPT and Google do not share a slot. `persist-raw` stores the raw bytes, their sha256, and token usage. A missing usage, an unknown key, or a second body under the same key is refused and does not replace the stored bytes. `validate-strict` rechecks those hashes. It does not read gold labels, and it reports judge accuracy as not measured. Original signed-out captures, when an operator later supplies labels, are not a fresh prospective holdout.
+
 The original eight identity questions stay in `questions/questions.baseline.v1.frozen.json` and stay in their own request. Do not add a visibility question to that payload.
 
 `score-strict` reads an extraction file and prints the report. It makes no network call. Pass a JSON array, or `{ "records": [ ... ] }`. Records are explicit string labels (`"true"`, `"false"`, `"unknown"`), not booleans. Grouping is by surface, consumer tool (`chatgpt`, `google`, or `gemini`), and model. A missing tool is invalid. Signed-out ChatGPT, Google, and Gemini stay in separate groups even when model is omitted. Signed-in Google, signed-in Gemini, and API proxies stay separate. Signed-out Gemini Flash-Lite is not signed-in Gemini Flash. Sign-out does not remove IP, location, or session effects. The only queries are the four name queries. There is no Grok run. Repeats are correlated, and independence is not estimated.
