@@ -19,10 +19,18 @@ import {
 
 export const PLAN_V2_SHA256 = '8b5fa698f1f4d3b50bc0bd86215b6132780d84db41078fdbd27f2b3eb4862abf';
 export const DECISION1_ENDPOINT = 'https://kalebcole2021-0169-resource.cognitiveservices.azure.com/providers/microsoft/v1/systemone';
+export const DECISION1_RESOURCE = 'https://cognitiveservices.azure.com';
 export const PLAN_V2_REQUEST_BYTES = 57763;
 export const DEFAULT_AZ_BIN = '/home/box/.local/share/azure-cli-venv/bin/az';
 export const SYSTEMONE_PATH = '/providers/microsoft/v1/systemone';
 const SPACING_MS = 5000;
+
+/** Live delay. Tests may pass a different sleep; the CLI does not. */
+export function liveSleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
@@ -181,7 +189,7 @@ function latestById(entries) {
  * Verifies a frozen plan. Sends only when execute is true and a transport
  * is supplied. This function's default is not to send.
  */
-export async function executeFrozenPlan({ plan, runRoot, execute = false, transport, sleep = () => Promise.resolve(), spacingMs = SPACING_MS }) {
+export async function executeFrozenPlan({ plan, runRoot, execute = false, transport, sleep = liveSleep, spacingMs = SPACING_MS }) {
   const verified = verifyPlanFiles(plan, runRoot);
   const summary = { verified: verified.length, calls: 0, sent: [], skipped: [], stopped: null, liveExecutor: false };
   if (!execute) return summary;
@@ -249,6 +257,25 @@ export async function executeFrozenPlan({ plan, runRoot, execute = false, transp
     }
     sends += 1;
     summary.calls = sends;
+    if (http?.incomplete === true) {
+      const body = Buffer.isBuffer(http.body) ? http.body : Buffer.alloc(0);
+      const status = Number.isInteger(http.status) ? http.status : null;
+      const responsePath = join(runRoot, 'responses', `${item.id}.http`);
+      writeDurable(responsePath, Buffer.from(JSON.stringify({ status, bodySha256: sha256(body), incomplete: true })), { exclusive: true });
+      writeDurable(`${responsePath}.body`, body, { exclusive: true });
+      appendDurable(join(runRoot, 'ledger.jsonl'), `${JSON.stringify({
+        id: item.id,
+        requestSha256: item.request_sha256,
+        httpStatus: status,
+        responseSha256: sha256(body),
+        incomplete: true,
+        usage: { status: 'unknown' },
+      })}\n`);
+      appendDurable(journalPath, `${JSON.stringify({ id: item.id, phase: 'stopped', reason: 'incomplete-response' })}\n`);
+      summary.stopped = 'incomplete-response';
+      summary.sent.push(item.id);
+      return summary;
+    }
     if (!http || !Number.isInteger(http.status) || !Buffer.isBuffer(http.body)) {
       appendDurable(journalPath, `${JSON.stringify({ id: item.id, phase: 'stopped', reason: 'malformed-transport' })}\n`);
       summary.stopped = 'malformed-transport';
@@ -326,7 +353,7 @@ main(process.argv.slice(2)).then((code) => process.exit(code ?? 0), (error) => {
   writeFileSync(join(outDir, 'README.md'), `# Decision-1 sender bundle
 
 \`node send.mjs --plan plans/input-plan.v2.json\` verifies only.
-\`--execute\` is implemented and uses Azure CLI plus node HTTPS. Do not pass it until review.
+\`--execute\` sleeps 5 seconds between requests and posts with node HTTPS. The token audience is https://cognitiveservices.azure.com. Do not pass it until review.
 The token stays in memory. This folder must not contain tokens or account keys.
 `);
   return outDir;
@@ -344,7 +371,7 @@ function redact(text, token) {
 
 /** Args for az account get-access-token. The token is not an argument. */
 export function azTokenArgs(azBin = DEFAULT_AZ_BIN, resource) {
-  if (!resource) throw new Error('missing Azure resource');
+  if (resource !== DECISION1_RESOURCE) throw new Error('resource is not https://cognitiveservices.azure.com');
   return [azBin, 'account', 'get-access-token', '--resource', resource, '--query', 'accessToken', '-o', 'tsv'];
 }
 
@@ -375,6 +402,20 @@ export function postHttps({ endpoint, body, token, timeoutMs = 60000, requestImp
   const url = new URL(endpoint);
   assertSystemoneEndpoint(endpoint);
   return new Promise((resolve, reject) => {
+    let settled = false;
+    let started = false;
+    let status = null;
+    const chunks = [];
+    const finish = (incomplete) => {
+      if (settled) return;
+      settled = true;
+      resolve({ status, body: Buffer.concat(chunks), incomplete });
+    };
+    const fail = (error) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    };
     const req = requestImpl(url, {
       method: 'POST',
       headers: {
@@ -384,15 +425,21 @@ export function postHttps({ endpoint, body, token, timeoutMs = 60000, requestImp
       },
       timeout: timeoutMs,
     }, (res) => {
-      const chunks = [];
+      started = true;
+      status = res.statusCode;
       res.on('data', (chunk) => chunks.push(chunk));
-      res.on('end', () => resolve({ status: res.statusCode, body: Buffer.concat(chunks) }));
+      res.on('end', () => finish(false));
+      res.on('error', () => finish(true));
+      res.on('aborted', () => finish(true));
     });
     req.on('timeout', () => {
       req.destroy();
-      reject(new Error('request timed out'));
+      fail(new Error('request timed out'));
     });
-    req.on('error', (error) => reject(new Error(redact(error.message, token))));
+    req.on('error', (error) => {
+      if (started) finish(true);
+      else fail(new Error(redact(error.message, token)));
+    });
     req.end(body);
   });
 }
@@ -432,6 +479,7 @@ export async function main(argv, hooks = {}) {
   if (!azBin || !existsSync(azBin)) throw new Error('az binary is missing');
   if (!endpoint || !resource) throw new Error('missing --endpoint or --resource');
   assertSystemoneEndpoint(endpoint);
+  if (resource !== DECISION1_RESOURCE) throw new Error('resource is not https://cognitiveservices.azure.com');
   const token = await readAzAccessToken({ azBin, resource, spawnImpl: hooks.spawnImpl });
   const transport = (body) => postHttps({
     endpoint,
@@ -445,8 +493,8 @@ export async function main(argv, hooks = {}) {
     runRoot,
     execute: true,
     transport,
-    sleep: hooks.sleep,
-    spacingMs: 5000,
+    sleep: hooks.sleep ?? liveSleep,
+    spacingMs: SPACING_MS,
   });
   console.log(JSON.stringify({ verified: summary.verified, calls: summary.calls, sent: summary.sent, skipped: summary.skipped, stopped: summary.stopped }));
   return summary.stopped ? 1 : 0;

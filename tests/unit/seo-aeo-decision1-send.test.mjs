@@ -4,9 +4,9 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import test from 'node:test';
+import test, { mock } from 'node:test';
 import { buildDecision1Request, DECISION1_NEW_RESERVE_NANO, DECISION1_QUESTIONS_SHA256, planningEnvelopeNano } from '../../evals/seo-aeo/lib/decision1-strict.mjs';
-import { DECISION1_ENDPOINT, PLAN_V2_REQUEST_BYTES, PLAN_V2_SHA256, assertPlanV2Document, assertSystemoneEndpoint, azTokenArgs, executeFrozenPlan, exportDecision1Sender, main, postHttps, readAzAccessToken, verifyFrozenRequest } from '../../evals/seo-aeo/lib/decision1-send.mjs';
+import { DECISION1_ENDPOINT, DECISION1_RESOURCE, PLAN_V2_REQUEST_BYTES, PLAN_V2_SHA256, assertPlanV2Document, assertSystemoneEndpoint, azTokenArgs, executeFrozenPlan, exportDecision1Sender, liveSleep, main, postHttps, readAzAccessToken, verifyFrozenRequest } from '../../evals/seo-aeo/lib/decision1-send.mjs';
 import { root } from '../support/root.mjs';
 
 const planPath = join(root, 'evals/seo-aeo/plans/input-plan.v2.json');
@@ -426,6 +426,119 @@ test('the plan hash is enforced before auth and node https posts the exact bytes
   });
   rmSync(empty, { recursive: true, force: true });
   rmSync(mutated, { recursive: true, force: true });
+});
+
+test('the live CLI sleeps 5000ms between requests', async () => {
+  mock.timers.enable({ apis: ['setTimeout'] });
+  const dir = mkdtempSync(join(tmpdir(), 'decision1-spacing-'));
+  try {
+    const { plan } = materialize(dir, 2);
+    let calls = 0;
+    const run = executeFrozenPlan({
+      plan,
+      runRoot: dir,
+      execute: true,
+      sleep: liveSleep,
+      transport() {
+        calls += 1;
+        return { status: 200, body: Buffer.from('{"usage":{"input_tokens":1,"output_tokens":1}}') };
+      },
+    });
+    await Promise.resolve();
+    assert.equal(calls, 1);
+    mock.timers.tick(4999);
+    await Promise.resolve();
+    assert.equal(calls, 1);
+    mock.timers.tick(1);
+    const summary = await run;
+    assert.equal(calls, 2);
+    assert.equal(summary.calls, 2);
+    assert.equal(summary.stopped, null);
+  } finally {
+    mock.timers.reset();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a wrong token audience is refused before az starts', async () => {
+  let spawned = false;
+  assert.throws(() => azTokenArgs('az', 'https://management.azure.com'), /cognitiveservices\.azure\.com/);
+  assert.throws(() => {
+    readAzAccessToken({
+      azBin: 'az',
+      resource: 'https://management.azure.com',
+      spawnImpl() { spawned = true; },
+    });
+  }, /cognitiveservices\.azure\.com/);
+  assert.equal(spawned, false);
+  assert.equal(DECISION1_RESOURCE, 'https://cognitiveservices.azure.com');
+});
+
+test('a response that dies mid-body is stored and not retried', async () => {
+  const partial = await postHttps({
+    endpoint: DECISION1_ENDPOINT,
+    body: Buffer.from('{"state":{"answer_text":"x"}}'),
+    token: 'unit-token-value',
+    requestImpl(url, options, callback) {
+      const handlers = {};
+      const res = {
+        statusCode: 200,
+        on(event, fn) { handlers[event] = fn; },
+      };
+      callback(res);
+      handlers.data(Buffer.from('{"usage":{"input_tokens":'));
+      handlers.aborted();
+      return { on() {}, destroy() {}, end() {} };
+    },
+  });
+  assert.equal(partial.incomplete, true);
+  assert.equal(partial.status, 200);
+  assert.equal(partial.body.toString('utf8'), '{"usage":{"input_tokens":');
+  const errored = await postHttps({
+    endpoint: DECISION1_ENDPOINT,
+    body: Buffer.from('x'),
+    token: 'unit-token-value',
+    requestImpl(url, options, callback) {
+      const handlers = {};
+      const res = {
+        statusCode: 200,
+        on(event, fn) { handlers[event] = fn; },
+      };
+      callback(res);
+      handlers.data(Buffer.from('cut'));
+      handlers.error(new Error('socket hang up'));
+      return { on() {}, destroy() {}, end() {} };
+    },
+  });
+  assert.equal(errored.incomplete, true);
+  assert.equal(errored.body.toString('utf8'), 'cut');
+  const dir = mkdtempSync(join(tmpdir(), 'decision1-partial-'));
+  const { plan } = materialize(dir, 2);
+  const summary = await executeFrozenPlan({
+    plan,
+    runRoot: dir,
+    execute: true,
+    sleep: () => Promise.resolve(),
+    transport: () => partial,
+  });
+  assert.equal(summary.calls, 1);
+  assert.equal(summary.stopped, 'incomplete-response');
+  assert.equal(readFileSync(join(dir, 'responses', 'one.http.body'), 'utf8'), '{"usage":{"input_tokens":');
+  const meta = JSON.parse(readFileSync(join(dir, 'responses', 'one.http'), 'utf8'));
+  assert.equal(meta.incomplete, true);
+  assert.equal(meta.status, 200);
+  const again = await executeFrozenPlan({
+    plan,
+    runRoot: dir,
+    execute: true,
+    transport: () => { throw new Error('must not send again'); },
+  });
+  assert.equal(again.calls, 0);
+  assert.equal(again.stopped, 'already-stopped');
+  const budget = JSON.parse(readFileSync(join(dir, 'budget.json'), 'utf8'));
+  assert.equal(budget.newReserveNano, '5000000');
+  assert.equal(budget.spentNewNano, '0');
+  rmSync(dir, { recursive: true, force: true });
 });
 
 test('the exported bundle fails closed before any request when flags are missing', () => {
