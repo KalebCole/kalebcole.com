@@ -25,6 +25,7 @@ const MODULES = [
   'icons',
   'feeds',
   'not-found',
+  'privacy',
   'output',
   'theme-toggle',
 ];
