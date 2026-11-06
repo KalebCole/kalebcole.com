@@ -107,7 +107,13 @@ A strict visibility win requires both of these, stated on the extraction rather 
 
 Being first in a list of possible people is not a win. An accurate disclaimer that a different Kaleb Cole was involved in federal proceedings is not a win, and that mention is not by itself a harmful attribution. A wrong biography does not change the win. A missing citation does not change the win. A generic shared name, a Seattle locality card, or an unrelated athlete is not a criminal-namesake mention. No answer, and an absent AI Overview, are coverage gaps, not the same as an answer about someone else.
 
-If the win pair cannot be established, the result is unknown or an abstention, and it stays in the full denominator. A known failure of either condition is a loss. A missing field is invalid. It is not coerced to false, and it cannot become a win. Unknown fact accuracy stays in the fact denominator and is not verified truth. Position labels (`target-leads` and the rest) are diagnostic only.
+A known failure is a loss even when the record says the judge abstained: the answer is not primarily the target, or the criminal namesake is mentioned. Abstention applies only when that pair would otherwise be a win, and it stays in the full denominator. Any other unresolved pair is unknown, including primary unknown with the namesake explicitly unmentioned. A missing field is invalid. It is not coerced to false, and it cannot become a win. Unknown fact accuracy stays in the fact denominator and is not verified truth. An unknown or missing citation does not change the win. Position labels (`target-leads` and the rest) are diagnostic only.
+
+`other-only`, `both-separated`, and `conflated` mean the target and the criminal namesake, the same split as the frozen identity question. A win pair combined with one of those three is invalid and goes to review. It is not a win. An unrelated athlete is not `both-separated`: engineer plus athlete stays `target-only` and can win. `both-separated` with the namesake mentioned stays a visibility loss, and harmful attribution stays its own field. `uncertain` and `unknown` do not cancel an explicit win pair.
+
+The JSON schema does not require the answer-present judgment fields. The local validator has no `if/then`. `scoreExtraction` is the gate those fields go through. A schema-valid record is not yet a win.
+
+`separateJudgeRequests` checks that the eight baseline questions and the visibility-only question stay in two payloads. Unit tests call it. `score-strict` and `validate` do not call a judge, and no adapter sends either payload.
 
 The original eight identity questions stay in `questions/questions.baseline.v1.frozen.json` and stay in their own request. Do not add a visibility question to that payload.
 

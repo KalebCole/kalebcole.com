@@ -21,6 +21,7 @@ import {
   separateJudgeRequests,
   verifyFrozenQuestionFiles,
   visibilityOutcome,
+  winIdentityContradiction,
 } from '../../evals/seo-aeo/lib/strict-visibility.mjs';
 import { fixtures, root } from '../support/root.mjs';
 
@@ -72,6 +73,9 @@ test('the strict rubric is a new version and does not replace rubric 1.0.0', () 
   assert.match(rubric.coverage, /absent AI Overview/);
   assert.match(rubric.missingFields, /not coerced to false/);
   assert.match(rubric.denominators, /Unknown fact accuracy/);
+  assert.match(rubric.uncertainty, /loss even when abstained is true/);
+  assert.match(rubric.identityClasses, /invalid, not a win/);
+  assert.match(rubric.identityClasses, /unrelated athlete is not both-separated/);
   assert.match(rubric.priorPositionResultsAreNotThisRule, /not accuracy for strict-visibility-win-v1/);
   assert.deepEqual(rubric.collection.queries, definitions.queries.queries.map((query) => query.prompt));
 });
@@ -240,6 +244,82 @@ test('an unrelated athlete is not the criminal namesake', () => {
   assert.equal(withEngineer.criminalNamesakeMention, 'false');
   assert.equal(disclaimer.outcome, 'loss');
   assert.equal(disclaimer.criminalNamesakeMention, 'true');
+});
+
+test('a known loss stays a loss when the record abstains, and an unresolved pair stays unknown', () => {
+  const cases = [
+    [{ targetPrimary: 'false', criminalNamesakeMention: 'false', abstained: true }, 'loss'],
+    [{ targetPrimary: 'false', criminalNamesakeMention: 'true', abstained: true }, 'loss'],
+    [{ targetPrimary: 'true', criminalNamesakeMention: 'true', abstained: true }, 'loss'],
+    [{ targetPrimary: 'true', criminalNamesakeMention: 'false', abstained: true }, 'abstain'],
+    [{ targetPrimary: 'true', criminalNamesakeMention: 'false' }, 'win'],
+    [{ targetPrimary: 'unknown', criminalNamesakeMention: 'false' }, 'unknown'],
+    [{ targetPrimary: 'unknown', criminalNamesakeMention: 'false', abstained: true }, 'unknown'],
+    [{ targetPrimary: 'true', criminalNamesakeMention: 'unknown', abstained: true }, 'unknown'],
+  ];
+  for (const [fields, expected] of cases) {
+    assert.equal(visibilityOutcome(fields), expected, JSON.stringify(fields));
+    const scored = scoreExtraction(winRecord({ id: `synthetic-${expected}`, ...fields }));
+    assert.equal(scored.outcome, expected, JSON.stringify(fields));
+    assert.equal(scored.win, expected === 'win');
+  }
+});
+
+test('an identity class that denies the win pair is invalid, and facts and citations stay independent', () => {
+  for (const identityClass of ['other-only', 'both-separated', 'conflated']) {
+    const scored = scoreExtraction(winRecord({ id: `synthetic-contradiction-${identityClass}`, identityClass }));
+    assert.equal(scored.outcome, 'invalid', identityClass);
+    assert.equal(scored.win, false, identityClass);
+    assert.equal(scored.inFullDenominator, false, identityClass);
+    assert.equal(scored.needsReview, true, identityClass);
+    assert.equal(winIdentityContradiction(winRecord({ identityClass })) !== null, true, identityClass);
+  }
+  const abstainedContradiction = scoreExtraction(winRecord({
+    id: 'synthetic-abstain-contradiction',
+    identityClass: 'other-only',
+    abstained: true,
+  }));
+  assert.equal(abstainedContradiction.outcome, 'invalid');
+  assert.notEqual(abstainedContradiction.outcome, 'abstain');
+
+  assert.equal(scoreExtraction(winRecord({ id: 'synthetic-target-only' })).outcome, 'win');
+  assert.equal(scoreExtraction(winRecord({ id: 'synthetic-uncertain-identity', identityClass: 'uncertain' })).outcome, 'win');
+  assert.equal(scoreExtraction(winRecord({ id: 'synthetic-unknown-identity', identityClass: 'unknown' })).needsReview, true);
+  assert.equal(scoreExtraction(winRecord({
+    id: 'synthetic-disclaimer-still-loss',
+    targetPrimary: 'true',
+    criminalNamesakeMention: 'true',
+    identityClass: 'both-separated',
+    harmfulAttribution: 'false',
+  })).outcome, 'loss');
+  assert.equal(scoreExtraction(winRecord({
+    id: 'synthetic-athlete-still-loss',
+    targetPrimary: 'false',
+    criminalNamesakeMention: 'false',
+    identityClass: 'other-only',
+  })).outcome, 'loss');
+  assert.equal(scoreExtraction(winRecord({ id: 'synthetic-wrong-fact', factAccuracy: 'incorrect' })).outcome, 'win');
+  const unknownCitation = scoreExtraction(winRecord({ id: 'synthetic-unknown-citation', citationSupport: 'unknown' }));
+  assert.equal(unknownCitation.outcome, 'win');
+  assert.equal(unknownCitation.win, true);
+  assert.equal(unknownCitation.inFullDenominator, true);
+  assert.equal(unknownCitation.citationSupport, 'unknown');
+});
+
+test('the schema does not require answer-present judgment fields; scoreExtraction does', () => {
+  const partial = { ...winRecord({ id: 'synthetic-schema-partial' }) };
+  delete partial.criminalNamesakeMention;
+  assert.deepEqual(validate(loadSchema('strict-extraction'), partial), []);
+  const scored = scoreExtraction(partial);
+  assert.equal(scored.outcome, 'invalid');
+  assert.equal(scored.win, false);
+  const source = readFileSync(join(root, 'evals/seo-aeo/lib/schema.mjs'), 'utf8');
+  assert.equal(source.includes('if/then') || source.includes('ifThen'), false);
+});
+
+test('separateJudgeRequests is not on the live runner path', () => {
+  const runner = readFileSync(join(root, 'evals/seo-aeo/run.mjs'), 'utf8');
+  assert.equal(runner.includes('separateJudgeRequests'), false);
 });
 
 test('unknown, abstention, invalid, and version mismatch keep their denominators', () => {

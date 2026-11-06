@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { FROZEN_EMDASH_EXCEPTION } from '../../../evals/seo-aeo/lib/strict-visibility.mjs';
+import { FROZEN_EMDASH_EXCEPTION } from '../../../evals/seo-aeo/lib/frozen-path.mjs';
 import { collect, dist, emDash, root, utf8Text } from './helpers.mjs';
 
 // Em dashes: none in tracked files (CONTEXT.md Punctuation) or emitted output.

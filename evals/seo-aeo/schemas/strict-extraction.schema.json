@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "One strict-visibility extraction. Fields are explicit. Nothing here is defaulted to false.",
+  "description": "Answer-present judgment fields are required by scoreExtraction. This schema does not use if/then, because the local validator does not implement it. A schema-valid record is not yet a win.",
   "type": "object",
   "required": ["id", "rubricVersion", "coverage", "queryId", "surface", "tool"],
   "additionalProperties": false,

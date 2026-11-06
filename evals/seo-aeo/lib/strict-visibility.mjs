@@ -4,8 +4,11 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { FROZEN_EMDASH_EXCEPTION } from './frozen-path.mjs';
 import { EVAL_DIR, loadSchema, readJson } from './load.mjs';
 import { validate } from './schema.mjs';
+
+export { FROZEN_EMDASH_EXCEPTION };
 
 export const STRICT_VISIBILITY_VERSION = 'strict-visibility-win-v1';
 export const POSITION_RUBRIC_VERSION = 'visibility-only-v1';
@@ -22,9 +25,6 @@ export const BASELINE_QUESTION_IDS = [
 ];
 
 export const APPROVED_QUERY_IDS = ['name', 'who-is', 'name-microsoft', 'name-seattle-swe'];
-
-/** The frozen visibility-only payload contains one historical em dash. Punctuation skips this path only. */
-export const FROZEN_EMDASH_EXCEPTION = 'evals/seo-aeo/questions/questions.visibility-only.v1.frozen.json';
 
 export const FROZEN_QUESTIONS = {
   baseline: {
@@ -85,18 +85,31 @@ function echoEnum(record, key, allowed) {
 
 /**
  * Win only when the answer is primarily the target and the criminal namesake
- * is explicitly unmentioned. A known failure of either condition is a loss.
- * An unknown condition is unknown, unless the other condition has already
- * failed. Abstention overrides a pair that would otherwise win.
- * positionDiagnostic is intentionally not a parameter.
+ * is explicitly unmentioned. A known failure of either condition is a loss,
+ * including when abstained is true. Abstention applies only to that winning
+ * pair. Every other unresolved pair is unknown. positionDiagnostic and
+ * identityClass are intentionally not parameters.
  */
 export function visibilityOutcome(record) {
-  if (record.abstained === true) return 'abstain';
   const primary = record.targetPrimary;
   const namesake = record.criminalNamesakeMention;
-  if (primary === 'true' && namesake === 'false') return 'win';
   if (primary === 'false' || namesake === 'true') return 'loss';
+  if (primary === 'true' && namesake === 'false') return record.abstained === true ? 'abstain' : 'win';
   return 'unknown';
+}
+
+/**
+ * The identity classes are the frozen baseline's classes: other-only,
+ * both-separated, and conflated are about the target and the criminal
+ * namesake. They contradict a win pair. An unrelated athlete is not
+ * both-separated. Fact and citation labels are not consulted.
+ */
+export function winIdentityContradiction(record) {
+  if (record.targetPrimary !== 'true' || record.criminalNamesakeMention !== 'false') return null;
+  if (record.identityClass === 'other-only') return 'identityClass other-only contradicts targetPrimary true';
+  if (record.identityClass === 'both-separated') return 'identityClass both-separated contradicts criminalNamesakeMention false';
+  if (record.identityClass === 'conflated') return 'identityClass conflated contradicts criminalNamesakeMention false';
+  return null;
 }
 
 function blank(record, fields) {
@@ -161,6 +174,16 @@ export function scoreExtraction(record) {
       outcome: 'coverage-missing',
       needsReview: false,
       problems: [],
+    });
+  }
+
+  const contradiction = winIdentityContradiction(record);
+  if (contradiction) {
+    return blank(record, {
+      appliedRubric: STRICT_VISIBILITY_VERSION,
+      outcome: 'invalid',
+      needsReview: true,
+      problems: [contradiction],
     });
   }
 
