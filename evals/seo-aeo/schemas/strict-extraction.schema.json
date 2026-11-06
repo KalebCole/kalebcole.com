@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "One strict-visibility extraction. Fields are explicit. Nothing here is defaulted to false.",
+  "type": "object",
+  "required": ["id", "rubricVersion", "coverage", "queryId", "surface"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "case": { "type": "string", "minLength": 1 },
+    "note": { "type": "string", "minLength": 1 },
+    "synthetic": { "type": "boolean" },
+    "rubricVersion": { "type": "string", "minLength": 1 },
+    "coverage": { "enum": ["answer-present", "no-answer", "aio-absent"] },
+    "queryId": { "enum": ["name", "who-is", "name-microsoft", "name-seattle-swe"] },
+    "surface": {
+      "enum": ["synthetic", "public-signed-out", "signed-in-google", "signed-in-gemini", "api-proxy"]
+    },
+    "model": { "type": "string", "minLength": 1 },
+    "targetPrimary": { "enum": ["true", "false", "unknown"] },
+    "criminalNamesakeMention": { "enum": ["true", "false", "unknown"] },
+    "identityClass": {
+      "enum": ["target-only", "other-only", "both-separated", "conflated", "uncertain", "unknown"]
+    },
+    "harmfulAttribution": { "enum": ["true", "false", "unknown"] },
+    "factAccuracy": { "enum": ["verified", "incorrect", "unknown", "not-applicable"] },
+    "citationSupport": { "enum": ["true", "false", "unknown", "not-applicable"] },
+    "positionDiagnostic": {
+      "enum": ["target-leads", "target-mentioned-later", "target-absent", "uncertain", "not-recorded"]
+    },
+    "abstained": { "type": "boolean" }
+  }
+}

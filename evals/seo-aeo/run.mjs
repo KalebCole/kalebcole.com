@@ -7,6 +7,7 @@ import { createAdapterRegistry } from './lib/adapters/index.mjs';
 import { loadEnv } from './lib/env.mjs';
 import { loadDefinitions } from './lib/load.mjs';
 import { executeRun, formatPlan, importManual, planRun, rescoreRun } from './lib/runner.mjs';
+import { loadStrictRubric, readExtractionFile, renderStrictVisibilityReport, scoreStrictVisibility, verifyFrozenQuestionFiles } from './lib/strict-visibility.mjs';
 
 const USAGE = `Usage: npm run eval:seo-aeo -- <command> [options]
 
@@ -15,7 +16,8 @@ Commands:
   run                  Run the selected providers and write artifacts.
   import <file>        Import manual UI captures (answer records) and score them.
   report <run-dir>     Rescore a run, optionally with --review decisions.
-  validate             Check queries, facts, rubric and config.
+  validate             Check queries, facts, rubric, config, and frozen question hashes.
+  score-strict <file>  Score strict-visibility-win-v1 extractions offline. No network calls.
 
 Options:
   --provider <ids>     Comma-separated provider ids (default: enabled providers).
@@ -65,9 +67,18 @@ async function main(argv) {
   }
 
   const [command = 'plan', target] = positionals;
+  if (command === 'score-strict') {
+    if (!target) throw new Error('score-strict needs an extraction file');
+    const rubric = loadStrictRubric();
+    const result = scoreStrictVisibility(readExtractionFile(resolve(target)), rubric);
+    console.log(renderStrictVisibilityReport(result, rubric));
+    return 0;
+  }
   const definitions = loadDefinitions();
   if (command === 'validate') {
-    console.log(`Definitions are valid. facts.json status: ${definitions.facts.status}.`);
+    verifyFrozenQuestionFiles();
+    loadStrictRubric();
+    console.log(`Definitions are valid. facts.json status: ${definitions.facts.status}. Frozen question hashes match.`);
     return 0;
   }
   if (command === 'import') {

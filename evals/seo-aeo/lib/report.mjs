@@ -1,8 +1,10 @@
 // Renders a run's scores as Markdown for the monthly audit (#150). Every
 // number keeps its raw counts, and missing or not applicable stays visible.
 
+import { RUBRIC_1_STRICT_DISCLOSURE_LINES } from './strict-visibility.mjs';
+
 const METRIC_LABELS = {
-  visibility: 'Visibility',
+  visibility: 'Visibility (rubric 1.0.0)',
   entitySeparation: 'Entity separation',
   factAccuracy: 'Fact accuracy',
   completeness: 'Completeness',
@@ -94,5 +96,6 @@ export function renderReport({ manifest, scores, timeZone = 'America/Los_Angeles
       lines.push(`- ${item.answerId}: confirm the cited page supports the claim (${item.citedUrls.join(', ')}).`);
     }
   }
+  lines.push('', ...RUBRIC_1_STRICT_DISCLOSURE_LINES);
   return `${lines.join('\n')}\n`;
 }

@@ -10,7 +10,9 @@ The eval runs by hand only. It is not part of `npm test`, `npm run check`, the b
 | --- | --- |
 | `queries.json` | The four exact name queries from #187, sent to engines word for word. |
 | `facts.json` | Atomic, sourced, dated facts the scorer checks answers against. **Pending Kaleb's approval.** |
-| `rubric.json` | Versioned classification rules, signals, and metric definitions. |
+| `rubric.json` | Rubric 1.0.0. Its visibility metric counts target-only and both-separated. That is not the strict win. |
+| `rubric.strict-visibility-win-v1.json` | The approved strict visibility win. A separate version. It does not relabel rubric 1.0.0. |
+| `questions/` | Frozen identity baseline and the prior visibility-only position question, byte-for-byte. See `questions/FROZEN.md`. |
 | `config.json` | Locale, repeats, providers, and the request, retry, quota, and cost caps. |
 | `schemas/` | JSON schemas for every file above, plus captured answers and review decisions. |
 | `run.mjs` | The CLI. |
@@ -23,7 +25,8 @@ Offline fixtures live in `tests/fixtures/seo-aeo/` and the tests in `tests/unit/
 
 ```bash
 npm run eval:seo-aeo                          # preflight (same as plan): calls, spend ceiling, skips
-npm run eval:seo-aeo -- validate              # check the definition files
+npm run eval:seo-aeo -- validate              # check the definition files and frozen question hashes
+npm run eval:seo-aeo -- score-strict tests/fixtures/seo-aeo/strict-visibility-cases.json
 npm run eval:seo-aeo -- run --provider fixture
 npm run eval:seo-aeo -- run --provider fixture --fixture tests/fixtures/seo-aeo/conflated.json
 npm run eval:seo-aeo -- import captures.json  # manual UI captures (see schemas/answer.schema.json)
@@ -82,7 +85,7 @@ Metrics are per provider and surface, never merged across API proxies, SERP capt
 
 | Metric | Measures |
 | --- | --- |
-| Visibility | Decided answers that identify the engineer. |
+| Visibility | Rubric 1.0.0 only: decided answers that identify the engineer, including both-separated. Not the strict win. |
 | Entity separation | Decided answers that do not conflate the two people. |
 | Fact accuracy | Correct target claims over correct plus contradicted plus conflated namesake claims. |
 | Completeness | Required facts per query that appear. |
@@ -90,6 +93,29 @@ Metrics are per provider and surface, never merged across API proxies, SERP capt
 | Organic rank | `round(100 * (N + 1 - p) / N)` for the first kalebcole.com result at position p, where N is the deepest captured position; not in the top N scores 0 and keeps the raw rank as `>N`. |
 
 Each surface also gets a compatibility key built from the query, fact, and rubric versions, the fact approval status and active fact definitions, the required facts, the locale, the provider settings, the recorded models, and the queries and repeats that surface actually ran. Compare runs month over month only when the keys match; a model or locale change starts a new baseline.
+
+Rubric 1.0.0 reports include a note that their Visibility row is not `strict-visibility-win-v1`. A separated namesake mention still counts as visible in rubric 1.0.0. That behavior is unchanged on purpose.
+
+## Strict visibility win (`strict-visibility-win-v1`)
+
+Kaleb approved this rule on 2026-11-06 at 12:45 PM Pacific. It is a new scoring version. It does not rewrite rubric 1.0.0, and it does not treat the frozen `visibility-only-v1` position labels as this win.
+
+A strict visibility win requires both of these, stated on the extraction rather than inferred from answer text:
+
+- The answer is primarily about the target Kaleb Cole.
+- The answer contains zero mention of the other namesake.
+
+Being first in a list of possible people is not a win. An accurate disclaimer that a different Kaleb Cole was involved in federal proceedings is not a win, and that mention is not by itself a harmful attribution. A wrong biography does not change the win. A missing citation does not change the win. A generic shared name, a Seattle locality card, or an unrelated athlete is not a criminal-namesake mention. No answer, and an absent AI Overview, are coverage gaps, not the same as an answer about someone else.
+
+If the win pair cannot be established, the result is unknown or an abstention, and it stays in the full denominator. A known failure of either condition is a loss. A missing field is invalid. It is not coerced to false, and it cannot become a win. Unknown fact accuracy stays in the fact denominator and is not verified truth. Position labels (`target-leads` and the rest) are diagnostic only.
+
+The original eight identity questions stay in `questions/questions.baseline.v1.frozen.json` and stay in their own request. Do not add a visibility question to that payload.
+
+`score-strict` reads an extraction file and prints the report. It makes no network call. Pass a JSON array, or `{ "records": [ ... ] }`. Records are explicit string labels (`"true"`, `"false"`, `"unknown"`), not booleans. Grouping is by surface and model, and groups are not pooled. Signed-out public consumer UI is the primary baseline. Signed-in Google, signed-in Gemini, and API proxies stay separate. Signed-out Gemini Flash-Lite is not signed-in Gemini Flash. Sign-out does not remove IP, location, or session effects. The only queries are the four name queries. There is no Grok run. Repeats are correlated, and independence is not estimated.
+
+This scorer does not compare fact labels to `facts.json`. Facts are still pending approval. A `verified` label is not an approved-fact result.
+
+Passing `score-strict` or the unit tests shows that the counter follows the rubric. It does not show that a model, an extractor, or a consumer answer meets the rule. The 2026-11-06 fresh check (ChatGPT unambiguous 3/3, Google 4/4, Gemini 4/4) measured the position rubric only. Those counts are not accuracy for this version. Judge validation is still pending: each new answer needs its own labels for the win pair, identity and harmful attribution, facts, and citations.
 
 ## Human review
 
