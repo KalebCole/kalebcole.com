@@ -135,7 +135,7 @@ The wire payload is `{ "model": "decision-1-eval", "state": { "answer_text" }, "
 
 `factAccuracy` is not a question. Facts are still unapproved, so the decoder sets that label to unknown. `citationSupport` is a text label, not a fetched URL. A missing or invalid choice is an error. It is not stored as false. `probabilities` is required. A body that has `probs` instead is an error. A 401 or 429 is stored as that status and is not retried. Usage comes from the response `usage` object. A missing token count stays unknown, not zero.
 
-The pilot ledger allows at most 8 attempts. Prior usage is pinned at $0.009095688. The cap is $0.05. The desired new reserve is $0.002 and is written before any response. That reserve is not a proven bound until serialized tokens are checked. The module does not send the request.
+The pilot ledger allows at most 8 attempts and does not retry a 401 or 429. Prior usage is pinned at $0.009095688. The cap is $0.05. The planning reserve is $0.005. The reviewed plan v2 envelope is 57763 request bytes plus 4096 bytes per request, 90531 planning tokens, about $0.003802302 at $0.042 per million. That figure is not a documented tokenizer limit. `decision1-verify-plan` checks exact request files and does not send them. `prepare-strict` and `persist-raw` are not this sender.
 
 ```bash
 npm run eval:seo-aeo -- decision1-example

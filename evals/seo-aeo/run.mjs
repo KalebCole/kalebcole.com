@@ -8,6 +8,7 @@ import { loadEnv } from './lib/env.mjs';
 import { loadDefinitions } from './lib/load.mjs';
 import { executeRun, formatPlan, importManual, planRun, rescoreRun } from './lib/runner.mjs';
 import { syntheticDecision1Example } from './lib/decision1-strict.mjs';
+import { assertPlanV2Document, verifyPlanFiles } from './lib/decision1-send.mjs';
 import { loadStrictJudgeRequest, persistRawResponse, prepareStrictValidation, validateStrictPreparation } from './lib/strict-judge.mjs';
 import { loadStrictRubric, readExtractionFile, renderStrictVisibilityReport, scoreStrictVisibility, verifyFrozenQuestionFiles } from './lib/strict-visibility.mjs';
 import { readFileSync } from 'node:fs';
@@ -25,6 +26,7 @@ Commands:
   persist-raw          Store one prepared raw response. Needs --out, --key, --body, and token counts.
   validate-strict      Check a preparation. Does not read gold labels or call a model.
   decision1-example    Print one synthetic Decision-1 request. Does not call a model.
+  decision1-verify-plan <plan>  Check a frozen plan. Add --run-root to require exact request files. Does not send.
 
 Options:
   --provider <ids>     Comma-separated provider ids (default: enabled providers).
@@ -70,6 +72,7 @@ async function main(argv) {
       key: { type: 'string' },
       'input-tokens': { type: 'string' },
       'output-tokens': { type: 'string' },
+      'run-root': { type: 'string' },
     },
   });
   if (values.help) {
@@ -80,6 +83,18 @@ async function main(argv) {
   const [command = 'plan', target] = positionals;
   if (command === 'decision1-example') {
     console.log(JSON.stringify(syntheticDecision1Example(), null, 2));
+    return 0;
+  }
+  if (command === 'decision1-verify-plan') {
+    if (!target) throw new Error('decision1-verify-plan needs a plan file');
+    const plan = JSON.parse(readFileSync(resolve(target), 'utf8'));
+    const checked = assertPlanV2Document(plan);
+    if (values['run-root']) {
+      const files = verifyPlanFiles(plan, resolve(values['run-root']));
+      console.log(`verified ${files.length} request files; envelope tokens ${checked.envelope.tokens}; calls 0`);
+      return 0;
+    }
+    console.log(`plan document ok; ${plan.items.length} items; ${checked.totalRequestBytes} request bytes; calls 0`);
     return 0;
   }
   if (command === 'prepare-strict' || command === 'persist-raw' || command === 'validate-strict') {

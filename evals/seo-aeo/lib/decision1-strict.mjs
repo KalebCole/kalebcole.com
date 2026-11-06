@@ -14,7 +14,9 @@ export const DECISION1_JUDGE_VERSION = 'strict-visibility-decision1-v1';
 export const DECISION1_MAX_ATTEMPTS = 8;
 export const DECISION1_CAP_NANO = 50_000_000n;
 export const DECISION1_PRIOR_NANO = 9_095_688n;
-export const DECISION1_NEW_RESERVE_NANO = 2_000_000n;
+export const DECISION1_NEW_RESERVE_NANO = 5_000_000n;
+export const DECISION1_PLANNING_NANO_PER_TOKEN = 42n;
+export const DECISION1_BYTE_OVERHEAD = 4096;
 
 const QUESTIONS_PATH = join(EVAL_DIR, DECISION1_QUESTIONS_FILE);
 const REQUIRED_FIELDS = [
@@ -36,6 +38,14 @@ function nanoToString(nano) {
   const whole = nano / 1_000_000_000n;
   const frac = (nano % 1_000_000_000n).toString().padStart(9, '0').replace(/0+$/, '');
   return frac.length === 0 ? whole.toString() : `${whole}.${frac}`;
+}
+
+/** Bytes-as-tokens planning cost. Not a provider tokenizer limit. */
+export function planningEnvelopeNano(totalRequestBytes, requests) {
+  if (!Number.isInteger(totalRequestBytes) || totalRequestBytes < 0) throw new Error('request byte count is invalid');
+  if (!Number.isInteger(requests) || requests < 1) throw new Error('request count is invalid');
+  const tokens = BigInt(totalRequestBytes + (DECISION1_BYTE_OVERHEAD * requests));
+  return { tokens, costNano: tokens * DECISION1_PLANNING_NANO_PER_TOKEN };
 }
 
 export function loadDecision1Questions(path = QUESTIONS_PATH) {
