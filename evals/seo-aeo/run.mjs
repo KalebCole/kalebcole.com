@@ -7,6 +7,7 @@ import { createAdapterRegistry } from './lib/adapters/index.mjs';
 import { loadEnv } from './lib/env.mjs';
 import { loadDefinitions } from './lib/load.mjs';
 import { executeRun, formatPlan, importManual, planRun, rescoreRun } from './lib/runner.mjs';
+import { syntheticDecision1Example } from './lib/decision1-strict.mjs';
 import { loadStrictJudgeRequest, persistRawResponse, prepareStrictValidation, validateStrictPreparation } from './lib/strict-judge.mjs';
 import { loadStrictRubric, readExtractionFile, renderStrictVisibilityReport, scoreStrictVisibility, verifyFrozenQuestionFiles } from './lib/strict-visibility.mjs';
 import { readFileSync } from 'node:fs';
@@ -23,6 +24,7 @@ Commands:
   prepare-strict <plan>  Write a no-call strict judge plan. Refuses network.
   persist-raw          Store one prepared raw response. Needs --out, --key, --body, and token counts.
   validate-strict      Check a preparation. Does not read gold labels or call a model.
+  decision1-example    Print one synthetic Decision-1 request. Does not call a model.
 
 Options:
   --provider <ids>     Comma-separated provider ids (default: enabled providers).
@@ -76,6 +78,10 @@ async function main(argv) {
   }
 
   const [command = 'plan', target] = positionals;
+  if (command === 'decision1-example') {
+    console.log(JSON.stringify(syntheticDecision1Example(), null, 2));
+    return 0;
+  }
   if (command === 'prepare-strict' || command === 'persist-raw' || command === 'validate-strict') {
     if (values.provider) throw new Error(`${command} does not call a provider`);
     loadStrictJudgeRequest();

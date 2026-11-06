@@ -127,7 +127,19 @@ npm run eval:seo-aeo -- persist-raw --out evals/seo-aeo/artifacts/strict-judge -
 npm run eval:seo-aeo -- validate-strict --out evals/seo-aeo/artifacts/strict-judge
 ```
 
-`prepare-strict` writes the plan first, with `calls: 0`. Each item's idempotence key includes the request hash, surface, tool, model, query, and repeat, so signed-out ChatGPT and Google do not share a slot. `persist-raw` stores the raw bytes, their sha256, and token usage. A missing usage, an unknown key, or a second body under the same key is refused and does not replace the stored bytes. `validate-strict` rechecks those hashes. It does not read gold labels, and it reports judge accuracy as not measured. Original signed-out captures, when an operator later supplies labels, are not a fresh prospective holdout.
+`prepare-strict` and `persist-raw` are an offline ledger. They are not a Decision-1 executor and they do not send HTTP. `persist-raw` token counts are caller-supplied numbers for that ledger only. They are not provider usage.
+
+## Decision-1 choice contract (`strict-visibility-decision1-v1`)
+
+The wire payload is `{ "model": "decision-1-eval", "state": { "answer_text" }, "questions" }`. `state` has no query, no expected label, and no provisional claim. Capture engine, capture model, surface, and query id stay outside `state`. The questions file is `questions/questions.strict-visibility-decision1.v1.json`. Its sha256 is `3a3dd9ac3ae6feb15db9086bbb5bed4eea85bbc8200f7d9357559c7c5f297b0b`. Every question is type `choice` and is always asked. The prose candidate above is not this payload.
+
+`factAccuracy` is not a question. Facts are still unapproved, so the decoder sets that label to unknown. `citationSupport` is a text label, not a fetched URL. A missing or invalid choice is an error. It is not stored as false. `probabilities` is required. A body that has `probs` instead is an error. A 401 or 429 is stored as that status and is not retried. Usage comes from the response `usage` object. A missing token count stays unknown, not zero.
+
+The pilot ledger allows at most 8 attempts. Prior usage is pinned at $0.009095688. The cap is $0.05. The desired new reserve is $0.002 and is written before any response. That reserve is not a proven bound until serialized tokens are checked. The module does not send the request.
+
+```bash
+npm run eval:seo-aeo -- decision1-example
+```
 
 The original eight identity questions stay in `questions/questions.baseline.v1.frozen.json` and stay in their own request. Do not add a visibility question to that payload.
 
