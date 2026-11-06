@@ -157,6 +157,12 @@ function writeBudget(path, budget) {
   renameSync(tmp, path);
 }
 
+function rememberCalls(path, calls) {
+  const budget = readBudget(path);
+  if (budget.calls === calls) return;
+  writeBudget(path, { ...budget, calls });
+}
+
 function recordSpend(path, inputTokens) {
   const budget = readBudget(path);
   const spent = BigInt(budget.spentNewNano || '0') + (BigInt(inputTokens) * 42n);
@@ -219,7 +225,7 @@ export async function executeFrozenPlan({ plan, runRoot, execute = false, transp
       capNano: DECISION1_CAP_NANO.toString(),
       tokenBoundChecked: false,
       usageUnknown: false,
-      calls: 0,
+      calls: armedRecords,
       retries: 0,
     }, null, 2)}\n`), { exclusive: true });
   }
@@ -246,6 +252,7 @@ export async function executeFrozenPlan({ plan, runRoot, execute = false, transp
     }
     if (sends > 0) await sleep(spacingMs);
     appendDurable(journalPath, `${JSON.stringify({ id: item.id, phase: 'armed', requestSha256: item.request_sha256 })}\n`);
+    rememberCalls(budgetPath, armedRecords + sends + 1);
     let http;
     try {
       http = await transport(bytes);
@@ -334,6 +341,7 @@ const BUNDLE_FILES = [
   'lib/frozen-path.mjs',
   'questions/questions.strict-visibility-decision1.v1.json',
   'plans/input-plan.v2.json',
+  'schemas/strict-extraction.schema.json',
 ];
 
 /** Copies the sender and its local imports. Generated output is not committed. */
@@ -355,6 +363,7 @@ main(process.argv.slice(2)).then((code) => process.exit(code ?? 0), (error) => {
 \`node send.mjs --plan plans/input-plan.v2.json\` verifies only.
 \`--execute\` sleeps 5 seconds between requests and posts with node HTTPS. The token audience is https://cognitiveservices.azure.com. Do not pass it until review.
 The token stays in memory. This folder must not contain tokens or account keys.
+\`lib/strict-visibility.mjs\` can score an extraction offline. It reads \`schemas/strict-extraction.schema.json\`. This folder does not include the rest of the eval.
 `);
   return outDir;
 }

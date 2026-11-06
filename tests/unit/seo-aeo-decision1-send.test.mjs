@@ -113,7 +113,7 @@ test('a frozen plan sends exact bytes, stops without retry, and does not send tw
   assert.deepEqual(sleeps, []);
   const reserve = JSON.parse(readFileSync(join(dir, 'budget.json'), 'utf8'));
   assert.equal(reserve.newReserveNano, '5000000');
-  assert.equal(reserve.calls, 0);
+  assert.equal(reserve.calls, 1);
   assert.equal(reserve.retries, 0);
   const again = await executeFrozenPlan({
     plan,
@@ -129,10 +129,10 @@ test('a frozen plan sends exact bytes, stops without retry, and does not send tw
 
 function materialize(dir, count) {
   mkdirSync(join(dir, 'requests.v2'), { recursive: true });
-  const texts = ['Synthetic judge input one.', 'Synthetic judge input two.'].slice(0, count);
+  const texts = Array.from({ length: count }, (_, index) => `Synthetic judge input ${index}.`);
   const built = texts.map((text) => ({ text, request: buildDecision1Request({ answerText: text }) }));
   const items = built.map((entry, index) => {
-    const id = index === 0 ? 'one' : 'two';
+    const id = ['one', 'two'][index] ?? `n${index}`;
     const requestPath = `requests.v2/${id}.json`;
     writeFileSync(join(dir, requestPath), entry.request.bytes);
     return item(id, requestPath, entry.request, entry.text);
@@ -205,7 +205,7 @@ test('missing provider usage stops the run and leaves the reserve in place', asy
   assert.equal(result.calls, 1);
   const budget = JSON.parse(readFileSync(join(dir, 'budget.json'), 'utf8'));
   assert.equal(budget.newReserveNano, '5000000');
-  assert.equal(budget.calls, 0);
+  assert.equal(budget.calls, 1);
   const restart = await executeFrozenPlan({
     plan,
     runRoot: dir,
@@ -541,9 +541,58 @@ test('a response that dies mid-body is stored and not retried', async () => {
   rmSync(dir, { recursive: true, force: true });
 });
 
+test('budget calls counts every armed attempt, including a failure, and a restart keeps it', async () => {
+  const failed = mkdtempSync(join(tmpdir(), 'decision1-calls-fail-'));
+  const { plan } = materialize(failed, 8);
+  let n = 0;
+  const stopped = await executeFrozenPlan({
+    plan,
+    runRoot: failed,
+    execute: true,
+    sleep: () => Promise.resolve(),
+    transport() {
+      n += 1;
+      if (n === 3) return { status: 500, body: Buffer.from('no') };
+      return { status: 200, body: Buffer.from('{"usage":{"input_tokens":1,"output_tokens":1}}') };
+    },
+  });
+  assert.equal(stopped.calls, 3);
+  assert.equal(stopped.stopped, 'http-500');
+  assert.equal(JSON.parse(readFileSync(join(failed, 'budget.json'), 'utf8')).calls, 3);
+  const restart = await executeFrozenPlan({
+    plan,
+    runRoot: failed,
+    execute: true,
+    transport: () => { throw new Error('must not send again'); },
+  });
+  assert.equal(restart.calls, 0);
+  assert.equal(JSON.parse(readFileSync(join(failed, 'budget.json'), 'utf8')).calls, 3);
+  rmSync(failed, { recursive: true, force: true });
+
+  const dir = mkdtempSync(join(tmpdir(), 'decision1-calls-eight-'));
+  const eight = materialize(dir, 8);
+  const done = await executeFrozenPlan({
+    plan: eight.plan,
+    runRoot: dir,
+    execute: true,
+    sleep: () => Promise.resolve(),
+    transport: () => ({ status: 200, body: Buffer.from('{"usage":{"input_tokens":1,"output_tokens":1}}') }),
+  });
+  assert.equal(done.calls, 8);
+  assert.equal(done.stopped, null);
+  const budget = JSON.parse(readFileSync(join(dir, 'budget.json'), 'utf8'));
+  assert.equal(budget.calls, 8);
+  assert.equal(budget.inputTokens, 8);
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test('the exported bundle fails closed before any request when flags are missing', () => {
   const out = mkdtempSync(join(tmpdir(), 'sender-bundle-'));
   exportDecision1Sender(out);
+  assert.equal(
+    readFileSync(join(out, 'schemas/strict-extraction.schema.json'), 'utf8'),
+    readFileSync(join(root, 'evals/seo-aeo/schemas/strict-extraction.schema.json'), 'utf8'),
+  );
   assert.throws(() => execFileSync(process.execPath, ['send.mjs', '--execute'], { cwd: out, encoding: 'utf8', stdio: 'pipe' }), (error) => {
     assert.equal(error.status, 1);
     assert.match(`${error.stderr}`, /missing --plan/);
