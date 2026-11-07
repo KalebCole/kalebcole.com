@@ -1,0 +1,77 @@
+{
+  "frozen_at": "2026-11-06T10:00:00-08:00",
+  "immutable": true,
+  "source_file": "questions.systemone.v1.compact.json",
+  "note": "Same question names/types; shortened criteria text to fit GlobalStandard capacity-1 token rate limits.",
+  "version": "1.0.0-compact-for-capacity1",
+  "source": "questions.systemone.v1.json",
+  "questions": {
+    "identity_class": {
+      "type": "choice",
+      "instructions": "Classify who the answer is about using answer text and evidence only. Exactly one label.",
+      "criteria": {
+        "target-only": "Only the software-engineer Kaleb Cole (Microsoft/Seattle/kalebcole.com). No namesake crime facts on him.",
+        "other-only": "Only the namesake (different person). Accurate namesake-only is a visibility miss, not engineer error.",
+        "both-separated": "Mentions both and separates with an explicit cue or negation.",
+        "conflated": "Attaches namesake facts to the engineer without separation.",
+        "uncertain": "Ambiguous, insufficient signal, or both without clear separation."
+      }
+    },
+    "asserts_target_role": {
+      "type": "noul",
+      "instructions": "Does the answer assert the software-engineer Kaleb Cole is a software engineer/developer? Ignore namesake-only passages.",
+      "criteria": {
+        "true": "Clear engineer role assertion.",
+        "false": "No such assertion about the engineer."
+      }
+    },
+    "asserts_target_employer": {
+      "type": "noul",
+      "instructions": "Does the answer assert the software-engineer Kaleb Cole works at Microsoft?",
+      "criteria": {
+        "true": "Clear Microsoft employment for the engineer.",
+        "false": "No such assertion."
+      }
+    },
+    "asserts_target_location": {
+      "type": "noul",
+      "instructions": "Does the answer assert the software-engineer Kaleb Cole is based in Seattle?",
+      "criteria": {
+        "true": "Clear Seattle location for the engineer.",
+        "false": "No such assertion."
+      }
+    },
+    "asserts_sole_creator_series": {
+      "type": "noul",
+      "instructions": "Does the answer falsely claim he was the sole/only creator of the Build Your Personal Developer Brand series (vs helped create)?",
+      "criteria": {
+        "true": "Sole/only creator claim present.",
+        "false": "No sole-creator claim."
+      }
+    },
+    "attaches_namesake_crime_to_engineer": {
+      "type": "noul",
+      "instructions": "Does the answer attach Atomwaffen/neo-Nazi/conviction facts to the software engineer without separating a different person?",
+      "criteria": {
+        "true": "Crime facts attributed to engineer or ambiguously attached.",
+        "false": "Absent or clearly only about a different namesake."
+      }
+    },
+    "citation_supports_engineer_claim": {
+      "type": "noul",
+      "instructions": "If the answer is about the engineer and cites a URL, does at least one citation snippet support a target engineer claim? Else false.",
+      "criteria": {
+        "true": "At least one supporting citation snippet.",
+        "false": "No support, no citations, or not about the engineer."
+      }
+    },
+    "needs_human_review": {
+      "type": "noul",
+      "instructions": "Should a human review before counting identity/conflation (ambiguous, suspected conflation, weak evidence)?",
+      "criteria": {
+        "true": "Needs human review.",
+        "false": "Clear enough for automatic counting."
+      }
+    }
+  }
+}

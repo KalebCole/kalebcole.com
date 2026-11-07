@@ -83,7 +83,7 @@ Tests live in `tests/`, grouped by how they run:
 - `tests/support/chrome.mjs`: the shared headless Chrome helper for `tests/e2e/` (`withChrome`). Chrome picks a free debugging port, every CDP call times out after 30 seconds, and a browser session fails after 5 minutes with its label, so a stuck page fails fast instead of hanging CI.
 - `tests/support/root.mjs`: the repository root, `dist/`, and `tests/fixtures/` for any test. Use it instead of a relative path like `new URL('..', import.meta.url)`.
 
-`evals/seo-aeo/` holds the manual SEO and AEO eval (`npm run eval:seo-aeo`; see its README). It never runs in `npm run check`, the build, or CI; its offline tests are in `tests/unit/seo-aeo-*.test.mjs` with fixtures in `tests/fixtures/seo-aeo/`.
+`evals/seo-aeo/` holds the manual SEO and AEO eval (`npm run eval:seo-aeo`; see its README). It never runs in `npm run check`, the build, or CI; its offline tests are in `tests/unit/seo-aeo-*.test.mjs` with fixtures in `tests/fixtures/seo-aeo/`. `npm run eval:seo-aeo -- score-strict <file>` scores `strict-visibility-win-v1` extraction records offline. Rubric 1.0.0 visibility is a different metric and is not relabeled as that win. The frozen questions in `evals/seo-aeo/questions/` stay byte-for-byte.
 
 `scripts/` holds only build tools (portrait, recommend thumbnails, the GitHub snapshot, and their helpers). A check that needs one of their helpers imports it from `scripts/`.
 

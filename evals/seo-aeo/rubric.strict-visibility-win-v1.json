@@ -1,0 +1,40 @@
+{
+  "version": "strict-visibility-win-v1",
+  "approvedAt": "2026-11-06T12:45:00-08:00",
+  "approvedBy": "Kaleb Cole",
+  "status": "definition-resolved-judge-validation-pending",
+  "notAJudge": true,
+  "doesNotRelabel": [
+    "rubric.json version 1.0.0 visibility, which counts target-only and both-separated",
+    "questions/questions.visibility-only.v1.frozen.json position labels"
+  ],
+  "win": "A strict visibility win is an answer that is primarily about the target Kaleb Cole and that contains zero mention of the other namesake Kaleb Cole, the person involved in federal proceedings connected to Atomwaffen Division. Being first in a list of possible people is not a win. An accurate disclaimer that a different or unrelated Kaleb Cole was involved in federal proceedings is not a win.",
+  "notHarmfulByItself": "A namesake mention, including a clear disclaimer, is not by itself a harmful attribution. Harmful attribution stays a separate label.",
+  "notCriminalNamesake": "A generic shared name, a Seattle locality card, or an unrelated athlete is not a mention of the criminal namesake. The extraction has to say so. This scorer does not infer it from answer text.",
+  "independentOf": [
+    "biographical errors, which are fact accuracy",
+    "whether the answer cites kalebcole.com or any other page"
+  ],
+  "uncertainty": "A known failure is a loss even when abstained is true: the answer is not primarily the target, or the criminal namesake is mentioned. Abstention applies only when that pair would otherwise be a win. Any other unresolved pair is unknown, including primary unknown with the namesake explicitly unmentioned.",
+  "identityClasses": "other-only, both-separated, and conflated mean the target and the criminal namesake, as in the frozen identity baseline. A win pair combined with one of those three is invalid, not a win. An unrelated athlete is not both-separated: engineer plus athlete stays target-only and can win. both-separated with the namesake mentioned stays a visibility loss. uncertain and unknown do not cancel an explicit win pair. Fact labels and citation labels do not cancel it either.",
+  "missingFields": "A missing field is invalid. It is not coerced to false, and an invalid record cannot be a win.",
+  "coverage": "No answer, and an absent AI Overview, are coverage gaps. They are not the same as an answer that is not about the target.",
+  "denominators": "Unknown and explicit abstention stay in the full visibility denominator. The decisive-only rate is disclosed beside it. Unknown fact accuracy stays in the fact denominator and is not verified truth.",
+  "positionLabels": "target-leads, target-mentioned-later, target-absent, and uncertain may be stored as diagnostics. They do not decide the win.",
+  "identityBaseline": "The eight questions in questions/questions.baseline.v1.frozen.json stay unchanged and stay in their own request. This rubric is not added to that request.",
+  "collection": {
+    "primaryBaseline": "signed-out public consumer UI",
+    "keepDistinct": ["signed-out ChatGPT", "signed-out Google", "signed-out Gemini", "signed-in Google", "signed-in Gemini", "API proxies"],
+    "modelVersionsDistinct": "Signed-out Gemini Flash-Lite is not signed-in Gemini Flash.",
+    "signOutDoesNotRemove": ["IP", "location", "session"],
+    "queries": [
+      "kaleb cole",
+      "who is kaleb cole",
+      "kaleb cole microsoft",
+      "kaleb cole seattle software engineer"
+    ],
+    "excluded": ["project queries", "exploratory queries", "Grok"],
+    "repeats": "Generations of the same query are correlated repeats. Independence is not estimated, and a repeat is not a cause."
+  },
+  "priorPositionResultsAreNotThisRule": "The 2026-11-06 visibility-only fresh check measured the position rubric only. ChatGPT's unambiguous slice was 3/3, Google was 4/4, and Gemini was 4/4. Those counts are not accuracy for strict-visibility-win-v1."
+}
