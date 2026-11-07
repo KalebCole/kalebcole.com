@@ -137,6 +137,8 @@ The wire payload is `{ "model": "decision-1-eval", "state": { "answer_text" }, "
 
 The pilot ledger allows at most 8 armed attempts and does not retry. Any HTTP status other than 200 stops the run. Prior usage is pinned at $0.009095688. The cap is $0.05. The planning reserve is $0.005. After each response, `budget.json` adds the provider's input tokens at $0.042 per million and stops when new spend passes $0.005 or the cumulative total passes $0.05. Unknown usage keeps that reserve. `budget.json` `calls` is the number of armed lines in `attempts.jsonl`, including a failed attempt. A restart does not reset it. Spend stays in `inputTokens` and `spentNewNano`. The reviewed plan v2 envelope is 57763 request bytes plus 4096 bytes per request, 90531 planning tokens, about $0.003802302. That figure is not a documented tokenizer limit. `decision1-verify-plan` checks exact request files and does not send them. The opt-in sender is `decision1-execute.mjs`. It checks the plan file hash before asking Azure CLI for a token, then POSTs with node HTTPS, 5 seconds apart. The token audience is `https://cognitiveservices.azure.com`. It is not run by tests. `prepare-strict` and `persist-raw` are not this sender.
 
+`strict-visibility-win-v2` is a separate candidate. It does not replace v1 scoring or the v1 question file. The v2 question hash is pinned in `lib/strict-visibility-v2.mjs`. Offline tests check contradiction handling only. They are not a model result. The prospective check is `plans/prospective-strict-visibility-v2.md`. No v2 request has been sent.
+
 ```bash
 npm run eval:seo-aeo -- decision1-example
 ```
