@@ -100,6 +100,9 @@ export function scoreStrictVisibilityV2(record) {
     for (const key of REQUIRED_ANSWER_FIELDS) {
       if (!Object.hasOwn(record, key)) problems.push(`missing required ${key}`);
     }
+    if (record.abstained !== true && record.abstained !== false) {
+      problems.push('abstained must be an explicit boolean; omitted abstained is not false and is not a win');
+    }
   }
   const allowedTools = TOOLS_FOR_SURFACE[record.surface];
   if (allowedTools && Object.hasOwn(record, 'tool') && !allowedTools.includes(record.tool)) {
@@ -125,8 +128,17 @@ export function scoreStrictVisibilityV2(record) {
       problems: contradictions,
     });
   }
-  const outcome = visibilityOutcome(record);
-  const unknownLike = outcome === 'unknown' || outcome === 'abstain';
+  const rawOutcome = visibilityOutcome(record);
+  if (rawOutcome === 'abstain') {
+    return scored(record, {
+      appliedRubric: STRICT_VISIBILITY_V2,
+      outcome: 'invalid',
+      needsReview: true,
+      problems: ['v2 has no abstain outcome; a committed win pair with abstained true is a contradiction'],
+    });
+  }
+  const outcome = rawOutcome;
+  const unknownLike = outcome === 'unknown';
   const needsReview = unknownLike
     || record.identityClass === 'uncertain'
     || record.identityClass === 'unknown'
@@ -219,5 +231,131 @@ export function decodeDecision1V2Response(body) {
       positionDiagnostic: fields.positionDiagnostic,
       abstained: fields.abstained === 'true',
     },
+  };
+}
+
+export const PROSPECTIVE_QUERIES = [
+  { id: 'name', prompt: 'kaleb cole' },
+  { id: 'who-is', prompt: 'who is kaleb cole' },
+  { id: 'name-microsoft', prompt: 'kaleb cole microsoft' },
+  { id: 'name-seattle-swe', prompt: 'kaleb cole seattle software engineer' },
+];
+
+export const PROSPECTIVE_SESSIONS = [
+  { engine: 'google', session: 'signed-out' },
+  { engine: 'gemini', session: 'signed-out' },
+];
+
+export function prospectiveQuerySha256() {
+  return sha256(Buffer.from(JSON.stringify(PROSPECTIVE_QUERIES)));
+}
+
+/** One planned slot per approved name query and pinned engine session. */
+export function prospectiveV2Slots() {
+  const slots = [];
+  for (const session of PROSPECTIVE_SESSIONS) {
+    for (const query of PROSPECTIVE_QUERIES) {
+      slots.push({
+        id: `${session.engine}:${session.session}:${query.id}`,
+        engine: session.engine,
+        session: session.session,
+        queryId: query.id,
+        prompt: query.prompt,
+      });
+    }
+  }
+  return slots;
+}
+
+function emptyBucket() {
+  return {
+    planned: 0,
+    win: 0,
+    loss: 0,
+    unknown: 0,
+    invalid: 0,
+    missing: 0,
+    coverageMissing: 0,
+    versionMismatch: 0,
+    abstentions: 0,
+  };
+}
+
+/**
+ * Accounts every planned slot. Invalid, unknown, abstention, and missing
+ * stay in the total. Abstention is unknown with abstained true. Invalid is
+ * not a correct judgment. This function does not send.
+ */
+export function accountProspectiveV2(extractions = new Map()) {
+  const slots = prospectiveV2Slots();
+  const plannedIds = new Set(slots.map((slot) => slot.id));
+  const provided = extractions instanceof Map ? extractions : new Map(Object.entries(extractions ?? {}));
+  for (const key of provided.keys()) {
+    if (!plannedIds.has(key)) throw new Error(`extraction ${key} is not a planned slot`);
+  }
+  const rows = slots.map((slot) => {
+    if (!provided.has(slot.id)) {
+      return {
+        ...slot,
+        outcome: 'missing',
+        win: false,
+        abstained: null,
+        problems: ['no extraction for this planned slot'],
+      };
+    }
+    const scoredRow = scoreStrictVisibilityV2(provided.get(slot.id));
+    return { ...slot, ...scoredRow };
+  });
+  const tally = (name) => rows.filter((row) => row.outcome === name).length;
+  const outcomes = {
+    win: tally('win'),
+    loss: tally('loss'),
+    unknown: tally('unknown'),
+    invalid: tally('invalid'),
+    missing: tally('missing'),
+    coverageMissing: tally('coverage-missing'),
+    versionMismatch: tally('version-mismatch'),
+  };
+  const planned = rows.length;
+  const accounted = Object.values(outcomes).reduce((sum, count) => sum + count, 0);
+  if (accounted !== planned) throw new Error(`accounted ${accounted} of ${planned} planned slots`);
+  const abstentions = rows.filter((row) => row.outcome === 'unknown' && row.abstained === true).length;
+  const decisiveDenominator = outcomes.win + outcomes.loss;
+  const byEngineSession = {};
+  for (const row of rows) {
+    const key = `${row.engine}/${row.session}`;
+    const bucket = byEngineSession[key] ?? emptyBucket();
+    bucket.planned += 1;
+    if (row.outcome === 'win') bucket.win += 1;
+    else if (row.outcome === 'loss') bucket.loss += 1;
+    else if (row.outcome === 'unknown') bucket.unknown += 1;
+    else if (row.outcome === 'invalid') bucket.invalid += 1;
+    else if (row.outcome === 'missing') bucket.missing += 1;
+    else if (row.outcome === 'coverage-missing') bucket.coverageMissing += 1;
+    else if (row.outcome === 'version-mismatch') bucket.versionMismatch += 1;
+    if (row.outcome === 'unknown' && row.abstained === true) bucket.abstentions += 1;
+    byEngineSession[key] = bucket;
+  }
+  return {
+    candidate: STRICT_VISIBILITY_V2,
+    questionsSha256: DECISION1_V2_QUESTIONS_SHA256,
+    querySha256: prospectiveQuerySha256(),
+    calls: 0,
+    planned,
+    accounted,
+    queries: PROSPECTIVE_QUERIES,
+    invalidMeans: 'contradiction or missing required label; not a correct judgment and not a fix',
+    outcomes,
+    abstentions,
+    fullPipeline: { wins: outcomes.win, denominator: planned },
+    decisiveConditional: {
+      wins: outcomes.win,
+      losses: outcomes.loss,
+      denominator: decisiveDenominator,
+      coverageNumerator: decisiveDenominator,
+      coverageDenominator: planned,
+    },
+    byEngineSession,
+    rows,
   };
 }

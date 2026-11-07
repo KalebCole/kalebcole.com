@@ -11,7 +11,7 @@ import { syntheticDecision1Example } from './lib/decision1-strict.mjs';
 import { assertPlanV2Document, verifyPlanFiles } from './lib/decision1-send.mjs';
 import { loadStrictJudgeRequest, persistRawResponse, prepareStrictValidation, validateStrictPreparation } from './lib/strict-judge.mjs';
 import { loadStrictRubric, readExtractionFile, renderStrictVisibilityReport, scoreStrictVisibility, verifyFrozenQuestionFiles } from './lib/strict-visibility.mjs';
-import { scoreStrictVisibilityV2 } from './lib/strict-visibility-v2.mjs';
+import { accountProspectiveV2, scoreStrictVisibilityV2 } from './lib/strict-visibility-v2.mjs';
 import { readFileSync } from 'node:fs';
 
 const USAGE = `Usage: npm run eval:seo-aeo -- <command> [options]
@@ -24,6 +24,7 @@ Commands:
   validate             Check queries, facts, rubric, config, and frozen question hashes.
   score-strict <file>  Score strict-visibility-win-v1 extractions offline. No network calls.
   score-strict-v2 <file>  Score strict-visibility-win-v2 extractions offline. No network calls. Does not rescore v1.
+  prospective-v2       Print the pinned v2 slot list and full-pipeline accounting. No captures and no model calls.
   prepare-strict <plan>  Write a no-call strict judge plan. Refuses network.
   persist-raw          Store one prepared raw response. Needs --out, --key, --body, and token counts.
   validate-strict      Check a preparation. Does not read gold labels or call a model.
@@ -137,6 +138,21 @@ async function main(argv) {
     if (!target) throw new Error('score-strict-v2 needs an extraction file');
     const records = readExtractionFile(resolve(target));
     console.log(JSON.stringify(records.map((record) => scoreStrictVisibilityV2(record)), null, 2));
+    return 0;
+  }
+  if (command === 'prospective-v2') {
+    const report = accountProspectiveV2();
+    console.log(JSON.stringify({
+      candidate: report.candidate,
+      questionsSha256: report.questionsSha256,
+      querySha256: report.querySha256,
+      calls: report.calls,
+      planned: report.planned,
+      accounted: report.accounted,
+      outcomes: report.outcomes,
+      fullPipeline: report.fullPipeline,
+      decisiveConditional: report.decisiveConditional,
+    }));
     return 0;
   }
   const definitions = loadDefinitions();

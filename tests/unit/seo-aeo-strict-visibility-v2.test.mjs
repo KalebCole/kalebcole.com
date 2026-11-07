@@ -8,8 +8,10 @@ import { DECISION1_QUESTIONS_SHA256 } from '../../evals/seo-aeo/lib/decision1-st
 import { scoreExtraction } from '../../evals/seo-aeo/lib/strict-visibility.mjs';
 import {
   DECISION1_V2_QUESTIONS_SHA256,
+  accountProspectiveV2,
   decodeDecision1V2Response,
   loadDecision1V2Questions,
+  prospectiveV2Slots,
   scoreStrictVisibilityV2,
 } from '../../evals/seo-aeo/lib/strict-visibility-v2.mjs';
 import { root } from '../support/root.mjs';
@@ -235,6 +237,106 @@ test('the v2 decoder keeps unknown facts and does not score abstained unknown as
   assert.equal(declined.status, 'error');
   assert.equal(declined.extraction, null);
   assert.match(declined.problems.join('\n'), /not false/);
+});
+
+test('a win pair with omitted abstained is not a v2 win, and v1 still scores that omission as a win', () => {
+  const fields = {
+    targetPrimary: 'true',
+    criminalNamesakeMention: 'false',
+    identityClass: 'target-only',
+    factAccuracy: 'unknown',
+  };
+  const omitted = { ...record(fields) };
+  delete omitted.abstained;
+  const v2 = scoreStrictVisibilityV2(omitted);
+  assert.equal(v2.outcome, 'invalid');
+  assert.equal(v2.win, false);
+  assert.match(v2.problems.join('\n'), /explicit boolean/);
+  const v1 = scoreExtraction({ ...omitted, rubricVersion: 'strict-visibility-win-v1' });
+  assert.equal(v1.outcome, 'win');
+  const nulled = scoreStrictVisibilityV2(record({ ...fields, abstained: null }));
+  assert.equal(nulled.outcome, 'invalid');
+  assert.equal(nulled.win, false);
+});
+
+test('prospective accounting keeps invalid, unknown, abstention, and missing in the total', () => {
+  const slots = prospectiveV2Slots();
+  assert.equal(slots.length, 8);
+  const queries = readFileSync(join(root, 'evals/seo-aeo/queries.json'), 'utf8');
+  const approved = JSON.parse(queries).queries.map((query) => ({ id: query.id, prompt: query.prompt }));
+  assert.deepEqual(slots.map((slot) => slot.prompt).filter((prompt, index, all) => all.indexOf(prompt) === index), approved.map((query) => query.prompt));
+  const base = {
+    rubricVersion: 'strict-visibility-win-v2',
+    coverage: 'answer-present',
+    surface: 'synthetic',
+    tool: 'synthetic',
+    model: 'none',
+    harmfulAttribution: 'false',
+    factAccuracy: 'unknown',
+    citationSupport: 'unknown',
+    positionDiagnostic: 'target-leads',
+  };
+  const extractions = new Map([
+    [slots[0].id, { ...base, id: slots[0].id, queryId: slots[0].queryId, targetPrimary: 'true', criminalNamesakeMention: 'false', identityClass: 'target-only', abstained: false }],
+    [slots[1].id, { ...base, id: slots[1].id, queryId: slots[1].queryId, targetPrimary: 'false', criminalNamesakeMention: 'true', identityClass: 'other-only', citationSupport: 'not-applicable', abstained: false }],
+    [slots[2].id, { ...base, id: slots[2].id, queryId: slots[2].queryId, targetPrimary: 'unknown', criminalNamesakeMention: 'false', identityClass: 'uncertain', abstained: true }],
+    [slots[3].id, { ...base, id: slots[3].id, queryId: slots[3].queryId, targetPrimary: 'unknown', criminalNamesakeMention: 'unknown', identityClass: 'unknown', abstained: false }],
+    [slots[4].id, { ...base, id: slots[4].id, queryId: slots[4].queryId, targetPrimary: 'false', criminalNamesakeMention: 'false', identityClass: 'other-only', abstained: false }],
+    [slots[5].id, { ...base, id: slots[5].id, queryId: slots[5].queryId, coverage: 'no-answer' }],
+    [slots[6].id, { ...base, id: slots[6].id, queryId: slots[6].queryId, rubricVersion: 'strict-visibility-win-v1', targetPrimary: 'true', criminalNamesakeMention: 'false', identityClass: 'target-only', abstained: false }],
+  ]);
+  const report = accountProspectiveV2(extractions);
+  assert.equal(report.candidate, 'strict-visibility-win-v2');
+  assert.equal(report.questionsSha256, DECISION1_V2_QUESTIONS_SHA256);
+  assert.equal(report.calls, 0);
+  assert.equal(report.planned, 8);
+  assert.equal(report.accounted, 8);
+  assert.equal(report.outcomes.win, 1);
+  assert.equal(report.outcomes.loss, 1);
+  assert.equal(report.outcomes.unknown, 2);
+  assert.equal(report.abstentions, 1);
+  assert.equal(report.outcomes.invalid, 1);
+  assert.equal(report.outcomes.coverageMissing, 1);
+  assert.equal(report.outcomes.versionMismatch, 1);
+  assert.equal(report.outcomes.missing, 1);
+  assert.equal(report.fullPipeline.wins, 1);
+  assert.equal(report.fullPipeline.denominator, 8);
+  assert.equal(report.decisiveConditional.denominator, 2);
+  assert.equal(report.decisiveConditional.coverageDenominator, 8);
+  assert.equal(report.byEngineSession['google/signed-out'].planned, 4);
+  assert.equal(report.byEngineSession['gemini/signed-out'].planned, 4);
+  const dropped = report.outcomes.win / (report.outcomes.win + report.outcomes.loss);
+  assert.ok(dropped > report.fullPipeline.wins / report.fullPipeline.denominator);
+  assert.match(report.invalidMeans, /not a correct judgment/);
+  assert.throws(() => accountProspectiveV2(new Map([['extra', { id: 'extra' }]])), /not a planned slot/);
+});
+
+test('the prospective plan cites the frozen question, scorer, rubric, and query hashes', () => {
+  const plan = readFileSync(join(root, 'evals/seo-aeo/plans/prospective-strict-visibility-v2.md'));
+  const text = plan.toString('utf8');
+  const sha = (path) => createHash('sha256').update(readFileSync(join(root, path))).digest('hex');
+  assert.equal(text.includes('\u2014'), false);
+  assert.match(text, new RegExp(DECISION1_V2_QUESTIONS_SHA256));
+  assert.match(text, new RegExp(sha('evals/seo-aeo/lib/strict-visibility-v2.mjs')));
+  assert.match(text, new RegExp(sha('evals/seo-aeo/rubric.strict-visibility-win-v2.json')));
+  assert.match(text, /6e6bab2e14984615911dd193edef08f4f830ae827a8c3556d9d3f5dd5351fc81/);
+  for (const prompt of ['kaleb cole', 'who is kaleb cole', 'kaleb cole microsoft', 'kaleb cole seattle software engineer']) {
+    assert.equal(text.includes(prompt), true, prompt);
+  }
+});
+
+test('the pinned prospective preflight sends nothing and accounts every slot', () => {
+  const output = execFileSync(process.execPath, ['evals/seo-aeo/run.mjs', 'prospective-v2'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  const report = JSON.parse(output);
+  assert.equal(report.calls, 0);
+  assert.equal(report.planned, 8);
+  assert.equal(report.accounted, 8);
+  assert.equal(report.outcomes.missing, 8);
+  assert.equal(report.fullPipeline.denominator, 8);
+  assert.equal(report.questionsSha256, DECISION1_V2_QUESTIONS_SHA256);
 });
 
 test('score-strict-v2 does not call a provider', () => {
