@@ -24,7 +24,9 @@ function sha256(bytes) {
 
 test('the candidate freeze matches the question, profile, and runner bytes', () => {
   const freeze = verifyFreeze();
-  assert.equal(freeze.frozenAtUtc, '2026-11-08T20:22:23Z');
+  assert.equal(freeze.promptFrozenAtUtc, '2026-11-08T20:22:23Z');
+  assert.equal(freeze.codeFrozenAtUtc, '2026-11-08T20:32:27Z');
+  assert.equal(sha256(readFileSync(join(root, 'evals/seo-aeo/visibility-choice-v1/freeze.json'))), 'f46f5ff1e96262d0a4dcfcb20620bd07f8048680ba639cf071fdef8d37216886');
   assert.equal(freeze.maxInputTokens, 8000);
   assert.equal(freeze.priorUsd, PRIOR_USD);
   const prepared = prepareChoice();
@@ -52,6 +54,22 @@ test('probability ties and disagreements are not a No, and confidence is not the
   assert.equal(decideChoice({ answers: { visibility: { type: 'choice', choice: 'Yes', probabilities: { Yes: 0.7, No: 0.2 } } } }).outcome, 'yes');
   assert.equal(decideChoice({ answers: { visibility: { type: 'choice', choice: 'No', probabilities: { Yes: 0.1, No: 0.4 } } } }).outcome, 'no');
   assert.equal(decideChoice({ answers: { visibility: { probs: { Yes: 1, No: 0 } } } }).outcome, 'invalid');
+  const hostile = [
+    { Yes: -0.1, No: 0.2 },
+    { Yes: Number.POSITIVE_INFINITY, No: 0.1 },
+    { Yes: Number.NaN, No: 0.1 },
+    { Yes: '1', No: 0 },
+    { Yes: 1.2, No: 0.1 },
+    { Yes: 1.1, No: 2 },
+  ];
+  for (const probabilities of hostile) {
+    const choice = probabilities.Yes > probabilities.No ? 'Yes' : 'No';
+    const decided = decideChoice({ answers: { visibility: { type: 'choice', choice, probabilities } } });
+    assert.equal(decided.outcome, 'invalid');
+    assert.notEqual(decided.outcome, 'yes');
+    assert.notEqual(decided.outcome, 'no');
+  }
+  assert.equal(decideChoice({ answers: { visibility: { type: 'choice', choice: 'Yes', probabilities: { Yes: 0.7, No: 0.2 } } } }).outcome, 'yes');
 });
 
 test('an oversize response is preserved, unsent, and still counted', () => {
@@ -139,6 +157,32 @@ test('ready responses are durable, retries stay zero, and a bad status does not 
   rmSync(out, { recursive: true, force: true });
 });
 
+test('an out-of-range probability map stops the run before the next call', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'choice-prob-'));
+  const prepared = prepareChoice({ outRoot: out });
+  let calls = 0;
+  const summary = await executeChoice({
+    plan: prepared.plan,
+    runRoot: out,
+    execute: true,
+    sleep: () => Promise.resolve(),
+    transport() {
+      calls += 1;
+      return {
+        status: 200,
+        headers: {},
+        body: Buffer.from('{"usage":{"input_tokens":1,"output_tokens":1},"answers":{"visibility":{"type":"choice","choice":"Yes","probabilities":{"Yes":1.2,"No":0.1}}}}'),
+      };
+    },
+  });
+  assert.equal(calls, 1);
+  assert.equal(summary.stopped, 'bad-probabilities');
+  assert.equal(summary.sent.length, 1);
+  const id = prepared.plan.items.find((item) => item.status === 'ready').id;
+  assert.equal(readFileSync(join(out, 'responses', `${id}.body`), 'utf8').includes('1.2'), true);
+  rmSync(out, { recursive: true, force: true });
+});
+
 test('eight synthetic responses arm once and the budget counts them', async () => {
   const out = mkdtempSync(join(tmpdir(), 'choice-eight-'));
   const prepared = prepareChoice({ outRoot: out });
@@ -178,7 +222,7 @@ test('the default command makes zero calls and execute checks pins before auth',
     '--execute',
     '--plan', join(out, 'plan.json'),
     '--plan-sha', 'abc',
-    '--freeze-sha', sha256(readFileSync(join(root, 'evals/seo-aeo/visibility-choice-v1/freeze.json'))),
+    '--freeze-sha', sha256(readFileSync(join(root, 'evals/seo-aeo/visibility-choice-v1/freeze-r2.json'))),
     '--run-root', out,
     '--az', process.execPath,
     '--endpoint', 'https://kalebcole2021-0169-resource.cognitiveservices.azure.com/providers/microsoft/v1/systemone',

@@ -22,7 +22,9 @@ export const CHOICE_VERSION = 'visibility-choice-v1';
 export const CHOICE_DIR = join(EVAL_DIR, 'visibility-choice-v1');
 export const PROFILE_FILE = join(CHOICE_DIR, 'profile.json');
 export const QUESTION_FILE = join(CHOICE_DIR, 'question.json');
-export const FREEZE_FILE = join(CHOICE_DIR, 'freeze.json');
+export const ORIGINAL_FREEZE_FILE = join(CHOICE_DIR, 'freeze.json');
+export const ORIGINAL_FREEZE_SHA256 = 'f46f5ff1e96262d0a4dcfcb20620bd07f8048680ba639cf071fdef8d37216886';
+export const FREEZE_FILE = join(CHOICE_DIR, 'freeze-r2.json');
 export const RUNNER_FILE = fileURLToPath(import.meta.url);
 export const MAX_INPUT_TOKENS = 8000;
 export const MAX_CALLS = 24;
@@ -35,15 +37,15 @@ export const NEW_MAX_NANO = 8_064_000n;
 export const SPACING_MS = 5000;
 export const RESOURCE = 'https://cognitiveservices.azure.com';
 
-const BOUNDARY = [
-  ['boundary-clear-target', 'Yes'],
-  ['boundary-no-citation', 'Yes'],
-  ['boundary-minor-factual-error', 'Yes'],
-  ['boundary-crime-only', 'No'],
-  ['boundary-disclaimer', 'No'],
-  ['boundary-disambiguation', 'No'],
-  ['boundary-cannot-identify', 'No'],
-  ['boundary-name-only', 'No'],
+const BOUNDARY_IDS = [
+  'boundary-clear-target',
+  'boundary-no-citation',
+  'boundary-minor-factual-error',
+  'boundary-crime-only',
+  'boundary-disclaimer',
+  'boundary-disambiguation',
+  'boundary-cannot-identify',
+  'boundary-name-only',
 ];
 
 function sha256(bytes) {
@@ -127,7 +129,7 @@ export function plannedSlots() {
   return [
     ...engineSlots('known', 'google'),
     ...engineSlots('known', 'gemini'),
-    ...BOUNDARY.map(([id]) => ({
+    ...BOUNDARY_IDS.map((id) => ({
       id,
       bucket: 'boundary',
       engine: 'synthetic',
@@ -291,7 +293,7 @@ function usageOf(parsed) {
 }
 
 function probability(value) {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
 }
 
 /** Max Yes or No probability. Ties and schema gaps are not a semantic No. Confidence is ignored. */
@@ -309,7 +311,7 @@ export function decideChoice(parsed) {
     return { outcome: 'invalid', problems: ['probs is not probabilities'] };
   }
   if (!probability(probabilities.Yes) || !probability(probabilities.No)) {
-    return { outcome: 'invalid', problems: ['Yes and No probabilities must be finite and nonnegative'] };
+    return { outcome: 'invalid', problems: ['Yes and No probabilities must be finite numbers from 0 through 1'] };
   }
   if (probabilities.Yes === probabilities.No) {
     return { outcome: 'tie', problems: ['Yes and No probabilities tie'], probabilities };
@@ -460,6 +462,13 @@ export async function executeChoice({ plan, runRoot, execute = false, transport,
       inputTokens: (budget.inputTokens || 0) + usage.input_tokens,
       retries: 0,
     });
+    const decision = decideChoice(parsed);
+    if (decision.outcome === 'invalid') {
+      appendDurable(journalPath, `${JSON.stringify({ id: item.id, phase: 'stopped', reason: 'bad-probabilities' })}\n`);
+      summary.stopped = 'bad-probabilities';
+      summary.sent.push(item.id);
+      return summary;
+    }
     appendDurable(journalPath, `${JSON.stringify({ id: item.id, phase: 'responded', requestSha256: item.requestSha256 })}\n`);
     summary.sent.push(item.id);
     latest.set(item.id, { phase: 'responded' });
@@ -527,6 +536,9 @@ export function accountChoice(plan, decisions = new Map(), labels = new Map()) {
 }
 
 export function verifyFreeze(expectedSha) {
+  if (sha256(readFileSync(ORIGINAL_FREEZE_FILE)) !== ORIGINAL_FREEZE_SHA256) {
+    throw new Error('original prompt freeze was modified');
+  }
   const bytes = readFileSync(FREEZE_FILE);
   if (expectedSha && sha256(bytes) !== expectedSha) throw new Error('freeze file does not match --freeze-sha');
   const freeze = JSON.parse(bytes.toString('utf8'));
@@ -536,7 +548,9 @@ export function verifyFreeze(expectedSha) {
   check(QUESTION_FILE, freeze.questionsSha256);
   check(PROFILE_FILE, freeze.profileSha256);
   check(RUNNER_FILE, freeze.runnerSha256);
-  if (freeze.frozenAtUtc == null || freeze.candidate !== CHOICE_VERSION) throw new Error('freeze record is incomplete');
+  if (freeze.promptFrozenAtUtc !== '2026-11-08T20:22:23Z' || freeze.codeFrozenAtUtc == null || freeze.candidate !== CHOICE_VERSION) {
+    throw new Error('code freeze record is incomplete');
+  }
   return freeze;
 }
 
@@ -679,12 +693,13 @@ export function exportChoiceBundle(outDir) {
     'visibility-choice-v1/profile.json',
     'visibility-choice-v1/question.json',
     'visibility-choice-v1/freeze.json',
+    'visibility-choice-v1/freeze-r2.json',
   ];
   for (const file of files) {
     mkdirSync(join(outDir, dirname(file)), { recursive: true });
     cpSync(join(EVAL_DIR, file), join(outDir, file));
   }
-  for (const name of BOUNDARY.map(([id]) => id)) {
+  for (const name of BOUNDARY_IDS) {
     const relative = `visibility-choice-v1/synthetic/${name}.txt`;
     mkdirSync(join(outDir, dirname(relative)), { recursive: true });
     cpSync(join(EVAL_DIR, relative), join(outDir, relative));
@@ -701,7 +716,7 @@ mainChoice(process.argv.slice(2)).then((code) => process.exit(code ?? 0), (error
 
 \`node prepare.mjs\` prints 24 slots and calls 0. It does not send.
 \`node prepare.mjs --answers <dir> --out <dir>\` pins request bytes for staged responses. Synthetic fixtures come from this folder. A response whose request bytes plus 4096 exceed 8000 is copied under preserved/ and is not requested.
-Do not pass --execute until a separate review. The freeze does not authorize a call.
+Do not pass --execute until a separate review. The original prompt freeze is 2026-11-08T20:22:23Z. This bundle's --freeze-sha is the later code revision. Captures started after the prompt freeze and before that code revision are not captures after the code freeze. The freeze does not authorize a call.
 The v1 eight-question sender is a different command.
 
 Answer files are \`<id>.txt\` in the answers directory. Labels stay outside this folder and are not part of a request.
