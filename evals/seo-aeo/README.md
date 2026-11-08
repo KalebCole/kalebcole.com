@@ -139,6 +139,8 @@ The pilot ledger allows at most 8 armed attempts and does not retry. Any HTTP st
 
 `strict-visibility-win-v2` is a separate candidate. It does not replace v1 scoring or the v1 question file. The v2 question hash is pinned in `lib/strict-visibility-v2.mjs`. An answer-present v2 row without an explicit abstained boolean is invalid, not a win. v1 still scores that omission under the v1 rule. Offline tests check contradiction handling and slot accounting only. They are not a model result. The prospective check is `plans/prospective-strict-visibility-v2.md`. No v2 request has been sent.
 
+`decision1-v2-prepare.mjs` prints that grid and, with `--answers` and `--out`, pins eight request bodies to the v2 question hash. It does not replace `decision1-execute.mjs`. The prior usage for that new grid is $0.009587634 and the cap is $0.05. `--execute` is not authorized by the freeze.
+
 ```bash
 npm run eval:seo-aeo -- decision1-example
 ```
