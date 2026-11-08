@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
+import { SUPPLEMENT_CAPTURE_PATHS } from '../../evals/seo-aeo/lib/frozen-path.mjs';
 import { loadDefinitions, loadSchema } from '../../evals/seo-aeo/lib/load.mjs';
 import { renderReport } from '../../evals/seo-aeo/lib/report.mjs';
 import { validate } from '../../evals/seo-aeo/lib/schema.mjs';
@@ -533,7 +534,7 @@ test('new eval files do not add an em dash outside the frozen visibility questio
   ];
   for (const path of files) {
     const relative = path.slice(root.length + 1);
-    if (relative === FROZEN_EMDASH_EXCEPTION) continue;
+    if (relative === FROZEN_EMDASH_EXCEPTION || SUPPLEMENT_CAPTURE_PATHS.includes(relative)) continue;
     assert.equal(readFileSync(path, 'utf8').includes(emDash), false, relative);
   }
 });

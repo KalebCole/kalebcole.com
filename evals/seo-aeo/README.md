@@ -143,6 +143,8 @@ The pilot ledger allows at most 8 armed attempts and does not retry. Any HTTP st
 
 `visibility-choice-v1-prepare.mjs` is a separate single-choice candidate. It does not adopt itself over v1 or v2. A request is the profile, the response, and one Yes or No question. The conservative token bound is the exact request's UTF-8 byte length plus 4096. A request over 8000 on that bound is preserved and not sent. The prior is $0.010124478, the new maximum is $0.008064, and the cap is $0.05. The default command makes zero calls.
 
+`visibility-choice-v1-supplement-prepare.mjs` is a later two-slot supplement. It does not edit the original runner, freeze, or run. Its per-call ceiling is 8151 conservative tokens, under the documented 32768-token context window. The measured requests are 8129 and 8151 tokens. It allows at most two armed attempts. Its prior is $0.010539228, its new maximum is $0.00068376, the cumulative bound is $0.011222988, and the cap is $0.05. The name input is the later 1:26 PM Pacific capture. The default command makes zero calls.
+
 ```bash
 npm run eval:seo-aeo -- decision1-example
 ```

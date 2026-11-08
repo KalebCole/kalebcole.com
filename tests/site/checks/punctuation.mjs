@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { FROZEN_EMDASH_EXCEPTION } from '../../../evals/seo-aeo/lib/frozen-path.mjs';
+import { FROZEN_EMDASH_EXCEPTION, SUPPLEMENT_CAPTURE_PATHS } from '../../../evals/seo-aeo/lib/frozen-path.mjs';
 import { collect, dist, emDash, root, utf8Text } from './helpers.mjs';
 
 // Em dashes: none in tracked files (CONTEXT.md Punctuation) or emitted output.
@@ -20,7 +20,7 @@ export const check = collect('punctuation', async ({ emittedFiles }) => {
     const source = utf8Text(path);
     if (source === null) continue;
     const rel = relative(root, path).split('\\').join('/');
-    if (rel === FROZEN_EMDASH_EXCEPTION) continue;
+    if (rel === FROZEN_EMDASH_EXCEPTION || SUPPLEMENT_CAPTURE_PATHS.includes(rel)) continue;
     assert.equal(source.includes(emDash), false, `${rel} must not contain em dashes`);
   }
 
