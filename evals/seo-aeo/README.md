@@ -141,6 +141,8 @@ The pilot ledger allows at most 8 armed attempts and does not retry. Any HTTP st
 
 `decision1-v2-prepare.mjs` prints that grid and, with `--answers` and `--out`, pins eight request bodies to the v2 question hash. It does not replace `decision1-execute.mjs`. The prior usage for that new grid is $0.009587634 and the cap is $0.05. `--execute` is not authorized by the freeze.
 
+`visibility-choice-v1-prepare.mjs` is a separate single-choice candidate. It does not adopt itself over v1 or v2. A request is the profile, the response, and one Yes or No question. The conservative token bound is the exact request's UTF-8 byte length plus 4096. A request over 8000 on that bound is preserved and not sent. The prior is $0.010124478, the new maximum is $0.008064, and the cap is $0.05. The default command makes zero calls.
+
 ```bash
 npm run eval:seo-aeo -- decision1-example
 ```
