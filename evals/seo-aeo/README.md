@@ -10,7 +10,9 @@ The eval runs by hand only. It is not part of `npm test`, `npm run check`, the b
 | --- | --- |
 | `queries.json` | The four exact name queries from #187, sent to engines word for word. |
 | `facts.json` | Atomic, sourced, dated facts the scorer checks answers against. **Pending Kaleb's approval.** |
-| `rubric.json` | Versioned classification rules, signals, and metric definitions. |
+| `rubric.json` | Rubric 1.0.0. Its visibility metric counts target-only and both-separated. That is not the strict win. |
+| `rubric.strict-visibility-win-v1.json` | The approved strict visibility win. A separate version. It does not relabel rubric 1.0.0. |
+| `questions/` | Frozen identity baseline and the prior visibility-only position question, byte-for-byte. See `questions/FROZEN.md`. |
 | `config.json` | Locale, repeats, providers, and the request, retry, quota, and cost caps. |
 | `schemas/` | JSON schemas for every file above, plus captured answers and review decisions. |
 | `run.mjs` | The CLI. |
@@ -23,7 +25,8 @@ Offline fixtures live in `tests/fixtures/seo-aeo/` and the tests in `tests/unit/
 
 ```bash
 npm run eval:seo-aeo                          # preflight (same as plan): calls, spend ceiling, skips
-npm run eval:seo-aeo -- validate              # check the definition files
+npm run eval:seo-aeo -- validate              # check the definition files and frozen question hashes
+npm run eval:seo-aeo -- score-strict tests/fixtures/seo-aeo/strict-visibility-cases.json
 npm run eval:seo-aeo -- run --provider fixture
 npm run eval:seo-aeo -- run --provider fixture --fixture tests/fixtures/seo-aeo/conflated.json
 npm run eval:seo-aeo -- import captures.json  # manual UI captures (see schemas/answer.schema.json)
@@ -82,7 +85,7 @@ Metrics are per provider and surface, never merged across API proxies, SERP capt
 
 | Metric | Measures |
 | --- | --- |
-| Visibility | Decided answers that identify the engineer. |
+| Visibility | Rubric 1.0.0 only: decided answers that identify the engineer, including both-separated. Not the strict win. |
 | Entity separation | Decided answers that do not conflate the two people. |
 | Fact accuracy | Correct target claims over correct plus contradicted plus conflated namesake claims. |
 | Completeness | Required facts per query that appear. |
@@ -90,6 +93,69 @@ Metrics are per provider and surface, never merged across API proxies, SERP capt
 | Organic rank | `round(100 * (N + 1 - p) / N)` for the first kalebcole.com result at position p, where N is the deepest captured position; not in the top N scores 0 and keeps the raw rank as `>N`. |
 
 Each surface also gets a compatibility key built from the query, fact, and rubric versions, the fact approval status and active fact definitions, the required facts, the locale, the provider settings, the recorded models, and the queries and repeats that surface actually ran. Compare runs month over month only when the keys match; a model or locale change starts a new baseline.
+
+Rubric 1.0.0 reports include a note that their Visibility row is not `strict-visibility-win-v1`. A separated namesake mention still counts as visible in rubric 1.0.0. That behavior is unchanged on purpose.
+
+## Strict visibility win (`strict-visibility-win-v1`)
+
+Kaleb approved this rule on 2026-11-06 at 12:45 PM Pacific. It is a new scoring version. It does not rewrite rubric 1.0.0, and it does not treat the frozen `visibility-only-v1` position labels as this win.
+
+A strict visibility win requires both of these, stated on the extraction rather than inferred from answer text:
+
+- The answer is primarily about the target Kaleb Cole.
+- The answer contains zero mention of the other namesake.
+
+Being first in a list of possible people is not a win. An accurate disclaimer that a different Kaleb Cole was involved in federal proceedings is not a win, and that mention is not by itself a harmful attribution. A wrong biography does not change the win. A missing citation does not change the win. A generic shared name, a Seattle locality card, or an unrelated athlete is not a criminal-namesake mention. No answer, and an absent AI Overview, are coverage gaps, not the same as an answer about someone else.
+
+A known failure is a loss even when the record says the judge abstained: the answer is not primarily the target, or the criminal namesake is mentioned. Abstention applies only when that pair would otherwise be a win, and it stays in the full denominator. Any other unresolved pair is unknown, including primary unknown with the namesake explicitly unmentioned. A missing field is invalid. It is not coerced to false, and it cannot become a win. Unknown fact accuracy stays in the fact denominator and is not verified truth. An unknown or missing citation does not change the win. Position labels (`target-leads` and the rest) are diagnostic only.
+
+`other-only`, `both-separated`, and `conflated` mean the target and the criminal namesake, the same split as the frozen identity question. A win pair combined with one of those three is invalid and goes to review. It is not a win. An unrelated athlete is not `both-separated`: engineer plus athlete stays `target-only` and can win. `both-separated` with the namesake mentioned stays a visibility loss, and harmful attribution stays its own field. `uncertain` and `unknown` do not cancel an explicit win pair.
+
+The JSON schema does not require the answer-present judgment fields. The local validator has no `if/then`. `scoreExtraction` is the gate those fields go through. A schema-valid record is not yet a win.
+
+`separateJudgeRequests` checks that the eight baseline questions and the visibility-only question stay in two payloads. Unit tests call it. `score-strict` and `validate` do not call a judge, and no adapter sends either payload.
+
+## Strict judge candidate (`strict-visibility-extraction-v1`)
+
+`questions/questions.strict-visibility-win-v1.candidate.json` is a separate extraction request for rubric `strict-visibility-win-v1`. It is not part of the eight identity questions, and it is not `visibility-only-v1`. Its sha256 is pinned. The request does not decide the win. `scoreExtraction` does. The candidate is not a validated judge.
+
+These commands make no network call:
+
+```bash
+npm run eval:seo-aeo -- prepare-strict tests/fixtures/seo-aeo/strict-judge-plan.json --out evals/seo-aeo/artifacts/strict-judge
+npm run eval:seo-aeo -- persist-raw --out evals/seo-aeo/artifacts/strict-judge --key <idempotence-key> --body response.json --input-tokens 0 --output-tokens 0
+npm run eval:seo-aeo -- validate-strict --out evals/seo-aeo/artifacts/strict-judge
+```
+
+`prepare-strict` and `persist-raw` are an offline ledger. They are not a Decision-1 executor and they do not send HTTP. `persist-raw` token counts are caller-supplied numbers for that ledger only. They are not provider usage.
+
+## Decision-1 choice contract (`strict-visibility-decision1-v1`)
+
+The wire payload is `{ "model": "decision-1-eval", "state": { "answer_text" }, "questions" }`. `state` has no query, no expected label, and no provisional claim. Capture engine, capture model, surface, and query id stay outside `state`. The questions file is `questions/questions.strict-visibility-decision1.v1.json`. Its sha256 is `3a3dd9ac3ae6feb15db9086bbb5bed4eea85bbc8200f7d9357559c7c5f297b0b`. Every question is type `choice` and is always asked. The prose candidate above is not this payload.
+
+`factAccuracy` is not a question. Facts are still unapproved, so the decoder sets that label to unknown. `citationSupport` is a text label, not a fetched URL. A missing or invalid choice is an error. It is not stored as false. `probabilities` is required. A body that has `probs` instead is an error. A 401 or 429 is stored as that status and is not retried. Usage comes from the response `usage` object. A missing token count stays unknown, not zero.
+
+The pilot ledger allows at most 8 armed attempts and does not retry. Any HTTP status other than 200 stops the run. Prior usage is pinned at $0.009095688. The cap is $0.05. The planning reserve is $0.005. After each response, `budget.json` adds the provider's input tokens at $0.042 per million and stops when new spend passes $0.005 or the cumulative total passes $0.05. Unknown usage keeps that reserve. `budget.json` `calls` is the number of armed lines in `attempts.jsonl`, including a failed attempt. A restart does not reset it. Spend stays in `inputTokens` and `spentNewNano`. The reviewed plan v2 envelope is 57763 request bytes plus 4096 bytes per request, 90531 planning tokens, about $0.003802302. That figure is not a documented tokenizer limit. `decision1-verify-plan` checks exact request files and does not send them. The opt-in sender is `decision1-execute.mjs`. It checks the plan file hash before asking Azure CLI for a token, then POSTs with node HTTPS, 5 seconds apart. The token audience is `https://cognitiveservices.azure.com`. It is not run by tests. `prepare-strict` and `persist-raw` are not this sender.
+
+`strict-visibility-win-v2` is a separate candidate. It does not replace v1 scoring or the v1 question file. The v2 question hash is pinned in `lib/strict-visibility-v2.mjs`. An answer-present v2 row without an explicit abstained boolean is invalid, not a win. v1 still scores that omission under the v1 rule. Offline tests check contradiction handling and slot accounting only. They are not a model result. The prospective check is `plans/prospective-strict-visibility-v2.md`. No v2 request has been sent.
+
+`decision1-v2-prepare.mjs` prints that grid and, with `--answers` and `--out`, pins eight request bodies to the v2 question hash. It does not replace `decision1-execute.mjs`. The prior usage for that new grid is $0.009587634 and the cap is $0.05. `--execute` is not authorized by the freeze.
+
+`visibility-choice-v1-prepare.mjs` is a separate single-choice candidate. It does not adopt itself over v1 or v2. A request is the profile, the response, and one Yes or No question. The conservative token bound is the exact request's UTF-8 byte length plus 4096. A request over 8000 on that bound is preserved and not sent. The prior is $0.010124478, the new maximum is $0.008064, and the cap is $0.05. The default command makes zero calls.
+
+`visibility-choice-v1-supplement-prepare.mjs` is a later two-slot supplement. It does not edit the original runner, freeze, or run. Its per-call ceiling is 8151 conservative tokens, under the documented 32768-token context window. The measured requests are 8129 and 8151 tokens. It allows at most two armed attempts. Its prior is $0.010539228, its new maximum is $0.00068376, the cumulative bound is $0.011222988, and the cap is $0.05. The name input is the later 1:26 PM Pacific capture. The default command makes zero calls.
+
+```bash
+npm run eval:seo-aeo -- decision1-example
+```
+
+The original eight identity questions stay in `questions/questions.baseline.v1.frozen.json` and stay in their own request. Do not add a visibility question to that payload.
+
+`score-strict` reads an extraction file and prints the report. It makes no network call. Pass a JSON array, or `{ "records": [ ... ] }`. Records are explicit string labels (`"true"`, `"false"`, `"unknown"`), not booleans. Grouping is by surface, consumer tool (`chatgpt`, `google`, or `gemini`), and model. A missing tool is invalid. Signed-out ChatGPT, Google, and Gemini stay in separate groups even when model is omitted. Signed-in Google, signed-in Gemini, and API proxies stay separate. Signed-out Gemini Flash-Lite is not signed-in Gemini Flash. Sign-out does not remove IP, location, or session effects. The only queries are the four name queries. There is no Grok run. Repeats are correlated, and independence is not estimated.
+
+This scorer does not compare fact labels to `facts.json`. Facts are still pending approval. A `verified` label is not an approved-fact result.
+
+Passing `score-strict` or the unit tests shows that the counter follows the rubric. It does not show that a model, an extractor, or a consumer answer meets the rule. The 2026-11-06 fresh check (ChatGPT unambiguous 3/3, Google 4/4, Gemini 4/4) measured the position rubric only. Those counts are not accuracy for this version. Judge validation is still pending: each new answer needs its own labels for the win pair, identity and harmful attribution, facts, and citations.
 
 ## Human review
 

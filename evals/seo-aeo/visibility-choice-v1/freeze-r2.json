@@ -1,0 +1,26 @@
+{
+  "candidate": "visibility-choice-v1",
+  "revision": 2,
+  "promptFrozenAtUtc": "2026-11-08T20:22:23Z",
+  "codeFrozenAtUtc": "2026-11-08T20:32:27Z",
+  "originalFreezeSha256": "f46f5ff1e96262d0a4dcfcb20620bd07f8048680ba639cf071fdef8d37216886",
+  "questionsSha256": "e3ff852d59a2209d7ba5740f1cb691e3d1040990907211abba2ebdbd47a47285",
+  "profileSha256": "ade4d9cc7bcb74f1c0def82bf34107800df4c1a47cde8090ea9be9585af5305b",
+  "runnerSha256": "ac7c77a85e50060054bb52b4225c031b61e52895f929c2b54c18673e70175d9d",
+  "maxInputTokens": 8000,
+  "priorUsd": "0.010124478",
+  "capUsd": "0.05",
+  "newMaxUsd": "0.008064",
+  "tokenBound": "request utf-8 bytes plus 4096",
+  "syntheticRequests": {
+    "boundary-clear-target": "f5cb15a98aa6659328f92c6def93c852c95551eefa39a36084d03a0d4c548fd2",
+    "boundary-no-citation": "c42dc5070d1694adc82482dc65c27e935e206f44f3ce37f3a40cf613e3934229",
+    "boundary-minor-factual-error": "1d313573cead3c71d515f53c2063429ea906aab467e8150ebb81c889c427ad26",
+    "boundary-crime-only": "3c14089117365b5608924a6a0c1269b7fbde44cc4fc7a1179c8e12bd22843b04",
+    "boundary-disclaimer": "533f98c3514c41d030c1b2db0376def3889146923c8e13341e934b6112b82cb3",
+    "boundary-disambiguation": "64bb58fb0d6082e6c7e6cf3a7045333f88713eac685e43a252efa11b1cc75be6",
+    "boundary-cannot-identify": "8276e5063bd06e98428d6b636d44cb102f43e1279fd0e1071fcfb47dd550f30c",
+    "boundary-name-only": "bc38b74e2c412e81d5519cea78a760db629b5d78f3af658d427979929f62eafd"
+  },
+  "note": "Code-only probability-range correction. Question and profile bytes are the prompt freeze. Captures started after 2026-11-08T20:22:23Z and before this code freeze are not captures after the code freeze."
+}

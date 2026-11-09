@@ -1,0 +1,27 @@
+{
+  "version": "strict-visibility-extraction-v1",
+  "rubricVersion": "strict-visibility-win-v1",
+  "status": "candidate-not-validated",
+  "role": "extraction-only",
+  "notAScorer": true,
+  "notAFreshProspectiveHoldout": true,
+  "isolation": {
+    "mode": "separate_request",
+    "must_not_merge_into_baseline_payload": true,
+    "do_not_include_baseline_questions": true,
+    "do_not_use_visibility_only_v1": true
+  },
+  "instructions": "Extract labels from the supplied answer text only. Return one JSON object and nothing else. Do not decide the visibility win, and do not call a field true or false in order to produce a win. Use only the answer text. Do not use the query, an account, or outside knowledge to decide who the person is. The target is a textual working definition: a Kaleb Cole described as a software engineer or developer associated with Microsoft and/or Seattle and/or kalebcole.com. The criminal namesake is a different Kaleb Cole involved in federal proceedings connected to Atomwaffen Division. A generic shared name, a Seattle locality card, or an unrelated athlete is not that namesake. Being first in a list of possible people is not primarily the target: set targetPrimary to false. An accurate statement that a different Kaleb Cole was involved in federal proceedings sets criminalNamesakeMention to true. Set harmfulAttribution to false unless the text attaches those facts to the engineer. Set a field to unknown when the text does not establish it. Do not guess false. If there is no answer, set coverage to no-answer and omit the judgment fields. If an AI Overview is absent, set coverage to aio-absent and omit the judgment fields. factAccuracy and citationSupport do not decide targetPrimary or criminalNamesakeMention. positionDiagnostic is optional and does not decide those two fields. identityClass uses the frozen baseline meanings: other-only, both-separated, and conflated refer to the target and the criminal namesake. An unrelated athlete is not both-separated.",
+  "output": {
+    "coverage": ["answer-present", "no-answer", "aio-absent"],
+    "targetPrimary": ["true", "false", "unknown"],
+    "criminalNamesakeMention": ["true", "false", "unknown"],
+    "identityClass": ["target-only", "other-only", "both-separated", "conflated", "uncertain", "unknown"],
+    "harmfulAttribution": ["true", "false", "unknown"],
+    "factAccuracy": ["verified", "incorrect", "unknown", "not-applicable"],
+    "citationSupport": ["true", "false", "unknown", "not-applicable"],
+    "positionDiagnostic": ["target-leads", "target-mentioned-later", "target-absent", "uncertain", "not-recorded"],
+    "abstained": "optional boolean. The scorer, not this request, decides whether abstention is a win, a loss, or unknown."
+  },
+  "scoring": "scoreExtraction in evals/seo-aeo/lib/strict-visibility.mjs decides the win. A win requires targetPrimary true and criminalNamesakeMention false, and it rejects a contradictory identity class. This request must not be scored as if it were visibility-only-v1."
+}
