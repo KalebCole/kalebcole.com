@@ -4,3 +4,9 @@ dist/
 .vercel/
 .env
 .env.local
+
+# SEO and AEO eval: local keys and raw run artifacts stay off GitHub.
+evals/seo-aeo/.env*
+!evals/seo-aeo/.env.example
+evals/seo-aeo/artifacts/
+evals/seo-aeo/sender-bundle/

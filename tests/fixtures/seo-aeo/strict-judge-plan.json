@@ -1,0 +1,19 @@
+{
+  "note": "Synthetic preparation plan. No answer text, no gold labels, and not a fresh prospective holdout.",
+  "items": [
+    {
+      "id": "signed-out-chatgpt-name",
+      "surface": "public-signed-out",
+      "tool": "chatgpt",
+      "queryId": "name",
+      "repeat": 1
+    },
+    {
+      "id": "signed-out-google-name",
+      "surface": "public-signed-out",
+      "tool": "google",
+      "queryId": "name",
+      "repeat": 1
+    }
+  ]
+}

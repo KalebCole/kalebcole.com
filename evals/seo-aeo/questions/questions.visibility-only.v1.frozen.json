@@ -1,0 +1,27 @@
+{
+  "version": "visibility-only-v1",
+  "status": "FROZEN_BEFORE_FURTHER_CALLS",
+  "frozen_at_pacific": "2026-11-06T12:12:32-08:00",
+  "api": "Microsoft-Decision-1 systemone noul|choice|score",
+  "request_isolation": {
+    "mode": "separate_api_request",
+    "questions_in_this_payload": [
+      "visibility_of_target"
+    ],
+    "must_not_merge_into_baseline_payload": true,
+    "baseline_file": "revisions/questions.baseline.v1.frozen.json",
+    "no_hidden_identity_or_review_policy": true
+  },
+  "questions": {
+    "visibility_of_target": {
+      "type": "choice",
+      "instructions": "Judge only answer_text and provided evidence spans. Do not use external biography, the query, or a signed-in account to assume who the user is. Target engineer is a textual working definition only (not an approved fact sheet): a Kaleb Cole described as a software engineer/developer associated with Microsoft and/or Seattle and/or kalebcole.com. Broad factual accuracy of those claims is out of scope. Choose exactly one label. A personalized first-name greeting or account address with no Microsoft / Seattle software-engineer / kalebcole.com anchors is uncertain — not target-leads and not target-absent. This request is visibility only; do not invent identity, review, or harmful-attribution judgments here.",
+      "criteria": {
+        "target-leads": "Opens with or is mainly about the target engineer (Microsoft/Seattle software-engineer/kalebcole.com signals as the primary framing).",
+        "target-mentioned-later": "Target-engineer signals appear only after another person or topic leads.",
+        "target-absent": "Non-empty answer with no recognizable target-engineer signals as defined above.",
+        "uncertain": "Cannot tell from the text, including greeting-only or account-address replies with no engineer anchors."
+      }
+    }
+  }
+}

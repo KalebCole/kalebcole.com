@@ -1,0 +1,47 @@
+{
+  "candidate": "visibility-choice-v1-supplement",
+  "promptFrozenAtUtc": "2026-11-08T20:22:23Z",
+  "codeFrozenAtUtc": "2026-11-08T21:34:02Z",
+  "questionsSha256": "e3ff852d59a2209d7ba5740f1cb691e3d1040990907211abba2ebdbd47a47285",
+  "profileSha256": "ade4d9cc7bcb74f1c0def82bf34107800df4c1a47cde8090ea9be9585af5305b",
+  "supplementRunnerSha256": "e7038e5bd683ed34f95f78c365b1ab617ad0892867d5a7bfbe61976f990e4fe9",
+  "originalRunnerSha256": "ac7c77a85e50060054bb52b4225c031b61e52895f929c2b54c18673e70175d9d",
+  "originalFreezeSha256": "f46f5ff1e96262d0a4dcfcb20620bd07f8048680ba639cf071fdef8d37216886",
+  "originalR2Sha256": "8e480e9049696e4da34c26255f2d9759824d815c60d567f5801f1605df6e11bc",
+  "maxInputTokens": 8151,
+  "maxCalls": 2,
+  "contextWindowTokens": 32768,
+  "priorUsd": "0.010539228",
+  "capUsd": "0.05",
+  "newMaxUsd": "0.00068376",
+  "cumulativeUsd": "0.011222988",
+  "originalSpentUsd": "0.00041475",
+  "originalNewMaxUsd": "0.008064",
+  "nameCapturedAtPacific": "2026-11-08 1:26 PM Pacific",
+  "originalMissingRemains": true,
+  "eligibleIds": [
+    "fresh-google-signed-out-who-is",
+    "fresh-google-signed-out-name"
+  ],
+  "requests": {
+    "fresh-google-signed-out-who-is": {
+      "responseUtf8Bytes": 2740,
+      "requestUtf8Bytes": 4055,
+      "conservativeInputTokens": 8151,
+      "requestSha256": "a034efed022caa32e00728a67bd248639eea379424d56db7fb0ce510aad1cabe"
+    },
+    "fresh-google-signed-out-name": {
+      "responseUtf8Bytes": 2718,
+      "requestUtf8Bytes": 4033,
+      "conservativeInputTokens": 8129,
+      "requestSha256": "5a7a37b320a9cb2e0b695bf1318f5d621b1390696c6f06c3393603bf9290d20e",
+      "capturedAtPacific": "2026-11-08 1:26 PM Pacific"
+    }
+  },
+  "sources": [
+    "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure",
+    "https://ai.azure.com/catalog/models/Microsoft-Decision-1",
+    "https://learn.microsoft.com/en-us/answers/questions/6049882/microsoft-decision-1-context-limit-does-not-match"
+  ],
+  "note": "Supplement for the two unsent slots only. The original per-call ceiling of 8000 remains on the original runner. Microsoft Learn, retrieved 2026-11-08, says Microsoft-Decision-1 scores inputs of up to 32K tokens. The Foundry catalog lists context window 32768. Q&A 6049882 shows systemone can reject a prompt at that window, including the decision token, while usage.input_tokens reports fewer tokens. The conservative count is request UTF-8 bytes plus 4096. The measured requests are 8129 and 8151, both under 32768. The per-call guard is 8151. The new maximum is exactly 16280 times 42 nanodollars, $0.00068376. Prior $0.010539228 plus that maximum is $0.011222988, under the $0.05 cap. Added to the $0.00041475 already spent, it remains inside the original experiment maximum of $0.008064. The name file is the later 1:26 PM Pacific capture. The original missing slot stays missing. This freeze does not authorize a call."
+}

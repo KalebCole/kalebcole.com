@@ -1,0 +1,14 @@
+{
+  "description": "Answers about the engineer that mention the namesake only to rule him out.",
+  "responses": {
+    "*": {
+      "status": "ok",
+      "text": "Kaleb Cole is a software engineer at Microsoft who builds the Azure support ticket platform. He is not the Kaleb Cole who was convicted in the Atomwaffen case.",
+      "citations": [
+        {
+          "url": "https://www.linkedin.com/in/kaleb-cole"
+        }
+      ]
+    }
+  }
+}

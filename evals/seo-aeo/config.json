@@ -1,0 +1,111 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-11-05",
+  "locale": {
+    "country": "us",
+    "language": "en",
+    "location": "Seattle, Washington, United States",
+    "device": "desktop",
+    "timeZone": "America/Los_Angeles"
+  },
+  "repeats": 1,
+  "envFiles": [".env.local", ".env"],
+  "artifactsDir": "artifacts",
+  "limits": {
+    "maxRequestsPerRun": 60,
+    "maxRetries": 2,
+    "retryBaseDelayMs": 2000,
+    "maxCostUsdPerRun": 1
+  },
+  "providers": [
+    {
+      "id": "fixture",
+      "adapter": "fixture",
+      "surface": "fixture",
+      "label": "fixture",
+      "enabled": true,
+      "requiredEnv": [],
+      "costPerCallUsdUpper": 0,
+      "maxCallsPerRun": 60,
+      "citations": true,
+      "organic": true
+    },
+    {
+      "id": "google-organic",
+      "adapter": null,
+      "plannedIssue": 189,
+      "surface": "google-organic",
+      "label": "serp-capture",
+      "enabled": false,
+      "requiredEnv": ["SERPAPI_API_KEY"],
+      "costPerCallUsdUpper": 0,
+      "maxCallsPerRun": 12,
+      "citations": false,
+      "organic": true
+    },
+    {
+      "id": "google-ai-overview",
+      "adapter": null,
+      "plannedIssue": 189,
+      "surface": "google-ai-overview",
+      "label": "serp-capture",
+      "enabled": false,
+      "requiredEnv": ["SERPAPI_API_KEY"],
+      "costPerCallUsdUpper": 0,
+      "maxCallsPerRun": 12,
+      "citations": true,
+      "organic": false
+    },
+    {
+      "id": "google-ai-mode",
+      "adapter": null,
+      "plannedIssue": 189,
+      "surface": "google-ai-mode",
+      "label": "serp-capture",
+      "enabled": false,
+      "requiredEnv": ["SERPAPI_API_KEY"],
+      "costPerCallUsdUpper": 0,
+      "maxCallsPerRun": 12,
+      "citations": true,
+      "organic": false
+    },
+    {
+      "id": "openai-web-search",
+      "adapter": null,
+      "plannedIssue": 190,
+      "surface": "chatgpt-api-proxy",
+      "label": "api-proxy",
+      "enabled": false,
+      "requiredEnv": ["OPENAI_API_KEY"],
+      "costPerCallUsdUpper": 0.05,
+      "maxCallsPerRun": 12,
+      "citations": true,
+      "organic": false
+    },
+    {
+      "id": "gemini-grounded",
+      "adapter": null,
+      "plannedIssue": 191,
+      "surface": "gemini-api-proxy",
+      "label": "api-proxy",
+      "enabled": false,
+      "requiredEnv": ["GEMINI_API_KEY"],
+      "costPerCallUsdUpper": 0.02,
+      "maxCallsPerRun": 12,
+      "citations": true,
+      "organic": false
+    },
+    {
+      "id": "manual-ui",
+      "adapter": "manual",
+      "surface": "manual-ui",
+      "label": "manual-ui",
+      "enabled": false,
+      "requiredEnv": [],
+      "costPerCallUsdUpper": 0,
+      "maxCallsPerRun": 0,
+      "citations": true,
+      "organic": false
+    }
+  ]
+}

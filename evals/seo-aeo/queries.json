@@ -1,0 +1,43 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-11-05",
+  "note": "Exact name queries from #187. The prompt is sent to engines word for word. Fact ids are used by the scorer only and never reach a prompt.",
+  "queries": [
+    {
+      "id": "name",
+      "prompt": "kaleb cole",
+      "group": "identity",
+      "qualified": false,
+      "enabled": true,
+      "requiredFactIds": ["target-role", "target-employer"],
+      "desiredFactIds": ["target-location", "target-website"]
+    },
+    {
+      "id": "who-is",
+      "prompt": "who is kaleb cole",
+      "group": "identity",
+      "qualified": false,
+      "enabled": true,
+      "requiredFactIds": ["target-role", "target-employer"],
+      "desiredFactIds": ["target-location", "target-website", "target-azure-support", "target-series-role"]
+    },
+    {
+      "id": "name-microsoft",
+      "prompt": "kaleb cole microsoft",
+      "group": "identity",
+      "qualified": true,
+      "enabled": true,
+      "requiredFactIds": ["target-role", "target-employer"],
+      "desiredFactIds": ["target-azure-support", "target-series-role"]
+    },
+    {
+      "id": "name-seattle-swe",
+      "prompt": "kaleb cole seattle software engineer",
+      "group": "identity",
+      "qualified": true,
+      "enabled": true,
+      "requiredFactIds": ["target-role", "target-employer", "target-location"],
+      "desiredFactIds": ["target-website", "target-azure-support"]
+    }
+  ]
+}

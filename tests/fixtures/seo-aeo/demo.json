@@ -1,0 +1,106 @@
+{
+  "description": "Default fixture for a quick offline run: one scenario per query.",
+  "responses": {
+    "name": {
+      "status": "ok",
+      "text": "There are two notable people named Kaleb Cole. One is a software engineer at Microsoft in Seattle who writes on kalebcole.com. A different Kaleb Cole, a former Atomwaffen Division leader, was sentenced to seven years in federal prison in 2022.",
+      "citations": [
+        {
+          "url": "https://kalebcole.com/"
+        },
+        {
+          "url": "https://www.justice.gov/archives/opa/pr/leader-neo-nazi-group-sentenced-plot-target-journalists-and-advocates"
+        }
+      ]
+    },
+    "who-is": {
+      "status": "ok",
+      "text": "Kaleb Cole is a software engineer at Microsoft in Seattle. He works on the platform behind Azure support tickets and writes about AI agents on kalebcole.com.",
+      "citations": [
+        {
+          "url": "https://kalebcole.com/",
+          "title": "Kaleb Cole"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole on GitHub"
+        }
+      ]
+    },
+    "name-microsoft": {
+      "status": "ok",
+      "text": "Kaleb Cole is a software engineer at Microsoft who builds the Azure support ticket platform. He is not the Kaleb Cole who was convicted in the Atomwaffen case.",
+      "citations": [
+        {
+          "url": "https://www.linkedin.com/in/kaleb-cole"
+        }
+      ]
+    },
+    "name-seattle-swe": {
+      "status": "ok",
+      "text": "Kaleb Cole is a software engineer at Microsoft in Seattle. He works on the platform behind Azure support tickets and writes about AI agents on kalebcole.com.",
+      "citations": [
+        {
+          "url": "https://kalebcole.com/",
+          "title": "Kaleb Cole"
+        },
+        {
+          "url": "https://github.com/KalebCole",
+          "title": "KalebCole on GitHub"
+        }
+      ],
+      "organic": [
+        {
+          "position": 1,
+          "url": "https://example.com/result-0",
+          "title": "Unrelated result 0"
+        },
+        {
+          "position": 2,
+          "url": "https://kalebcole.com/",
+          "title": "Kaleb Cole | Software engineer in Seattle"
+        },
+        {
+          "position": 3,
+          "url": "https://example.com/result-0",
+          "title": "Unrelated result 0"
+        },
+        {
+          "position": 4,
+          "url": "https://example.com/result-1",
+          "title": "Unrelated result 1"
+        },
+        {
+          "position": 5,
+          "url": "https://example.com/result-2",
+          "title": "Unrelated result 2"
+        },
+        {
+          "position": 6,
+          "url": "https://example.com/result-3",
+          "title": "Unrelated result 3"
+        },
+        {
+          "position": 7,
+          "url": "https://example.com/result-4",
+          "title": "Unrelated result 4"
+        },
+        {
+          "position": 8,
+          "url": "https://example.com/result-5",
+          "title": "Unrelated result 5"
+        },
+        {
+          "position": 9,
+          "url": "https://example.com/result-6",
+          "title": "Unrelated result 6"
+        },
+        {
+          "position": 10,
+          "url": "https://example.com/result-7",
+          "title": "Unrelated result 7"
+        }
+      ]
+    }
+  }
+}

@@ -11,10 +11,11 @@
     "portrait": "node scripts/build-portrait.mjs",
     "preview": "astro preview",
     "recommend-thumbnails": "node scripts/recommend-thumbnails.mjs",
-    "test": "node tests/support/run-tests.mjs tests/unit 12",
+    "test": "node tests/support/run-tests.mjs tests/unit 24",
     "test:site": "npm run build && node tests/site/run.mjs && node tests/support/run-tests.mjs tests/site 1",
     "test:e2e": "npm run build && npm run test:e2e:run",
-    "test:e2e:run": "node tests/support/run-tests.mjs tests/e2e 3"
+    "test:e2e:run": "node tests/support/run-tests.mjs tests/e2e 3",
+    "eval:seo-aeo": "node evals/seo-aeo/run.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",

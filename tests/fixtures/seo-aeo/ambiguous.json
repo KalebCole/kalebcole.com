@@ -1,0 +1,17 @@
+{
+  "description": "Answers with too little signal, or both people without a separation cue.",
+  "responses": {
+    "name": {
+      "status": "ok",
+      "text": "Kaleb Cole is a person who lives in Washington state."
+    },
+    "who-is": {
+      "status": "ok",
+      "text": "Kaleb Cole works at Microsoft. Kaleb Cole was sentenced to prison in 2022."
+    },
+    "*": {
+      "status": "ok",
+      "text": "Kaleb Cole is a common enough name that several people share it."
+    }
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SEO and AEO eval rubric",
+  "type": "object",
+  "required": [
+    "version",
+    "updated",
+    "classifications",
+    "reviewRequired",
+    "accuracyExcludesFactIds",
+    "signals",
+    "metrics"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date"
+    },
+    "classifications": {
+      "type": "object",
+      "required": [
+        "target-only",
+        "other-only",
+        "both-separated",
+        "conflated",
+        "uncertain"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "target-only": {
+          "type": "string"
+        },
+        "other-only": {
+          "type": "string"
+        },
+        "both-separated": {
+          "type": "string"
+        },
+        "conflated": {
+          "type": "string"
+        },
+        "uncertain": {
+          "type": "string"
+        }
+      }
+    },
+    "reviewRequired": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "target-only",
+          "other-only",
+          "both-separated",
+          "conflated",
+          "uncertain"
+        ]
+      }
+    },
+    "accuracyExcludesFactIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "signals": {
+      "type": "object",
+      "required": [
+        "separationCues",
+        "negationCues",
+        "targetOwnedUrls",
+        "corroboratingUrls",
+        "siteUrl"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "separationCues": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "negationCues": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "targetOwnedUrls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "corroboratingUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "siteUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "visibility",
+        "entitySeparation",
+        "factAccuracy",
+        "completeness",
+        "citationSupport",
+        "organicRank"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "visibility": {
+          "$ref": "#/$defs/metric"
+        },
+        "entitySeparation": {
+          "$ref": "#/$defs/metric"
+        },
+        "factAccuracy": {
+          "$ref": "#/$defs/metric"
+        },
+        "completeness": {
+          "$ref": "#/$defs/metric"
+        },
+        "citationSupport": {
+          "$ref": "#/$defs/metric"
+        },
+        "organicRank": {
+          "$ref": "#/$defs/metric"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "metric": {
+      "type": "object",
+      "required": [
+        "definition"
+      ],
+      "properties": {
+        "definition": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
