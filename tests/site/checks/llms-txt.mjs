@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { LLMS_FULL_PAGE_COPY, LLMS_FULL_TXT_NOTE } from '../../../src/lib/llms-txt.mjs';
 import { blogSource, collect, localAsset, matches, outputForPath, root, site, text } from './helpers.mjs';
 
 // /llms.txt: header fields, sections, links, and no drafts.
@@ -62,4 +63,49 @@ export const check = collect('llms-txt', async ({ routes }) => {
     assert.ok(pinnedReposComponent.includes(phrase), `/llms.txt series entry must match the Projects page: ${phrase}`);
     assert.ok(llmsTxt.includes(phrase), `/llms.txt must include the series entry: ${phrase}`);
   }
+
+  assert.ok(llmsTxt.includes(LLMS_FULL_TXT_NOTE), '/llms.txt must link to /llms-full.txt');
+  const homepage = text(routes.get('/'));
+  assert.match(homepage, /<link\b[^>]*rel="alternate"[^>]*href="\/llms-full\.txt"/i, 'pages must advertise /llms-full.txt as an alternate');
+  assert.match(String(llmsPerson.description ?? ''), /software engineer at Microsoft in Seattle/, 'Person JSON-LD description must state the approved identity');
+
+  const llmsFullPath = localAsset('/llms-full.txt');
+  assert.ok(existsSync(llmsFullPath), 'production build must emit /llms-full.txt');
+  const llmsFull = text(llmsFullPath);
+  assert.ok(llmsFull.startsWith(llmsTxt), '/llms-full.txt must start with the /llms.txt document');
+  assert.match(llmsFull, /^## Full pages$/m, '/llms-full.txt must include a Full pages section');
+  assert.doesNotMatch(llmsFull, /\u2014/, '/llms-full.txt must not contain em dashes');
+
+  for (const phrase of [
+    LLMS_FULL_PAGE_COPY.homeGreeting,
+    LLMS_FULL_PAGE_COPY.homeStatement,
+    LLMS_FULL_PAGE_COPY.homeSubtitle,
+    LLMS_FULL_PAGE_COPY.writingIntro,
+    LLMS_FULL_PAGE_COPY.projectsIntro,
+    LLMS_FULL_PAGE_COPY.recommendsIntro,
+    ...LLMS_FULL_PAGE_COPY.privacyParagraphs,
+  ]) {
+    assert.ok(llmsFull.includes(phrase), `/llms-full.txt must include published page text: ${phrase}`);
+  }
+  assert.ok(homepage.includes(LLMS_FULL_PAGE_COPY.homeGreeting), 'homepage greeting must match /llms-full.txt');
+  assert.ok(homepage.includes(LLMS_FULL_PAGE_COPY.homeSubtitle), 'homepage subtitle must match /llms-full.txt');
+  assert.ok(homepage.includes('I make things, write down what I learn, and follow whatever has me'), 'homepage statement must match /llms-full.txt');
+
+  for (const name of readdirSync(blogSource).filter((file) => file.endsWith('.md'))) {
+    const source = text(join(blogSource, name));
+    const slug = name.replace(/\.md$/, '');
+    if (/^draft:\s*true\s*$/m.test(source)) {
+      assert.ok(!llmsFull.includes(`/blog/${slug}`), `/llms-full.txt must not include draft writing ${name}`);
+      assert.ok(!llmsFull.includes('SECRET_DRAFT_BODY'), '/llms-full.txt must not leak draft bodies');
+      if (/^title:\s*"?This is a draft"?/m.test(source)) {
+        assert.ok(!llmsFull.includes('This is a draft'), '/llms-full.txt must not include the draft example title');
+      }
+    } else {
+      const title = source.match(/^title:\s*"?([^"\n]+)"?/m)?.[1];
+      assert.ok(title && llmsFull.includes(title), `/llms-full.txt must include published writing ${name}`);
+    }
+  }
+  assert.ok(llmsFull.includes('I rewrote this site to make writing the default.'), '/llms-full.txt must include published writing bodies');
+  assert.ok(!llmsFull.includes('Example: a talk worth watching'), '/llms-full.txt must not include draft recommends');
+  assert.ok(!llmsFull.includes('Placeholder entry showing the watch medium'), '/llms-full.txt must not include draft recommend takes');
 });
