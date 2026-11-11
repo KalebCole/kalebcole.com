@@ -24,4 +24,4 @@ No subscriber email service exists yet; picking one is the owner's decision.
 
 ## 3. Social drafts
 
-Hand the live link and key points from the owner's words off for social drafts. Nothing is sent or posted without the owner's ok. Cross-posting lives in the separate post-blog-to-socials skill.
+Hand the live link and key points from the owner's words off for social drafts. Nothing is sent or posted without the owner's ok. Cross-posting lives in the separate skill `skills/post-blog-to-socials/SKILL.md`.
