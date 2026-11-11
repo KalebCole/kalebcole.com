@@ -2,7 +2,7 @@
 
 Start only after `shipping.md` "Verify production" passes for a non-draft piece in `src/content/blog/`.
 
-The subscriber email is a draft for the owner to send (`SKILL.md`, Decisions that belong to the site owner). X and LinkedIn drafts are written by those bots from the link and key points you send them. Policy for the words: `PRODUCT.md` (Voice and Personality; Anti-references).
+The subscriber email is a draft for the owner to send (`SKILL.md`, Decisions that belong to the site owner). Policy for the words: `PRODUCT.md` (Voice and Personality; Anti-references).
 
 ## Inputs
 
@@ -22,10 +22,6 @@ Fetch the production page and confirm `og:title`, `og:description`, and `og:imag
 
 No subscriber email service exists yet; picking one is the owner's decision.
 
-## 3. X post
+## 3. Social drafts
 
-Send the canonical link plus key points from the owner's words to X (20bec847-01a1-4c8b-84d9-c7cc93d4f0a3) with SendToAgent. X drafts the post in the owner's X voice and gives the owner the intent link. Do not draft the X post yourself.
-
-## 4. LinkedIn blurb
-
-Send the same canonical link and key points to LinkedIn (5e98d123-44e1-4309-92c7-eecfdf59b3aa) with SendToAgent. LinkedIn drafts the blurb in the owner's voice and saves it as a LinkedIn draft. Do not draft the LinkedIn blurb yourself.
+Hand the live link and key points from the owner's words off for social drafts. Nothing is sent or posted without the owner's ok. Cross-posting lives in the separate post-blog-to-socials skill.
