@@ -42,7 +42,7 @@ Record the merge commit SHA from the last command.
 1. Find the Vercel production deployment for the merge commit (Vercel connector, Vercel CLI, or the GitHub deployment status on the merge commit). Pass only when its state is `READY` and its git commit SHA equals the merge commit SHA. If it is still building, wait and check again.
 2. Request every affected route and representative asset on `https://kalebcole.com` (the page, its images and video, `/rss.xml`, `/sitemap-index.xml`). Each must return 200 and contain the change (grep the HTML for the new title or text). A brand-new route can 404 briefly after the deploy goes ready; retry once after a short wait before calling it a failure.
 3. If a content extractor disagrees with what merged, fetch the raw HTML with `curl` and compare it with the source.
-4. For Writing, continue to `publish-day.md`.
+4. For Writing, continue to the post-live steps in `skills/blog-post/SKILL.md`.
 
 ## Stale link previews
 
