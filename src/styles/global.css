@@ -815,6 +815,62 @@ html[data-mode="dark"] .prose {
   margin-top: .5em;
 }
 
+.prose .article-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.prose .article-table-scroll:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  border-top: 2px solid var(--ink);
+  font-size: .95em;
+  line-height: 1.5;
+}
+
+.prose thead {
+  background: var(--soft-blue);
+  border-bottom: 1px solid var(--ink);
+}
+
+.prose :where(th, td) {
+  min-width: 8rem;
+  padding: 1rem;
+  vertical-align: top;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.prose th {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prose :where(th, td)[align="center"] {
+  text-align: center;
+}
+
+.prose :where(th, td)[align="right"] {
+  text-align: right;
+}
+
+.prose tbody tr {
+  border-bottom: 1px solid var(--rule);
+}
+
+@media (max-width: 540px) {
+  .prose :where(th, td) {
+    padding: .75rem 1rem;
+  }
+}
+
 .prose blockquote {
   margin-inline: 0;
   padding: 1.25rem;
@@ -824,6 +880,59 @@ html[data-mode="dark"] .prose {
 
 .prose blockquote > :first-child {
   margin-top: 0;
+}
+
+/* Native disclosures preserve Obsidian folding without article JavaScript. */
+.prose .callout {
+  padding: 1.25rem;
+  background: var(--soft-blue);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+}
+
+.prose .callout-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.prose summary.callout-title {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+}
+
+.prose summary.callout-title:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.prose .callout-title-text {
+  display: inline;
+}
+
+.prose .callout-fold-icon {
+  display: none;
+}
+
+.prose .callout-content > * + * {
+  margin-top: 1.5em;
+}
+
+.prose .callout-content > :first-child {
+  margin-top: .75rem;
+}
+
+.prose .callout :where(pre, figure, picture, p:has(> img)) {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;
+  transform: none;
+}
+
+@media (forced-colors: active) {
+  .prose .callout {
+    border-color: CanvasText;
+  }
 }
 
 .prose code {

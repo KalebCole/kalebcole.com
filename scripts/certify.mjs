@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { PRODUCTION_ORIGIN, resolveSocialImageOrigin } from '../src/lib/site-origin.mjs';
 import { hasCanonicalResumeLinkInPrimaryNavigation } from './certify-primary-navigation.mjs';
+import { staticDocumentKind } from './certify-static-documents.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dist = join(root, 'dist');
@@ -116,7 +117,8 @@ for (const path of trackedFiles) {
   assert.equal(source.includes(emDash), false, `${relative(root, path)} must not contain em dashes`);
 }
 
-const htmlFiles = walk(dist).filter((path) => extname(path) === '.html');
+const htmlFiles = walk(dist).filter((path) => extname(path) === '.html'
+  && staticDocumentKind(relative(dist, path), text(path)) === 'page');
 const xmlFiles = walk(dist).filter((path) => extname(path) === '.xml');
 const emittedFiles = walk(dist);
 const routes = new Map(htmlFiles.map((path) => [routeForHtml(path), path]));
@@ -408,7 +410,7 @@ const homepageWritingUrls = [
 ].filter(Boolean);
 assert.equal(Boolean(homepagePinnedWriting), Boolean(writingIndexPinned), 'homepage must use pinned writing whenever the Writing index does');
 if (homepagePinnedWriting) {
-  assert.match(homepagePinnedWriting, /class="note-mount"[^>]*aria-label="Why this now"/i, 'homepage pinned writing must include Why this now');
+  assert.match(homepagePinnedWriting, /class="note-mount"[^>]*aria-label="Overview"/i, 'homepage pinned writing must include Overview');
   assert.match(homepagePinnedWriting, /<h3[^>]*>\s*<a\b/i, 'homepage pinned writing title must follow its section heading at h3');
   assert.match(writingIndexPinned, /<h2[^>]*>\s*<a\b/i, 'Writing index pinned title must retain its default h2 level');
 }
@@ -685,6 +687,17 @@ assert.match(text(join(dist, 'favicon.svg')), /viewBox=/i, 'adaptive SVG must de
 for (const path of xmlFiles) {
   const xml = text(path);
   assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>/i, `${relative(dist, path)} XML declaration`);
+  if (staticDocumentKind(relative(dist, path), xml) === 'sitemap') {
+    assert.match(xml, /xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9"/, 'sitemap namespace');
+    const locations = matches(xml, /<loc>([^<]+)<\/loc>/g).map((match) => match[1]);
+    assert.ok(locations.length > 0, 'sitemaps must contain locations');
+    for (const location of locations) {
+      assert.equal(new URL(location).origin, site, 'sitemap locations must use the production origin');
+      const pathname = new URL(location).pathname;
+      assert.ok(existsSync(localAsset(pathname)) || existsSync(outputForPath(pathname)), `sitemap references missing ${pathname}`);
+    }
+    continue;
+  }
   assert.match(xml, /<rss\b[^>]*version="2\.0"/i, `${relative(dist, path)} must be RSS 2.0`);
   const items = matches(xml, /<item>([\s\S]*?)<\/item>/gi).map((match) => match[1]);
   assert.ok(items.length > 0, `${relative(dist, path)} must include items`);
@@ -720,4 +733,5 @@ assert.equal(
   'production output must not contain prototype or comparison routes',
 );
 
-console.log(`Certified ${routes.size} HTML routes, ${xmlFiles.length} feeds, and ${productionNames.length} emitted files.`);
+const sitemapCount = xmlFiles.filter((path) => staticDocumentKind(relative(dist, path), text(path)) === 'sitemap').length;
+console.log(`Certified ${routes.size} HTML routes, ${xmlFiles.length - sitemapCount} feeds, ${sitemapCount} sitemaps, and ${productionNames.length} emitted files.`);

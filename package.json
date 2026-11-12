@@ -6,6 +6,8 @@
     "dev": "astro dev",
     "prebuild": "npm run portrait",
     "build": "astro build",
+    "blog:generate": "node scripts/obsidian-blog.mjs",
+    "blog:verify": "node scripts/verify-obsidian-blog.mjs",
     "certify": "npm run build && node scripts/certify.mjs && node scripts/certify-theme-toggle.mjs && node --test test/*.test.mjs",
     "portrait": "node scripts/build-portrait.mjs",
     "preview": "astro preview"
@@ -14,9 +16,15 @@
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/vercel": "^8.0.0",
-    "astro": "^5.7.10"
+    "astro": "^5.7.10",
+    "rehype-callouts": "2.2.0",
+    "remark-parse": "11.0.0",
+    "unified": "11.0.5",
+    "unist-util-visit": "5.1.0",
+    "yaml": "2.9.1"
   },
   "devDependencies": {
+    "@astrojs/markdown-remark": "6.3.11",
     "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.0.0",
     "sharp": "^0.35.3",
