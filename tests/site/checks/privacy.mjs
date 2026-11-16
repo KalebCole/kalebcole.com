@@ -45,6 +45,7 @@ export const check = collect('privacy', async ({ routes }) => {
   const footer = html.match(/<footer\b[\s\S]*?<\/footer>/i)?.[0] ?? '';
   assert.doesNotMatch(footer, /href="\/privacy\/?"/i, '/privacy/ must stay out of the shared footer');
   assert.doesNotMatch(text(localAsset('/llms.txt')), /Work Cal Mirror/, '/llms.txt must not turn the app policy into a site-wide claim');
+  assert.match(text(localAsset('/llms-full.txt')), /It is not a privacy policy for kalebcole\.com/, '/llms-full.txt may include the app policy only with its disclaimer');
   assert.doesNotMatch(
     visibleText(main),
     /sqlite|retention|delet|encrypt|security|gdpr|ccpa|compliance|verif|cookie|local storage|locally|\bstored\b|oauth|calendar\.app\.created/i,

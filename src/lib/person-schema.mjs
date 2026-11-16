@@ -16,6 +16,13 @@ const profileUrls = ELSEWHERE_LINKS.map((link) => link.href).filter((href) =>
  */
 export const PERSON_ID = 'https://kalebcole.com/#person';
 
+/**
+ * Kaleb approved this wording verbatim on 2026-11-01 for /llms.txt. It is
+ * also the Person JSON-LD description so structured data and llms.txt match.
+ * Protected: do not edit, reflow, or rephrase it without his explicit ok.
+ */
+export const PERSON_DESCRIPTION = "Kaleb Cole is a software engineer at Microsoft in Seattle. He builds Azure's support ticket platform, where customers open tickets on their Azure resources and engineers triage and fix them, with a focus on scaling it and keeping it consistent across Azure's sovereign clouds. On his site he writes about AI agents and the things he builds with them.";
+
 /** @type {Record<string, unknown>} */
 export const PERSON_SCHEMA = {
   '@context': 'https://schema.org',
@@ -24,6 +31,7 @@ export const PERSON_SCHEMA = {
   name: 'Kaleb Cole',
   url: 'https://kalebcole.com/',
   image: 'https://kalebcole.com/me.jpg',
+  description: PERSON_DESCRIPTION,
   jobTitle: 'Software Engineer',
   worksFor: {
     '@type': 'Organization',
