@@ -1,0 +1,43 @@
+name: IndexNow
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  indexnow:
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'Production' &&
+      github.event.deployment.creator.login == 'vercel[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Confirm deployed commit belongs to master
+        id: master
+        env:
+          DEPLOYED_SHA: ${{ github.event.deployment.sha }}
+        run: |
+          if git merge-base --is-ancestor "$DEPLOYED_SHA" origin/master; then
+            echo 'confirmed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'Skipping deployment outside master.'
+          fi
+      - uses: actions/setup-node@v7
+        if: steps.master.outputs.confirmed == 'true'
+        with:
+          node-version: 22
+      # Source files do not map one-to-one to public routes. Submit the small
+      # live sitemap, including affected indexes and excluding unpublished drafts.
+      # No install or build, and no secret is needed for IndexNow.
+      - name: Submit public URLs
+        if: steps.master.outputs.confirmed == 'true'
+        run: npm run indexnow -- --from-sitemap
