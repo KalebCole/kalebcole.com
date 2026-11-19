@@ -9,6 +9,7 @@ const MODULES = [
   'routes',
   'llms-txt',
   'crawlers',
+  'indexnow',
   'page-structure',
   'navigation',
   'meta',

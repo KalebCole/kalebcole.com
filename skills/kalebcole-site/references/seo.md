@@ -11,6 +11,10 @@ Policy: `PRODUCT.md` (Purpose and Success; Anti-references), `DESIGN.md` (Browse
 
 After `shipping.md` "Verify production" passes, use URL Inspection in Google Search Console on the production URL and choose Request indexing. It needs the owner's signed-in Search Console; without access, give the owner the exact URL and steps. Do not claim a page is indexed without the Search Console result.
 
+## IndexNow
+
+IndexNow notifies Bing/Copilot about new or changed public URLs after a successful Vercel Production deployment of a commit on master; Google ignores IndexNow, so keep using Search Console for Google. This integration targets Bing/Copilot, though the protocol shares submissions with participating engines. The 32-character key in `scripts/indexnow.mjs` lives at `public/<key>.txt` and is public by design, not a secret. The workflow submits the full live sitemap because source changes do not reliably map one-to-one to URLs on this small site; it includes index pages and excludes drafts, but cannot notify removed URLs. By hand, run `npm run indexnow -- https://kalebcole.com/blog/example/` or `npm run indexnow -- --from-sitemap`; add `--dry-run` to print the payload without sending. Acceptance does not guarantee indexing.
+
 ## Evidence audit
 
 One report, four sections, each with a score, an evidence link, and the change since the previous report (the first says "baseline"):
