@@ -13,7 +13,6 @@ import { dist, root } from '../support/root.mjs';
 const widths = [320, 375];
 const posts = readdirSync(join(root, 'src', 'content', 'blog'))
   .filter((file) => file.endsWith('.md'))
-  .filter((file) => !/^draft:\s*true\s*$/m.test(readFileSync(join(root, 'src', 'content', 'blog', file), 'utf8')))
   .map((file) => `/blog/${file.replace(/\.md$/, '')}/`);
 const routes = ['/', '/blog/', ...posts, '/recommends/', '/projects/', '/privacy/', '/404.html'];
 

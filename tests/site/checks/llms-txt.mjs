@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { LLMS_FULL_PAGE_COPY, LLMS_FULL_TXT_NOTE } from '../../../src/lib/llms-txt.mjs';
 import { blogSource, collect, localAsset, matches, outputForPath, root, site, text } from './helpers.mjs';
 
-// /llms.txt: header fields, sections, links, and no drafts.
+// /llms.txt: header fields, sections, and links.
 export const check = collect('llms-txt', async ({ routes }) => {
   const llmsTxtPath = localAsset('/llms.txt');
   assert.ok(existsSync(llmsTxtPath), 'production build must emit /llms.txt');
@@ -32,11 +32,6 @@ export const check = collect('llms-txt', async ({ routes }) => {
   }
   assert.doesNotMatch(llmsTxt, /[\u2013\u2014]/, '/llms.txt must not contain em or en dashes');
 
-  for (const name of readdirSync(blogSource).filter((file) => file.endsWith('.md'))) {
-    if (/^draft:\s*true\s*$/m.test(text(join(blogSource, name)))) {
-      assert.ok(!llmsTxt.includes(`/blog/${name.replace(/\.md$/, '')}`), `/llms.txt must not include draft writing ${name}`);
-    }
-  }
   const llmsProfileUrls = ['https://github.com/KalebCole', 'https://www.linkedin.com/in/kaleb-cole', 'https://x.com/Kalebicole'];
   const llmsUrls = matches(llmsTxt, /https?:\/\/[^\s)]+/g).map((match) => match[0]);
   assert.ok(llmsUrls.length > 0, '/llms.txt must contain links');
@@ -93,19 +88,8 @@ export const check = collect('llms-txt', async ({ routes }) => {
 
   for (const name of readdirSync(blogSource).filter((file) => file.endsWith('.md'))) {
     const source = text(join(blogSource, name));
-    const slug = name.replace(/\.md$/, '');
-    if (/^draft:\s*true\s*$/m.test(source)) {
-      assert.ok(!llmsFull.includes(`/blog/${slug}`), `/llms-full.txt must not include draft writing ${name}`);
-      assert.ok(!llmsFull.includes('SECRET_DRAFT_BODY'), '/llms-full.txt must not leak draft bodies');
-      if (/^title:\s*"?This is a draft"?/m.test(source)) {
-        assert.ok(!llmsFull.includes('This is a draft'), '/llms-full.txt must not include the draft example title');
-      }
-    } else {
-      const title = source.match(/^title:\s*"?([^"\n]+)"?/m)?.[1];
-      assert.ok(title && llmsFull.includes(title), `/llms-full.txt must include published writing ${name}`);
-    }
+    const title = source.match(/^title:\s*"?([^"\n]+)"?/m)?.[1];
+    assert.ok(title && llmsFull.includes(title), `/llms-full.txt must include published writing ${name}`);
   }
   assert.ok(llmsFull.includes('I rewrote this site to make writing the default.'), '/llms-full.txt must include published writing bodies');
-  assert.ok(!llmsFull.includes('Example: a talk worth watching'), '/llms-full.txt must not include draft recommends');
-  assert.ok(!llmsFull.includes('Placeholder entry showing the watch medium'), '/llms-full.txt must not include draft recommend takes');
 });

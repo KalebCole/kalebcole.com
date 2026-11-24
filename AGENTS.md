@@ -17,7 +17,6 @@ Agent skills live in `skills/`; start site tasks (Writing, recommends, projects,
 - Keep writing personal, direct, candid, curious, and enthusiastic.
 - Preserve Kaleb's wording unless an editorial change is explicit and reviewable.
 - Follow the punctuation decision in `CONTEXT.md`: do not use em dashes anywhere in the repository or published output.
-- Do not publish drafts. Content with `draft: true` must stay out of public pages and feeds.
 - Treat WCAG 2.2 AA, responsive behavior, reduced motion, and lean delivery as release requirements.
 - Use the canonical public origin `https://kalebcole.com`.
 - Never commit credentials or tokens. Site builds read `src/data/github.json`; only the GitHub snapshot refresh requires `GITHUB_TOKEN`.

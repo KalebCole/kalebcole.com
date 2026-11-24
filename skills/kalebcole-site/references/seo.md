@@ -13,7 +13,7 @@ After `shipping.md` "Verify production" passes, use URL Inspection in Google Sea
 
 ## IndexNow
 
-IndexNow notifies Bing/Copilot about new or changed public URLs after a successful Vercel Production deployment of a commit on master; Google ignores IndexNow, so keep using Search Console for Google. This integration targets Bing/Copilot, though the protocol shares submissions with participating engines. The 32-character key in `scripts/indexnow.mjs` lives at `public/<key>.txt` and is public by design, not a secret. The workflow submits the full live sitemap because source changes do not reliably map one-to-one to URLs on this small site; it includes index pages and excludes drafts, but cannot notify removed URLs. By hand, run `npm run indexnow -- https://kalebcole.com/blog/example/` or `npm run indexnow -- --from-sitemap`; add `--dry-run` to print the payload without sending. Acceptance does not guarantee indexing.
+IndexNow notifies Bing/Copilot about new or changed public URLs after a successful Vercel Production deployment of a commit on master; Google ignores IndexNow, so keep using Search Console for Google. This integration targets Bing/Copilot, though the protocol shares submissions with participating engines. The 32-character key in `scripts/indexnow.mjs` lives at `public/<key>.txt` and is public by design, not a secret. The workflow submits the full live sitemap because source changes do not reliably map one-to-one to URLs on this small site; it includes index pages, but cannot notify removed URLs. By hand, run `npm run indexnow -- https://kalebcole.com/blog/example/` or `npm run indexnow -- --from-sitemap`; add `--dry-run` to print the payload without sending. Acceptance does not guarantee indexing.
 
 ## Evidence audit
 

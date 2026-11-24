@@ -19,17 +19,15 @@ test('a different source image gets a different thumbnail file name', () => {
 });
 
 test('frontmatter values are read quoted or bare', () => {
-  const source = '---\ntitle: "A: title"\nimage: "https://example.com/a.png"\ndraft: true\n---\nBody image: no\n';
+  const source = '---\ntitle: "A: title"\nimage: "https://example.com/a.png"\n---\nBody image: no\n';
   assert.equal(frontmatterValue(source, 'image'), 'https://example.com/a.png');
   assert.equal(frontmatterValue(source, 'title'), 'A: title');
-  assert.equal(frontmatterValue(source, 'draft'), 'true');
   assert.equal(frontmatterValue(source, 'author'), undefined);
 });
 
-test('only published recommends with artwork get thumbnails', async () => {
+test('only recommends with artwork get thumbnails', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'recommends-'));
   await writeFile(join(directory, 'with-image.md'), '---\ntitle: "A"\nimage: "https://example.com/a.png"\n---\n');
-  await writeFile(join(directory, 'draft.md'), '---\ntitle: "B"\nimage: "https://example.com/b.png"\ndraft: true\n---\n');
   await writeFile(join(directory, 'no-image.md'), '---\ntitle: "C"\n---\n');
   assert.deepEqual(await publishedRecommendImages(directory), [{ slug: 'with-image', image: 'https://example.com/a.png' }]);
 });

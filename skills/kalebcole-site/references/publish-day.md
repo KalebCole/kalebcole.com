@@ -1,6 +1,6 @@
 # Publish day: share drafts after a Writing piece is live
 
-Start only after `shipping.md` "Verify production" passes for a non-draft piece in `src/content/blog/`.
+Start only after `shipping.md` "Verify production" passes for a piece in `src/content/blog/`.
 
 Everything here is a draft for the owner to send (`SKILL.md`, Decisions that belong to the site owner). Policy for the words: `PRODUCT.md` (Voice and Personality; Anti-references).
 

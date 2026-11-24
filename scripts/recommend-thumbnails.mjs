@@ -4,7 +4,7 @@
  *   npm run recommend-thumbnails            (also runs on every build, via prebuild)
  *   npm run recommend-thumbnails -- --force (regenerate everything)
  *
- * It reads the `image` URL from each non-draft file in `src/content/recommends/`.
+ * It reads the `image` URL from each file in `src/content/recommends/`.
  * A recommend whose thumbnails are already listed in `src/data/recommend-thumbnails.json`
  * for the same URL, with every WebP file present, is left alone, so a normal build
  * needs no network. A new or changed image is downloaded, resized to the widths in
@@ -51,7 +51,6 @@ export async function publishedRecommendImages(directory = contentDirectory) {
   const entries = [];
   for (const file of files) {
     const source = await readFile(join(directory, file), 'utf8');
-    if (frontmatterValue(source, 'draft') === 'true') continue;
     const image = frontmatterValue(source, 'image');
     if (image) entries.push({ slug: file.replace(/\.md$/, ''), image });
   }

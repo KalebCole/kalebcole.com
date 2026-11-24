@@ -14,7 +14,6 @@ import { dist, root } from '../support/root.mjs';
 const blogSource = join(root, 'src', 'content', 'blog');
 const posts = readdirSync(blogSource)
   .filter((file) => file.endsWith('.md'))
-  .filter((file) => !/^draft:\s*true\s*$/m.test(readFileSync(join(blogSource, file), 'utf8')))
   .map((file) => `/blog/${file.replace(/\.md$/, '')}/`);
 const routes = ['/', '/blog/', ...posts, '/recommends/', '/projects/', '/privacy/', '/404.html'];
 // DESIGN.md, Composition and spacing: "Detailed media breakout: centered on the

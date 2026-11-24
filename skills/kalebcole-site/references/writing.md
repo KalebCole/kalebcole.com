@@ -47,7 +47,7 @@ Copy the pattern in `src/content/blog/amazon-muse-shopping-agents.md` (figures w
 ## 5. Prepare the PR
 
 1. Branch as in `shipping.md` and keep only this piece in the diff.
-2. Run the checks in `shipping.md`. For a non-draft piece, open `/blog/<slug>/` in the preview and confirm the title, one exact quote from the body, every image URL (WebP and fallback), the figcaptions, and video controls if any. A `draft: true` piece has no route, so instead confirm it is absent from `/blog/` and `/rss.xml`; do not clear the draft flag just to get a preview.
+2. Run the checks in `shipping.md`. Open `/blog/<slug>/` in the preview and confirm the title, one exact quote from the body, every image URL (WebP and fallback), the figcaptions, and video controls if any.
 
 ## Pitfall
 
