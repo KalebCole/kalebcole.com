@@ -9,6 +9,6 @@ Policy: `PRODUCT.md` (Recommendation eligibility), `CONTEXT.md` (Language: Recom
    ```bash
    node scripts/clean-url.mjs '<url>'
    ```
-3. Write `src/content/recommends/<kebab-slug>.md`, copying the shape of `src/content/recommends/you-said-no-mcp.md`. Set `medium` explicitly, since it defaults to `read` and a watch or listen item would be filed under read. `_example-watch.md` is an example; leave it as is unless the owner asks.
+3. Write `src/content/recommends/<kebab-slug>.md`, copying the shape of `src/content/recommends/you-said-no-mcp.md`. Set `medium` explicitly, since it defaults to `read` and a watch or listen item would be filed under read.
 4. Show the owner the full entry, take included.
 5. Run the checks in `shipping.md`. Check in the preview that `/recommends/` lists the entry newest-first under the right medium filter with the take verbatim, and that `/recommends/rss.xml` includes it.
