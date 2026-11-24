@@ -3,7 +3,6 @@ title: "Hello, world"
 date: 2026-05-26
 description: "First post on the new site. Why I rebuilt it."
 tags: ["meta", "writing"]
-draft: false
 ---
 
 I rewrote this site to make writing the default.

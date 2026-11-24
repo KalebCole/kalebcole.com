@@ -17,7 +17,7 @@ Use this skill to turn a user-supplied link and editorial details into a reviewa
 
 A recommendation is eligible only when Kaleb has deliberately selected it for the public site and supplied the title, destination URL, medium, and date. `author`, `source`, image, and tags may be added when known. `take` is optional.
 
-The system must never generate, expand, polish, summarize, infer, or replace a public take. If Kaleb supplies a take, preserve it verbatim. If he does not supply one, omit `take`. If any required publishing detail is missing, keep the candidate in draft rather than guessing.
+The system must never generate, expand, polish, summarize, infer, or replace a public take. If Kaleb supplies a take, preserve it verbatim. If he does not supply one, omit `take`. Do not guess missing required publishing details.
 
 ## Content shape
 
@@ -33,7 +33,6 @@ source: "Optional publisher or domain"
 image: "https://example.com/image.jpg"
 tags: ["optional-topic"]
 take: "Only Kaleb's exact supplied wording"
-draft: true
 ```
 
 The automation contract in `automations/recommends-capture/` is a public-safe dry-run interface. It contains no collector, account integration, or persistent runtime.
@@ -42,4 +41,4 @@ The automation contract in `automations/recommends-capture/` is a public-safe dr
 
 Before adding a recommend, run `node scripts/clean-url.mjs <url>` on its destination and image URLs and use the printed form.
 
-Before changing a recommendation file, confirm that the candidate satisfies the eligibility rule, uses an absolute `http` or `https` URL, has one supported medium, and stays `draft: true` until the normal editorial review publishes it.
+Before changing a recommendation file, confirm that the candidate satisfies the eligibility rule, uses an absolute `http` or `https` URL, and has one supported medium.

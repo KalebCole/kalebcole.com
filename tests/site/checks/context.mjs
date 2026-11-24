@@ -18,7 +18,7 @@ export function loadContext() {
     productionNames: emittedFiles.map((path) => relative(dist, path).replaceAll('\\', '/')),
     expectedRoutes: ['/', '/blog/', '/blog/github-copilot-canvases/', '/blog/hello-world/', '/recommends/', '/projects/', '/privacy/', '/404'],
     publishedPostSlugs: readdirSync(blogSource)
-      .filter((file) => file.endsWith('.md') && !/^draft:\s*true\s*$/m.test(text(join(blogSource, file))))
+      .filter((file) => file.endsWith('.md'))
       .map((file) => file.replace(/\.md$/, '')),
     homepage,
     homepageImageUrl: homepage === undefined ? undefined : metaContent(homepage, 'property', 'og:image'),

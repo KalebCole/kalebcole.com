@@ -64,14 +64,12 @@ feeds so readers can tell authorship from curation.
 
 Publication should preserve exact author wording and links unless a change is
 explicit, reviewable, and accepted. Writing may openly identify itself as
-unfinished when that state is honest and intentional; repository content
-marked as a draft remains unpublished.
+unfinished when that state is honest and intentional.
 
 ### Recommendation eligibility
 
 A recommendation is eligible only when Kaleb deliberately selects it for the
-public site and supplies its title, destination URL, medium, and date. It may
-remain a draft while optional metadata is completed. A **My thoughts**
+public site and supplies its title, destination URL, medium, and date. A **My thoughts**
 annotation is optional and, when present, must be Kaleb's exact supplied
 first-person wording. The system must never generate, expand, polish,
 summarize, infer, or replace a public take. It must not infer a public

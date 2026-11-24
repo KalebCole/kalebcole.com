@@ -3,7 +3,6 @@ title: "GitHub Copilot canvases and self-modifying software"
 date: 2026-07-16
 description: "How Copilot's extension model evolved into canvases, and why agent interfaces should adapt to our workflows."
 tags: ["github-copilot-desktop", "agents", "canvases"]
-draft: false
 ---
 
 I want to talk about a new feature of the [GitHub Copilot app](https://github.com/features/ai/github-app) that I am enamored with: [Canvases](https://docs.github.com/en/copilot/how-tos/github-copilot-app/working-with-canvas-extensions)

@@ -4,7 +4,7 @@ import PinnedWriting from '../../components/PinnedWriting.astro';
 import WritingRow from '../../components/WritingRow.astro';
 import Layout from '../../layouts/Layout.astro';
 
-const posts = (await getCollection('blog', ({ data }) => !data.draft))
+const posts = (await getCollection('blog'))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const [pinned, ...archive] = posts;
 

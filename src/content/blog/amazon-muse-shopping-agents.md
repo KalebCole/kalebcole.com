@@ -3,7 +3,6 @@ title: "Amazon, Muse, and the fight over the shopping front door"
 date: 2026-10-16
 description: "Muse may have strong consumer adoption, but Amazon is pushing back against the idea that a customer’s personal agent can use its store on the customer’s behalf."
 tags: ["agents", "commerce", "amazon", "muse"]
-draft: false
 ---
 
 Meta recently released their personal AI agent, Muse, at Meta Connect 2026. On [David Senra's podcast](https://www.davidsenra.com/episode/alexandr-wang), Meta chief AI officer and Scale AI co-founder Alexandr Wang said reposted third-party charts "would imply" that Muse is the fastest-growing consumer AI app of all time.

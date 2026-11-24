@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import { PRODUCTION_ORIGIN } from '../lib/site-origin.mjs';
 
 export async function GET(context) {
-  const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  const posts = (await getCollection('blog'))
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
   return rss({
