@@ -36,7 +36,7 @@ jobs:
         with:
           node-version: 22
       # Source files do not map one-to-one to public routes. Submit the small
-      # live sitemap, including affected indexes and excluding unpublished drafts.
+      # live sitemap, including affected indexes.
       # No install or build, and no secret is needed for IndexNow.
       - name: Submit public URLs
         if: steps.master.outputs.confirmed == 'true'

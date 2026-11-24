@@ -6,7 +6,7 @@ This folder defines a public-safe handoff for a possible recommendation. It is d
 
 A request contains only details intentionally supplied for one candidate. Do not add credentials, account identifiers, browser or media history, local paths, Telegram IDs, or runtime state. Do not infer a recommendation from observed activity.
 
-A candidate is eligible only when Kaleb deliberately selects it and supplies its title, destination URL, medium, and date. It remains a draft until the normal repository review publishes it.
+A candidate is eligible only when Kaleb deliberately selects it and supplies its title, destination URL, medium, and date.
 
 `take` is optional and can contain only Kaleb's exact supplied first-person wording. The validator returns the same request object without generating, expanding, polishing, summarizing, inferring, replacing, or otherwise transforming a public take. Omit `take` when no exact wording is supplied.
 
@@ -27,6 +27,6 @@ Validate the fixture without creating content or contacting a service:
 node scripts/validate-recommends-capture.mjs automations/recommends-capture/dry-run.fixture.json
 ```
 
-The dependency-free validator reads and enforces `contract.schema.json`, including required fields, strict object shape, enums, draft-only requests, URL policy, and strict calendar dates.
+The dependency-free validator reads and enforces `contract.schema.json`, including required fields, strict object shape, enums, URL policy, and strict calendar dates.
 
 A later private capture implementation must keep its runtime state outside this repository and emit only a request that satisfies this contract.

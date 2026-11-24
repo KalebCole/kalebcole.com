@@ -8,7 +8,6 @@ const blog = defineCollection({
     title: z.string(),
     date: z.date(),
     description: z.string(),
-    draft: z.boolean().default(false),
     tags: z.array(z.string()).default([]),
     updated: z.date().optional(),
   }),
@@ -30,7 +29,6 @@ const recommends = defineCollection({
     tags: z.array(z.string()).default([]),
     // Kaleb's optional annotation.
     take: z.string().optional(),
-    draft: z.boolean().default(false),
   }),
 });
 

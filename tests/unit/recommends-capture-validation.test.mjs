@@ -16,7 +16,6 @@ function validRequest(overrides = {}) {
     url: "https://example.com/articles/fictional",
     date: "2026-01-01",
     medium: "read",
-    draft: true,
     ...overrides,
   };
 }
@@ -83,8 +82,7 @@ test("rejects tracking, share, and credential query parameters", () => {
   validationError(validRequest({ image: "https://example.com/image.png?token=private" }));
 });
 
-test("rejects non-draft payloads and unknown fields", () => {
-  validationError(validRequest({ draft: false }));
+test("rejects unknown fields", () => {
   validationError(validRequest({ unexpected: "not part of the public contract" }));
 });
 

@@ -84,13 +84,13 @@ function projects(repos) {
 
 function publishedPosts(posts) {
   return posts
-    .filter((post) => !post.data.draft)
+    .slice()
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 }
 
 function publishedRecommends(recommends) {
   return recommends
-    .filter((item) => !item.data.draft)
+    .slice()
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 }
 
@@ -100,7 +100,7 @@ function ymd(date) {
 
 /**
  * @param {{
- *   posts: { id: string, data: { title: string, description: string, date: Date, draft?: boolean } }[],
+ *   posts: { id: string, data: { title: string, description: string, date: Date } }[],
  *   repos: { name: string, description: string | null, url: string }[],
  * }} input
  */
@@ -138,9 +138,9 @@ function pageBlock(title, url, lines) {
 
 /**
  * @param {{
- *   posts: { id: string, body?: string, data: { title: string, description: string, date: Date, draft?: boolean } }[],
+ *   posts: { id: string, body?: string, data: { title: string, description: string, date: Date } }[],
  *   repos: { name: string, description: string | null, url: string }[],
- *   recommends?: { data: { title: string, url: string, date: Date, medium?: string, author?: string, source?: string, take?: string, draft?: boolean } }[],
+ *   recommends?: { data: { title: string, url: string, date: Date, medium?: string, author?: string, source?: string, take?: string } }[],
  * }} input
  */
 export function buildLlmsFullTxt({ posts, repos, recommends = [] }) {

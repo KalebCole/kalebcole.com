@@ -3,9 +3,9 @@ import test from 'node:test';
 import { APPROVED_LLMS_TXT_COPY, LLMS_FULL_PAGE_COPY, LLMS_FULL_TXT_NOTE, buildLlmsFullTxt, buildLlmsTxt } from '../../src/lib/llms-txt.mjs';
 import { PERSON_SCHEMA } from '../../src/lib/person-schema.mjs';
 
-const post = (id, date, draft = false) => ({
+const post = (id, date) => ({
   id,
-  data: { title: `Title ${id}`, description: `Description ${id}.`, date: new Date(date), draft },
+  data: { title: `Title ${id}`, description: `Description ${id}.`, date: new Date(date) },
 });
 
 test('llms.txt header matches the approved format and the Person JSON-LD', () => {
@@ -50,12 +50,11 @@ test('llms.txt header matches the approved format and the Person JSON-LD', () =>
   assert.match(PERSON_SCHEMA.description, /software engineer at Microsoft in Seattle/);
 });
 
-test('llms.txt lists published posts newest first and never lists drafts', () => {
+test('llms.txt lists published posts newest first', () => {
   const output = buildLlmsTxt({
-    posts: [post('older', '2026-01-01'), post('secret', '2026-03-01', true), post('newer', '2026-02-01')],
+    posts: [post('older', '2026-01-01'), post('newer', '2026-02-01')],
     repos: [],
   });
-  assert.ok(!output.includes('secret'));
   assert.ok(output.indexOf('/blog/newer/') < output.indexOf('/blog/older/'));
   assert.match(output, /^- \[Title newer\]\(https:\/\/kalebcole\.com\/blog\/newer\/\): Description newer\.$/m);
 });
@@ -77,11 +76,11 @@ test('llms.txt lists the series first, then the pinned repos only', () => {
 test('llms-full.txt starts with llms.txt and adds published page text', () => {
   const posts = [
     post('older', '2026-01-01'),
-    { ...post('secret', '2026-03-01', true), body: 'SECRET_DRAFT_BODY' },
     { ...post('newer', '2026-02-01'), body: 'PUBLISHED_BODY about agents.' },
   ];
   posts[0].body = 'OLDER_BODY';
   const recommends = [
+    { data: { title: 'An older recommend', url: 'https://example.com/older', date: new Date('2026-01-01') } },
     {
       data: {
         title: 'A published recommend',
@@ -89,16 +88,6 @@ test('llms-full.txt starts with llms.txt and adds published page text', () => {
         date: new Date('2026-02-02'),
         medium: 'watch',
         take: 'I liked the routing example.',
-        draft: false,
-      },
-    },
-    {
-      data: {
-        title: 'A draft recommend',
-        url: 'https://example.com/secret',
-        date: new Date('2026-03-02'),
-        take: 'PLACEHOLDER_DRAFT_TAKE',
-        draft: true,
       },
     },
   ];
@@ -113,12 +102,9 @@ test('llms-full.txt starts with llms.txt and adds published page text', () => {
   assert.ok(full.includes(LLMS_FULL_PAGE_COPY.recommendsIntro));
   assert.ok(full.includes('PUBLISHED_BODY about agents.'));
   assert.ok(full.includes('OLDER_BODY'));
-  assert.ok(!full.includes('SECRET_DRAFT_BODY'));
-  assert.ok(!full.includes('/blog/secret'));
+  assert.ok(full.indexOf('A published recommend') < full.indexOf('An older recommend'));
   assert.ok(full.includes('A published recommend'));
   assert.ok(full.includes('I liked the routing example.'));
-  assert.ok(!full.includes('PLACEHOLDER_DRAFT_TAKE'));
-  assert.ok(!full.includes('A draft recommend'));
   assert.ok(full.includes(LLMS_FULL_PAGE_COPY.privacyParagraphs[0]));
   assert.doesNotMatch(full, /[\u2013\u2014]/);
 });
