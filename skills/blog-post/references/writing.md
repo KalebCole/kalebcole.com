@@ -9,7 +9,7 @@ Policy: `PRODUCT.md` (Voice and Personality; Content and Publishing Boundaries),
 | Pasted text or a Markdown file | Final wording. |
 | A voice note transcript | Their words with transcription noise. Ask before turning speech into prose, and propose the cleaned version as a diff. |
 | A doc or note export (Google Doc, Obsidian) | Final wording. Fetch the source and keep its headings, links, quotes, captions, and TODOs. |
-| A link plus a take | Probably a recommend. Confirm, then use `recommends.md`. |
+| A link plus a take | Probably a recommend. Confirm, then use `../../kalebcole-site/references/recommends.md`. |
 
 Do only what was asked: prepare (mechanical changes only), review (findings only), edit (the named pass), or PR. "Finalize" is ambiguous, so ask which one.
 
@@ -46,8 +46,8 @@ Copy the pattern in `src/content/blog/amazon-muse-shopping-agents.md` (figures w
 
 ## 5. Prepare the PR
 
-1. Branch as in `shipping.md` and keep only this piece in the diff.
-2. Run the checks in `shipping.md`. For a non-draft piece, open `/blog/<slug>/` in the preview and confirm the title, one exact quote from the body, every image URL (WebP and fallback), the figcaptions, and video controls if any. A `draft: true` piece has no route, so instead confirm it is absent from `/blog/` and `/rss.xml`; do not clear the draft flag just to get a preview.
+1. Branch as in `../../kalebcole-site/references/shipping.md` and keep only this piece in the diff.
+2. Run the checks in `../../kalebcole-site/references/shipping.md`. For a non-draft piece, open `/blog/<slug>/` in the preview and confirm the title, one exact quote from the body, every image URL (WebP and fallback), the figcaptions, and video controls if any. A `draft: true` piece has no route, so instead confirm it is absent from `/blog/` and `/rss.xml`; do not clear the draft flag just to get a preview.
 
 ## Pitfall
 
